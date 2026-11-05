@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>cz.romanondracek.FreeStepViewer</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>FreeSTEP Viewer</name>
+  <summary>View data exported from FreeSTEP pressure plates</summary>
+  <summary xml:lang="cs">Prohlížení dat exportovaných z tlakových plošin FreeSTEP</summary>
+  <developer id="cz.romanondracek">
+    <name>Roman Ondráček</name>
+  </developer>
+  <description>
+    <p>
+      Opens FreeSTEP exports (.zip) and exam files (.fre) without the original software
+      and shows posturography recordings.
+    </p>
+    <ul>
+      <li>Patients and exams from the export database</li>
+      <li>Pressure heat map with centre of pressure of both feet, playback of all acquisitions</li>
+      <li>Stabilogram and exam metadata</li>
+      <li>Export to CSV, NumPy and PNG</li>
+    </ul>
+    <p xml:lang="cs">
+      Otevírá exporty FreeSTEP (.zip) a soubory vyšetření (.fre) bez původního softwaru
+      a zobrazuje posturografické záznamy.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/Roman3349/FreeSTEP-Viewer</url>
+  <url type="bugtracker">https://github.com/Roman3349/FreeSTEP-Viewer/issues</url>
+  <url type="vcs-browser">https://github.com/Roman3349/FreeSTEP-Viewer</url>
+  <url type="translate">https://github.com/Roman3349/FreeSTEP-Viewer/tree/master/src/freestep/gui/locale</url>
+  <launchable type="desktop-id">cz.romanondracek.FreeStepViewer.desktop</launchable>
+  <provides>
+    <binary>freestep-viewer</binary>
+  </provides>
+  <categories>
+    <category>Science</category>
+    <category>MedicalSoftware</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-11-05"/>
+  </releases>
+</component>

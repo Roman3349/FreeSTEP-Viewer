@@ -1,0 +1,29 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Exported data contain personal (medical) data — never commit them
+*.zip
+*.fre
+*.mdb
+Postura.dat
+*.npz
+.pytest_cache/
+
+# Packaging output
+build-flatpak/
+.flatpak-builder/
+repo/
+*.flatpak
+*.dmg
+
+# IDE
+.idea/
+.vscode/

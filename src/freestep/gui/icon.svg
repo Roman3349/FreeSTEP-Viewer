@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="heel" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#c80000"/>
+      <stop offset="0.45" stop-color="#f5a000"/>
+      <stop offset="0.75" stop-color="#28c850"/>
+      <stop offset="1" stop-color="#00aae6"/>
+    </radialGradient>
+    <radialGradient id="ball" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f5d000"/>
+      <stop offset="0.6" stop-color="#28c850"/>
+      <stop offset="1" stop-color="#00aae6"/>
+    </radialGradient>
+    <g id="foot">
+      <ellipse cx="0" cy="38" rx="22" ry="26" fill="url(#heel)"/>
+      <path d="M-14 20 C-20 -2 -24 -22 -18 -40 L-6 -40 C-10 -20 -6 0 -2 20 Z" fill="#00aae6"/>
+      <ellipse cx="-4" cy="-52" rx="26" ry="20" fill="url(#ball)"/>
+      <circle cx="12" cy="-84" r="7.5" fill="#00aae6"/>
+      <circle cx="-4" cy="-86" r="5" fill="#00aae6"/>
+      <circle cx="-17" cy="-80" r="4.5" fill="#00aae6"/>
+    </g>
+  </defs>
+  <rect x="12" y="12" width="232" height="232" rx="36" fill="#ffffff" stroke="#3a4a5c" stroke-width="10"/>
+  <line x1="128" y1="34" x2="128" y2="222" stroke="#9aa5b1" stroke-width="4" stroke-dasharray="10 8"/>
+  <use href="#foot" transform="translate(84 134)"/>
+  <use href="#foot" transform="translate(172 134) scale(-1 1)"/>
+  <circle cx="128" cy="128" r="9" fill="#141414" stroke="#ffffff" stroke-width="3"/>
+</svg>

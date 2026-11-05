@@ -1,0 +1,53 @@
+# Flatpak manifest of FreeSTEP Viewer.
+#
+# Build and install locally (from the repository root):
+#   flatpak-builder --user --install-deps-from=flathub --force-clean --install \
+#       build-flatpak packaging/flatpak/cz.romanondracek.FreeStepViewer.yml
+#
+# PySide6 comes from the PySide base application; the other Python dependencies
+# are listed in python3-dependencies.json, generated from uv.lock by
+# generate_sources.py.
+id: cz.romanondracek.FreeStepViewer
+runtime: org.kde.Platform
+runtime-version: '6.10'
+sdk: org.kde.Sdk
+base: io.qt.PySide.BaseApp
+base-version: '6.10'
+command: freestep-viewer
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # Files are opened and saved through the file chooser portal.
+cleanup-commands:
+  - /app/cleanup-BaseApp.sh
+modules:
+  - python3-dependencies.json
+
+  - name: freestep
+    buildsystem: simple
+    build-commands:
+      - >-
+        SITE=$(python3 -c 'import sysconfig; print(sysconfig.get_path("purelib", vars={"base": "/app", "platbase": "/app"}))')
+        && mkdir -p "$SITE" && cp -r src/freestep "$SITE/"
+        && python3 -m compileall -q "$SITE/freestep"
+      - install -Dm755 packaging/flatpak/freestep-viewer.sh /app/bin/freestep-viewer
+      - install -Dm755 packaging/flatpak/freestep.sh /app/bin/freestep
+      - install -Dm644 packaging/linux/${FLATPAK_ID}.desktop -t /app/share/applications
+      - install -Dm644 packaging/linux/${FLATPAK_ID}.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 src/freestep/gui/icon.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - .git
+          - .venv
+          - .mypy_cache
+          - .ruff_cache
+          - .pytest_cache
+          - .flatpak-builder
+          - build-flatpak
+          - dist
+          - build
+          - FreeStep_Export_2025-03-17_10-52.zip

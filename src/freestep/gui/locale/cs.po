@@ -1,0 +1,478 @@
+# Czech translation of FreeStepViewer.
+msgid ""
+msgstr ""
+"Project-Id-Version: FreeStepViewer\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: freestep/gui/app.py
+msgid "yes"
+msgstr "ano"
+
+#: freestep/gui/app.py
+msgid "no"
+msgstr "ne"
+
+#: freestep/gui/app.py
+msgid "Static"
+msgstr "Statika"
+
+#: freestep/gui/app.py
+msgid "Static with photo"
+msgstr "Statika s fotografií"
+
+#: freestep/gui/app.py
+msgid "Dynamic"
+msgstr "Dynamika"
+
+#: freestep/gui/app.py
+msgid "Dynamic with video"
+msgstr "Dynamika s videem"
+
+#: freestep/gui/app.py
+msgid "Posturography"
+msgstr "Posturografie"
+
+#: freestep/gui/app.py
+msgid "Videography"
+msgstr "Videografie"
+
+#: freestep/gui/app.py
+msgid "Podoscanner"
+msgstr "Podoskener"
+
+#: freestep/gui/app.py
+msgid "Treadmill with video"
+msgstr "Běžecký pás s videem"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Unknown ({code})"
+msgstr "Neznámé ({code})"
+
+#: freestep/gui/app.py
+msgid "Barefoot"
+msgstr "Bez obuvi"
+
+#: freestep/gui/app.py
+msgid "Shoes"
+msgstr "V obuvi"
+
+#: freestep/gui/app.py
+msgid "Shoes with orthosis"
+msgstr "V obuvi s ortézou"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Acquisition {number} ({duration} s)"
+msgstr "Měření {number} ({duration} s)"
+
+#: freestep/gui/app.py
+msgid "Patient / exam"
+msgstr "Pacient / vyšetření"
+
+#: freestep/gui/app.py
+msgid "Date"
+msgstr "Datum"
+
+#: freestep/gui/app.py
+msgid "Type"
+msgstr "Typ"
+
+#: freestep/gui/app.py
+msgid "Acquisition (e.g. eyes open / eyes closed)"
+msgstr "Měření (např. oči otevřené / zavřené)"
+
+#: freestep/gui/app.py
+msgid "Frame"
+msgstr "Snímek"
+
+#: freestep/gui/app.py
+msgid "Maximum"
+msgstr "Maximum"
+
+#: freestep/gui/app.py
+msgid "Mean"
+msgstr "Průměr"
+
+#: freestep/gui/app.py
+msgid "Play / pause (Space)"
+msgstr "Přehrát / pozastavit (mezerník)"
+
+#: freestep/gui/app.py
+msgid " fps"
+msgstr " sn./s"
+
+#: freestep/gui/app.py
+msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"
+msgstr "Rychlost přehrávání ve snímcích za sekundu (nastaví se na vzorkovací frekvenci měření)"
+
+#: freestep/gui/app.py
+msgid "trail "
+msgstr "stopa "
+
+#: freestep/gui/app.py
+msgid "Number of previous frames drawn as the COP trail"
+msgstr "Počet předchozích snímků vykreslených jako stopa COP"
+
+#: freestep/gui/app.py
+msgid "No preview"
+msgstr "Bez náhledu"
+
+#: freestep/gui/app.py
+msgid "COP"
+msgstr "COP"
+
+#: freestep/gui/app.py
+msgid "Info"
+msgstr "Info"
+
+#: freestep/gui/app.py
+msgid "Preview"
+msgstr "Náhled"
+
+#: freestep/gui/app.py
+msgid "Open a FreeSTEP export (.zip) or exam (.fre) — File › Open or drag & drop"
+msgstr "Otevřete export FreeSTEP (.zip) nebo vyšetření (.fre) — Soubor › Otevřít nebo přetažením"
+
+#: freestep/gui/app.py
+msgid "&File"
+msgstr "&Soubor"
+
+#: freestep/gui/app.py
+msgid "&Open…"
+msgstr "&Otevřít…"
+
+#: freestep/gui/app.py
+msgid "Export COP to &CSV…"
+msgstr "Exportovat COP do &CSV…"
+
+#: freestep/gui/app.py
+msgid "Export frames to &NPZ…"
+msgstr "Exportovat snímky do &NPZ…"
+
+#: freestep/gui/app.py
+msgid "Save heat map as &PNG…"
+msgstr "Uložit tepelnou mapu jako &PNG…"
+
+#: freestep/gui/app.py
+msgid "&Quit"
+msgstr "&Konec"
+
+#: freestep/gui/app.py
+msgid "&View"
+msgstr "&Zobrazení"
+
+#: freestep/gui/app.py
+msgid "Smooth interpolation"
+msgstr "Vyhlazená interpolace"
+
+#: freestep/gui/app.py
+msgid "Sensor grid"
+msgstr "Mřížka senzorů"
+
+#: freestep/gui/app.py
+msgid "COP markers"
+msgstr "Značky COP"
+
+#: freestep/gui/app.py
+msgid "&Language"
+msgstr "&Jazyk"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "System ({language})"
+msgstr "Systém ({language})"
+
+#: freestep/gui/app.py
+msgid "Play / pause"
+msgstr "Přehrát / pozastavit"
+
+#: freestep/gui/app.py
+msgid "&Help"
+msgstr "&Nápověda"
+
+#: freestep/gui/app.py
+msgid "&About"
+msgstr "&O aplikaci"
+
+#: freestep/gui/app.py
+msgid "Password"
+msgstr "Heslo"
+
+#: freestep/gui/app.py
+msgid "The archive is encrypted with a different password:"
+msgstr "Archiv je zašifrovaný jiným heslem:"
+
+#: freestep/gui/app.py
+msgid "Open FreeSTEP data"
+msgstr "Otevřít data FreeSTEP"
+
+#: freestep/gui/app.py
+msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
+msgstr "Data FreeSTEP (*.zip *.fre);;Export (*.zip);;Vyšetření (*.fre);;Vše (*)"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Reading {name}…"
+msgstr "Načítám {name}…"
+
+#: freestep/gui/app.py
+msgid "Not a FreeSTEP export"
+msgstr "Nejde o export FreeSTEP"
+
+#: freestep/gui/app.py
+msgid "Cannot open export"
+msgstr "Export nelze otevřít"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "{name}: centre {centre}, {patients} patients, {exams} exams"
+msgstr "{name}: centrum {centre}, pacientů: {patients}, vyšetření: {exams}"
+
+#: freestep/gui/app.py
+msgid "Cannot open exam"
+msgstr "Vyšetření nelze otevřít"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "ID {id}"
+msgstr "ID {id}"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id}"
+msgstr "Vyšetření {id}"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id} (missing)"
+msgstr "Vyšetření {id} (chybí)"
+
+#: freestep/gui/app.py
+msgid "Decrypting and decoding Postura.dat…"
+msgstr "Dešifruji a dekóduji Postura.dat…"
+
+#: freestep/gui/app.py
+msgid "Cannot decode exam"
+msgstr "Vyšetření nelze dekódovat"
+
+#: freestep/gui/app.py
+msgid "No preview in this exam"
+msgstr "Vyšetření nemá náhled"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {n} acquisition, {platform}"
+msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
+msgstr[0] "Vyšetření {id} — {name}: {n} měření, {platform}"
+msgstr[1] "Vyšetření {id} — {name}: {n} měření, {platform}"
+msgstr[2] "Vyšetření {id} — {name}: {n} měření, {platform}"
+
+#: freestep/gui/app.py
+msgid "total"
+msgstr "celkem"
+
+#: freestep/gui/app.py
+msgid "left"
+msgstr "levá"
+
+#: freestep/gui/app.py
+msgid "right"
+msgstr "pravá"
+
+#: freestep/gui/app.py
+msgid "Frames"
+msgstr "Snímky"
+
+#: freestep/gui/app.py
+msgid "Duration"
+msgstr "Délka"
+
+#: freestep/gui/app.py
+msgid "Sampling rate"
+msgstr "Vzorkovací frekvence"
+
+#: freestep/gui/app.py
+msgid "COP path length"
+msgstr "Délka dráhy COP"
+
+#: freestep/gui/app.py
+msgid "Sum per frame"
+msgstr "Součet na snímek"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "{min} … {max} (mean {mean})"
+msgstr "{min} … {max} (průměr {mean})"
+
+#: freestep/gui/app.py
+msgid "Patient"
+msgstr "Pacient"
+
+#: freestep/gui/app.py
+msgid "Name"
+msgstr "Jméno"
+
+#: freestep/gui/app.py
+msgid "ID"
+msgstr "ID"
+
+#: freestep/gui/app.py
+msgid "Born"
+msgstr "Narozen(a)"
+
+#: freestep/gui/app.py
+msgid "Sex"
+msgstr "Pohlaví"
+
+#: freestep/gui/app.py
+msgid "Height"
+msgstr "Výška"
+
+#: freestep/gui/app.py
+msgid "Weight"
+msgstr "Hmotnost"
+
+#: freestep/gui/app.py
+msgid "Shoe size"
+msgstr "Velikost obuvi"
+
+#: freestep/gui/app.py
+msgid "SSID"
+msgstr "SSID"
+
+#: freestep/gui/app.py
+msgid "Exam"
+msgstr "Vyšetření"
+
+#: freestep/gui/app.py
+msgid "Time"
+msgstr "Čas"
+
+#: freestep/gui/app.py
+msgid "Footwear"
+msgstr "Obuv"
+
+#: freestep/gui/app.py
+msgid "Height at exam"
+msgstr "Výška při vyšetření"
+
+#: freestep/gui/app.py
+msgid "Weight at exam"
+msgstr "Hmotnost při vyšetření"
+
+#: freestep/gui/app.py
+msgid "Filter"
+msgstr "Filtr"
+
+#: freestep/gui/app.py
+msgid "raw data"
+msgstr "surová data"
+
+#: freestep/gui/app.py
+msgid "Note"
+msgstr "Poznámka"
+
+#: freestep/gui/app.py
+msgid "File"
+msgstr "Soubor"
+
+#: freestep/gui/app.py
+msgid "Recording"
+msgstr "Záznam"
+
+#: freestep/gui/app.py
+msgid "Platform"
+msgstr "Plošina"
+
+#: freestep/gui/app.py
+msgid "Format version"
+msgstr "Verze formátu"
+
+#: freestep/gui/app.py
+msgid "Sensors"
+msgstr "Senzory"
+
+#: freestep/gui/app.py
+msgid "Cell"
+msgstr "Buňka"
+
+#: freestep/gui/app.py
+msgid "Plate"
+msgstr "Plocha"
+
+#: freestep/gui/app.py
+msgid "Max value"
+msgstr "Max. hodnota"
+
+#: freestep/gui/app.py
+msgid "Acquisitions"
+msgstr "Měření"
+
+#: freestep/gui/app.py
+msgid "Unknown settings"
+msgstr "Neznámá nastavení"
+
+#: freestep/gui/app.py
+msgid "all frames"
+msgstr "všechny snímky"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "x {x} cm (col {col}), y {y} cm (row {row}): {value}"
+msgstr "x {x} cm (sloupec {col}), y {y} cm (řádek {row}): {value}"
+
+#: freestep/gui/app.py
+msgid "Export COP"
+msgstr "Export COP"
+
+#: freestep/gui/app.py
+msgid "CSV (*.csv)"
+msgstr "CSV (*.csv)"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Saved {path}"
+msgstr "Uloženo: {path}"
+
+#: freestep/gui/app.py
+msgid "Export frames"
+msgstr "Export snímků"
+
+#: freestep/gui/app.py
+msgid "NumPy (*.npz)"
+msgstr "NumPy (*.npz)"
+
+#: freestep/gui/app.py
+msgid "Save image"
+msgstr "Uložit obrázek"
+
+#: freestep/gui/app.py
+msgid "PNG (*.png)"
+msgstr "PNG (*.png)"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Could not save {path}"
+msgstr "Nelze uložit: {path}"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "About {app}"
+msgstr "O aplikaci {app}"
+
+#: freestep/gui/app.py
+msgid "Viewer for data exported from FreeSTEP pressure plates."
+msgstr "Prohlížeč dat exportovaných z tlakových plošin FreeSTEP."
+
+#: freestep/gui/widgets.py
+msgid "No exam loaded"
+msgstr "Není načteno žádné vyšetření"
+
+#: freestep/gui/widgets.py
+msgid "No COP data"
+msgstr "Žádná data COP"
