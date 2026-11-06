@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import html
 import sys
+import threading
 import traceback
 import zipfile
 from collections.abc import Callable
@@ -20,7 +21,20 @@ from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import QEvent, QObject, QRunnable, QSettings, Qt, QThreadPool, QTimer, Signal, Slot
+from PySide6.QtCore import (
+    QBuffer,
+    QByteArray,
+    QEvent,
+    QIODevice,
+    QObject,
+    QRunnable,
+    QSettings,
+    Qt,
+    QThreadPool,
+    QTimer,
+    Signal,
+    Slot,
+)
 from PySide6.QtGui import (
     QAction,
     QActionGroup,
@@ -29,12 +43,16 @@ from PySide6.QtGui import (
     QDropEvent,
     QFileOpenEvent,
     QIcon,
+    QImage,
     QKeySequence,
     QPixmap,
 )
 from PySide6.QtWidgets import (
     QApplication,
+    QCheckBox,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QHBoxLayout,
     QInputDialog,
@@ -43,6 +61,8 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMenu,
     QMessageBox,
+    QProgressDialog,
+    QPushButton,
     QScrollArea,
     QSlider,
     QSpinBox,
@@ -57,9 +77,10 @@ from PySide6.QtWidgets import (
 )
 
 from ..archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
+from ..batch import FORMATS, INDEX_NAME, BatchResult, batch_export
 from ..models import Exam, FilterSettings, Patient
 from ..postura import Acquisition, Postura
-from ..writers import write_cop_csv, write_npz
+from ..writers import write_cop_csv, write_mat, write_npz
 from .i18n import (
     AUTO_LANGUAGE,
     LANGUAGES,
@@ -124,6 +145,87 @@ class _Task(QRunnable):
             self.signals.failed.emit(exc)
         else:
             self.signals.finished.emit(result)
+
+
+class _Progress(QObject):
+    """Progress reports of a background batch export (emitted in the worker thread, delivered in the GUI)."""
+
+    changed = Signal(int, int, object)  # index, count, exam ID
+
+
+def _format_labels() -> dict[str, str]:
+    """Translated descriptions of the batch export formats (keys of :data:`freestep.batch.FORMATS`)."""
+    return {
+        "mat": tr("MATLAB: frames and COP (.mat)"),
+        "npz": tr("NumPy: frames and COP (.npz)"),
+        "cop-csv": tr("COP per frame (_cop.csv)"),
+    }
+
+
+class _BatchDialog(QDialog):
+    """Options of the batch export: output directory and formats."""
+
+    def __init__(self, parent: QWidget, directory: str, formats: list[str]) -> None:
+        """Create the dialog.
+
+        Args:
+            parent: Parent window.
+            directory: Proposed output directory.
+            formats: Initially checked formats.
+        """
+        super().__init__(parent)
+        self.setWindowTitle(tr("Batch export"))
+        layout = QVBoxLayout(self)
+        info = QLabel(
+            tr(
+                "Exports every exam of the open export. Files are named "
+                "<birth date>_<name>_exam_<ID>, e.g. 1990-01-31_Jan_Novak_exam_160.mat; "
+                "{index} lists the exported exams.",
+                index=INDEX_NAME,
+            )
+        )
+        info.setTextFormat(Qt.TextFormat.PlainText)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+
+        row = QHBoxLayout()
+        self.directory = QLineEdit(directory)
+        browse = QPushButton(tr("Browse…"))
+        browse.clicked.connect(self._browse)
+        row.addWidget(QLabel(tr("Directory")))
+        row.addWidget(self.directory, 1)
+        row.addWidget(browse)
+        layout.addLayout(row)
+
+        self.checks: dict[str, QCheckBox] = {}
+        for key, label in _format_labels().items():
+            check = QCheckBox(label)
+            check.setChecked(key in formats)
+            check.toggled.connect(self._update_ok)
+            self.checks[key] = check
+            layout.addWidget(check)
+
+        self.buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+        layout.addWidget(self.buttons)
+        self.directory.textChanged.connect(self._update_ok)
+        self._update_ok()
+
+    def formats(self) -> list[str]:
+        """Return the checked formats in the order of :data:`freestep.batch.FORMATS`."""
+        return [key for key in FORMATS if self.checks[key].isChecked()]
+
+    def _browse(self) -> None:
+        """Let the user pick the output directory."""
+        path = QFileDialog.getExistingDirectory(self, tr("Batch export"), self.directory.text())
+        if path:
+            self.directory.setText(path)
+
+    def _update_ok(self) -> None:
+        """Allow OK only with a directory and at least one format."""
+        ok = bool(self.directory.text().strip()) and bool(self.formats())
+        self.buttons.button(QDialogButtonBox.StandardButton.Ok).setEnabled(ok)
 
 
 @dataclass
@@ -220,6 +322,49 @@ def _acquisition_label(acq: Acquisition) -> str:
     """Name of an acquisition for the selection box, e.g. "Acquisition 1 (51.2 s)"."""
     text = tr("Acquisition {number} ({duration} s)", number=acq.index + 1, duration=f"{acq.duration_s:.1f}")
     return f"{text} — {acq.label}" if acq.label else text
+
+
+def _show_on_heatmap(
+    view: HeatmapView, loaded: LoadedExam, acq: Acquisition, frame: int, mode: int, *, trail: int
+) -> None:
+    """Show a frame, or the maximum / mean image, of an acquisition on a heat map.
+
+    Args:
+        view: The heat map.
+        loaded: The exam.
+        acq: The acquisition.
+        frame: Zero-based frame index (used in the frame mode).
+        mode: ``_MODE_FRAME``, ``_MODE_MAX`` or ``_MODE_MEAN``.
+        trail: Number of previous frames drawn as the COP trail (0: none; the whole
+            trajectory in the maximum / mean mode).
+    """
+    h = loaded.postura.header
+    cell = (float(h.cell_width_mm), float(h.cell_height_mm))
+    if mode == _MODE_FRAME:
+        view.set_frame(
+            acq.pressure[frame],
+            h.max_value,
+            cell,
+            cops=[
+                (COP_LEFT_COLOR, acq.cop_left[frame]),
+                (COP_RIGHT_COLOR, acq.cop_right[frame]),
+                (COP_TOTAL_COLOR, acq.cop_total[frame]),
+            ],
+            trail=acq.cop_total[max(0, frame - trail) : frame + 1] if trail else None,
+        )
+    else:
+        image = loaded.max_images[acq.index] if mode == _MODE_MAX else acq.mean_image
+        view.set_frame(image, h.max_value, cell, trail=acq.cop_total if trail else None)
+
+
+def _png_bytes(image: QImage) -> bytes:
+    """Encode an image as PNG."""
+    data = QByteArray()
+    buffer = QBuffer(data)
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+    image.save(buffer, "PNG")  # type: ignore[call-overload]  # the stubs say bytes, PySide6 accepts only str
+    buffer.close()
+    return bytes(data.data())
 
 
 # -- main window ---------------------------------------------------------------
@@ -365,8 +510,13 @@ class MainWindow(QMainWindow):
         self.export_actions = [
             self._add_action(file_menu, tr("Export COP to &CSV…"), self._export_csv),
             self._add_action(file_menu, tr("Export frames to &NPZ…"), self._export_npz),
+            self._add_action(file_menu, tr("Export to &MATLAB…"), self._export_mat),
             self._add_action(file_menu, tr("Save heat map as &PNG…"), self._export_png),
+            self._add_action(file_menu, tr("Export all images to &ZIP…"), self._export_png_zip),
         ]
+        file_menu.addSeparator()
+        self.batch_action = self._add_action(file_menu, tr("&Batch export of all exams…"), self._batch_export)
+        self.batch_action.setEnabled(self._export is not None)
         file_menu.addSeparator()
         self._add_action(file_menu, tr("&Quit"), self.close, QKeySequence.StandardKey.Quit)
 
@@ -612,6 +762,7 @@ class MainWindow(QMainWindow):
             self._close_export()
             self._export = export
             self._export_name = path.name
+            self.batch_action.setEnabled(True)
             self._populate_tree(export)
             self.setWindowTitle(f"{path.name} — {APP_NAME}")
             self._show_export_status()
@@ -672,6 +823,7 @@ class MainWindow(QMainWindow):
         if self._export is not None:
             self._export.close()
             self._export = None
+        self.batch_action.setEnabled(False)
 
     def _populate_tree(self, export: FreeStepExport) -> None:
         """Fill the tree with the patients of ``export`` and their exams.
@@ -889,28 +1041,13 @@ class MainWindow(QMainWindow):
         loaded, acq = self._current, self._current_acquisition()
         if loaded is None or acq is None:
             return
-        h = loaded.postura.header
         frame = min(self.slider.value(), acq.frame_count - 1)
         mode = self.mode.currentIndex()
-        cell = (float(h.cell_width_mm), float(h.cell_height_mm))
+        _show_on_heatmap(self.heatmap, loaded, acq, frame, mode, trail=self.trail.value())
         if mode == _MODE_FRAME:
-            start = max(0, frame - self.trail.value())
-            self.heatmap.set_frame(
-                acq.pressure[frame],
-                h.max_value,
-                cell,
-                cops=[
-                    (COP_LEFT_COLOR, acq.cop_left[frame]),
-                    (COP_RIGHT_COLOR, acq.cop_right[frame]),
-                    (COP_TOTAL_COLOR, acq.cop_total[frame]),
-                ],
-                trail=acq.cop_total[start : frame + 1] if self.trail.value() else None,
-            )
             sums = loaded.pressure_sums[acq.index]
             self.frame_label.setText(f"{frame + 1} / {acq.frame_count}  {acq.time_s[frame]:.2f} s  Σ {sums[frame]}")
         else:
-            image = loaded.max_images[acq.index] if mode == _MODE_MAX else acq.mean_image
-            self.heatmap.set_frame(image, h.max_value, cell, trail=acq.cop_total if self.trail.value() else None)
             self.frame_label.setText(tr("all frames"))
         self.cop_plot.set_current(frame)
 
@@ -996,6 +1133,14 @@ class MainWindow(QMainWindow):
         write_npz(self._current.postura, path)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
+    def _export_mat(self) -> None:
+        """Save the frames and COP of all acquisitions as a MATLAB file."""
+        title = tr("Export to MATLAB")
+        if self._current is None or (path := self._save_name(title, ".mat", tr("MATLAB (*.mat)"))) is None:
+            return
+        write_mat(self._current.postura, path)
+        self.statusBar().showMessage(tr("Saved {path}", path=path))
+
     def _export_png(self) -> None:
         """Save the heat map as shown (frame, maximum or mean) as PNG."""
         if self._current is None:
@@ -1014,6 +1159,129 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(tr("Saved {path}", path=path))
         else:
             self.statusBar().showMessage(tr("Could not save {path}", path=path))
+
+    def _export_png_zip(self) -> None:
+        """Save every frame and the maximum and mean image of all acquisitions as PNGs in a ZIP.
+
+        The images look like the heat map (same size and display options). The
+        ZIP holds ``a<n>/frame_<k>.png``, ``a<n>_max.png`` and ``a<n>_mean.png``.
+        Rendering runs in the GUI thread (widgets cannot paint elsewhere) behind a
+        cancellable progress dialog; a cancelled export leaves no file.
+        """
+        loaded = self._current
+        if loaded is None or (path := self._save_name(tr("Export images"), "_images.zip", tr("ZIP (*.zip)"))) is None:
+            return
+        self._stop()
+        view = HeatmapView()
+        view.resize(self.heatmap.size())
+        for attribute, value in self._view_options.items():
+            setattr(view, attribute, value)
+        jobs = [
+            (acq, frame, _MODE_FRAME, f"a{acq.index + 1}/frame_{frame + 1:04d}.png")
+            for acq in loaded.postura.acquisitions
+            for frame in range(acq.frame_count)
+        ]
+        for acq in loaded.postura.acquisitions:
+            jobs += [
+                (acq, 0, _MODE_MAX, f"a{acq.index + 1}_max.png"),
+                (acq, 0, _MODE_MEAN, f"a{acq.index + 1}_mean.png"),
+            ]
+        progress = QProgressDialog(tr("Rendering images…"), tr("Cancel"), 0, len(jobs), self)
+        progress.setWindowTitle(tr("Export images"))
+        progress.setWindowModality(Qt.WindowModality.WindowModal)
+        progress.setMinimumDuration(300)
+        try:
+            # PNG is compressed already, so the members are only stored
+            with zipfile.ZipFile(path, "w", zipfile.ZIP_STORED) as archive:
+                for done, (acq, frame, mode, name) in enumerate(jobs):
+                    if done % 20 == 0:
+                        progress.setValue(done)
+                        QApplication.processEvents()
+                        if progress.wasCanceled():
+                            break
+                    _show_on_heatmap(view, loaded, acq, frame, mode, trail=self.trail.value())
+                    image = view.image()
+                    if image is not None:
+                        archive.writestr(name, _png_bytes(image))
+            cancelled = progress.wasCanceled()
+        except OSError as exc:
+            progress.close()
+            self._error(tr("Could not save {path}", path=path), exc)
+            return
+        progress.close()
+        if cancelled:
+            path.unlink(missing_ok=True)
+            self.statusBar().showMessage(tr("Export cancelled"))
+        else:
+            self.statusBar().showMessage(tr("Saved {path}", path=path))
+
+    def _batch_export(self) -> None:
+        """Export every exam of the open export into a directory (see :func:`freestep.batch.batch_export`).
+
+        Decrypting runs in the worker thread behind a cancellable progress dialog;
+        an export cancelled midway keeps the files written so far.
+        """
+        export = self._export
+        if export is None:
+            return
+        saved_formats = str(self._settings.value("batch_formats", "mat")).split(",")
+        start = str(self._settings.value("batch_dir", self._settings.value("last_dir", str(Path.home()))))
+        dialog = _BatchDialog(self, start, saved_formats)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        directory = Path(dialog.directory.text().strip())
+        formats = dialog.formats()
+        self._settings.setValue("batch_dir", str(directory))
+        self._settings.setValue("batch_formats", ",".join(formats))
+        self._stop()
+
+        progress = QProgressDialog(tr("Preparing…"), tr("Cancel"), 0, max(len(export.exams), 1), self)
+        progress.setWindowTitle(tr("Batch export"))
+        progress.setWindowModality(Qt.WindowModality.WindowModal)
+        progress.setMinimumDuration(0)
+        progress.setValue(0)
+        cancel = threading.Event()
+        progress.canceled.connect(cancel.set)
+        reporter = _Progress()
+
+        def changed(index: int, count: int, exam_id: object) -> None:
+            progress.setMaximum(count)
+            progress.setValue(index)
+            progress.setLabelText(tr("Exam {id} ({n} of {count})", id=exam_id, n=index + 1, count=count))
+
+        reporter.changed.connect(changed)
+
+        def work() -> BatchResult:
+            def report(index: int, count: int, exam: Exam) -> bool:
+                reporter.changed.emit(index, count, exam.id)
+                return not cancel.is_set()
+
+            return batch_export(export, directory, formats, progress=report)
+
+        def done(result: BatchResult) -> None:
+            progress.close()
+            reporter.deleteLater()
+            text = ntr(
+                "{n} file written to {path}.",
+                "{n} files written to {path}.",
+                len(result.written),
+                path=directory,
+            )
+            if result.cancelled:
+                text += "\n" + tr("The export was cancelled.")
+            if result.skipped:
+                text += "\n\n" + tr("Skipped exams:") + "\n"
+                text += "\n".join(f"{exam.id}: {reason}" for exam, reason in result.skipped)
+            self.statusBar().showMessage(text.splitlines()[0])
+            icon = QMessageBox.Icon.Warning if result.skipped else QMessageBox.Icon.Information
+            QMessageBox(icon, tr("Batch export"), text, parent=self).exec()
+
+        def fail(exc: BaseException) -> None:
+            progress.close()
+            reporter.deleteLater()
+            self._error(tr("Batch export failed"), exc)
+
+        self._run(work, done, fail)
 
     # -- misc ------------------------------------------------------------------------
 

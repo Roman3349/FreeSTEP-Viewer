@@ -1,4 +1,4 @@
-"""Writing decoded recordings to common file formats (CSV, NumPy ``.npz``)."""
+"""Writing decoded recordings to common file formats (CSV, NumPy ``.npz``, MATLAB ``.mat``)."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import csv
 import os
 
 import numpy as np
+from scipy.io import savemat
 
 from .postura import Postura
 
@@ -79,3 +80,58 @@ def write_npz(post: Postura, path: str | os.PathLike[str]) -> None:
             }
         )
     np.savez_compressed(path, **arrays)  # type: ignore[arg-type]
+
+
+def write_mat(
+    post: Postura,
+    path: str | os.PathLike[str],
+) -> None:
+    """Write all acquisitions to a compressed MATLAB file (format 5, readable by MATLAB and Octave).
+
+    The file holds ``platform``, ``cell_size_mm`` (``[width height]``), ``header``
+    (struct of the file header: ``version``, ``columns``, ``rows``, ``max_value``,
+    ``settings``, …) and the struct array ``acq`` with one element per
+    acquisition: ``label``, ``sampling_rate_hz``, ``time_s``, ``timestamp_ms`` and
+    ``unknown`` (the per-frame int16 of unknown meaning; column vectors),
+    ``pressure`` (``rows × columns × frames``, so ``imagesc(acq(1).pressure(:,:,k))``
+    shows frame ``k``), ``cop_total``, ``cop_left``, ``cop_right`` (``frames × 2``
+    in cm, as stored) and ``mean_image``.
+
+    Args:
+        post: The recording.
+        path: Output file (overwritten).
+    """
+    fields = ["label", "sampling_rate_hz", "time_s", "timestamp_ms", "unknown", "pressure"]
+    fields += ["cop_total", "cop_left", "cop_right", "mean_image"]
+    acq_array = np.empty((1, len(post.acquisitions)), dtype=[(name, object) for name in fields])
+    for i, acq in enumerate(post.acquisitions):
+        values: list[object] = [
+            acq.label,
+            acq.sampling_rate_hz,
+            acq.time_s.reshape(-1, 1),
+            acq.timestamps_ms.astype(np.int32).reshape(-1, 1),
+            acq.records["unknown"].astype(np.int16).reshape(-1, 1),
+            np.moveaxis(acq.pressure, 0, -1),
+            np.ascontiguousarray(acq.cop_total),
+            np.ascontiguousarray(acq.cop_left),
+            np.ascontiguousarray(acq.cop_right),
+            np.ascontiguousarray(acq.mean_image),
+        ]
+        acq_array[0, i] = tuple(values)
+    h = post.header
+    variables: dict[str, object] = {
+        "platform": h.platform,
+        "cell_size_mm": np.array([[h.cell_width_mm, h.cell_height_mm]], dtype=np.float64),
+        "header": {
+            "version": h.version,
+            "platform": h.platform,
+            "columns": h.columns,
+            "rows": h.rows,
+            "cell_width_mm": h.cell_width_mm,
+            "cell_height_mm": h.cell_height_mm,
+            "max_value": h.max_value,
+            "settings": np.array([h.settings], dtype=np.int16),
+        },
+        "acq": acq_array,
+    }
+    savemat(path, variables, do_compression=True, oned_as="column")

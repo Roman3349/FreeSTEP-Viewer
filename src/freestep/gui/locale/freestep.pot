@@ -3,10 +3,39 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 23:39+0000\n"
+"POT-Creation-Date: 2026-11-06 14:22+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: freestep/gui/app.py
+msgid "MATLAB: frames and COP (.mat)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "NumPy: frames and COP (.npz)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "COP per frame (_cop.csv)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Batch export"
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exports every exam of the open export. Files are named <birth date>_<name>_exam_<ID>, e.g. 1990-01-31_Jan_Novak_exam_160.mat; {index} lists the exported exams."
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Browse…"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Directory"
+msgstr ""
 
 #: freestep/gui/app.py
 msgid "yes"
@@ -155,7 +184,19 @@ msgid "Export frames to &NPZ…"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Export to &MATLAB…"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "Save heat map as &PNG…"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Export all images to &ZIP…"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "&Batch export of all exams…"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -447,6 +488,14 @@ msgid "NumPy (*.npz)"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Export to MATLAB"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "MATLAB (*.mat)"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "Save image"
 msgstr ""
 
@@ -457,6 +506,54 @@ msgstr ""
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Could not save {path}"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Export images"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "ZIP (*.zip)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Rendering images…"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Cancel"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Export cancelled"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Preparing…"
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id} ({n} of {count})"
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "{n} file written to {path}."
+msgid_plural "{n} files written to {path}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/app.py
+msgid "The export was cancelled."
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Skipped exams:"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Batch export failed"
 msgstr ""
 
 #: freestep/gui/app.py

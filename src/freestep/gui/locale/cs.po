@@ -9,6 +9,35 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: freestep/gui/app.py
+msgid "MATLAB: frames and COP (.mat)"
+msgstr "MATLAB: snímky a COP (.mat)"
+
+#: freestep/gui/app.py
+msgid "NumPy: frames and COP (.npz)"
+msgstr "NumPy: snímky a COP (.npz)"
+
+#: freestep/gui/app.py
+msgid "COP per frame (_cop.csv)"
+msgstr "COP po snímcích (_cop.csv)"
+
+#: freestep/gui/app.py
+msgid "Batch export"
+msgstr "Hromadný export"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exports every exam of the open export. Files are named <birth date>_<name>_exam_<ID>, e.g. 1990-01-31_Jan_Novak_exam_160.mat; {index} lists the exported exams."
+msgstr "Exportuje všechna vyšetření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_exam_<ID>, např. 1990-01-31_Jan_Novak_exam_160.mat; {index} obsahuje seznam exportovaných vyšetření."
+
+#: freestep/gui/app.py
+msgid "Browse…"
+msgstr "Procházet…"
+
+#: freestep/gui/app.py
+msgid "Directory"
+msgstr "Složka"
+
+#: freestep/gui/app.py
 msgid "yes"
 msgstr "ano"
 
@@ -155,8 +184,20 @@ msgid "Export frames to &NPZ…"
 msgstr "Exportovat snímky do &NPZ…"
 
 #: freestep/gui/app.py
+msgid "Export to &MATLAB…"
+msgstr "Exportovat do &MATLABu…"
+
+#: freestep/gui/app.py
 msgid "Save heat map as &PNG…"
 msgstr "Uložit tepelnou mapu jako &PNG…"
+
+#: freestep/gui/app.py
+msgid "Export all images to &ZIP…"
+msgstr "Exportovat všechny obrázky do &ZIP…"
+
+#: freestep/gui/app.py
+msgid "&Batch export of all exams…"
+msgstr "&Hromadný export všech vyšetření…"
 
 #: freestep/gui/app.py
 msgid "&Quit"
@@ -448,6 +489,14 @@ msgid "NumPy (*.npz)"
 msgstr "NumPy (*.npz)"
 
 #: freestep/gui/app.py
+msgid "Export to MATLAB"
+msgstr "Export do MATLABu"
+
+#: freestep/gui/app.py
+msgid "MATLAB (*.mat)"
+msgstr "MATLAB (*.mat)"
+
+#: freestep/gui/app.py
 msgid "Save image"
 msgstr "Uložit obrázek"
 
@@ -459,6 +508,55 @@ msgstr "PNG (*.png)"
 #, python-brace-format
 msgid "Could not save {path}"
 msgstr "Nelze uložit: {path}"
+
+#: freestep/gui/app.py
+msgid "Export images"
+msgstr "Export obrázků"
+
+#: freestep/gui/app.py
+msgid "ZIP (*.zip)"
+msgstr "ZIP (*.zip)"
+
+#: freestep/gui/app.py
+msgid "Rendering images…"
+msgstr "Vykreslování obrázků…"
+
+#: freestep/gui/app.py
+msgid "Cancel"
+msgstr "Zrušit"
+
+#: freestep/gui/app.py
+msgid "Export cancelled"
+msgstr "Export zrušen"
+
+#: freestep/gui/app.py
+msgid "Preparing…"
+msgstr "Příprava…"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id} ({n} of {count})"
+msgstr "Vyšetření {id} ({n} z {count})"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "{n} file written to {path}."
+msgid_plural "{n} files written to {path}."
+msgstr[0] "Zapsán {n} soubor do {path}."
+msgstr[1] "Zapsány {n} soubory do {path}."
+msgstr[2] "Zapsáno {n} souborů do {path}."
+
+#: freestep/gui/app.py
+msgid "The export was cancelled."
+msgstr "Export byl zrušen."
+
+#: freestep/gui/app.py
+msgid "Skipped exams:"
+msgstr "Přeskočená vyšetření:"
+
+#: freestep/gui/app.py
+msgid "Batch export failed"
+msgstr "Hromadný export selhal"
 
 #: freestep/gui/app.py
 #, python-brace-format

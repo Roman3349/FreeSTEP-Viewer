@@ -24,7 +24,9 @@ uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
 - Pressure heat map with the COP of the whole plate and of both halves, plus a COP trail.
 - Playback (Space, arrow keys, PageUp/PageDown) and frame / maximum / mean display modes.
 - Stabilogram, patient/exam/recording metadata and the `Preview1.jpg` preview.
-- Export of the COP to CSV, of the frames to NPZ and of the heat map to PNG.
+- Export of the COP to CSV, of the frames to NPZ or MATLAB `.mat`, of the heat map to PNG and of all frames as
+  PNGs in a ZIP.
+- Batch export of all exams of an export (File › Batch export), see below.
 - English and Czech UI (View › Language, switches without a restart). The default is the system language.
 
 Decryption runs in the background, so the window stays responsive. The viewer asks for a
@@ -36,11 +38,31 @@ password if the archive uses a different one.
 uv run freestep info FreeStep_Export.zip                      # patients and exams
 uv run freestep exam FreeStep_Export.zip --exam 158 --csv cop.csv --npz frames.npz --preview preview.jpg
 uv run freestep exam 00000158.fre --raw Postura.dat           # a single .fre file
+uv run freestep exam 00000158.fre --mat exam.mat             # MATLAB / Octave
+uv run freestep batch FreeStep_Export.zip out/ --format npz --format cop-csv  # all exams
 uv run freestep dump FreeStep_Export.zip out/                 # Export.mdb tables to CSV
 ```
 
 The archives are opened with the built-in default password (change it with `--password`). The default encoding of
 `Paziente.ini` is `cp1250` (change it with `--encoding`).
+
+## Batch export
+
+`freestep batch` and File › Batch export write every exam of an export into one directory as
+`<birth date>_<name>_exam_<ID><suffix>`, e.g. `1998-06-06_Jan_Novak_exam_160.npz`. The name has no
+diacritics and `_` instead of spaces. The formats (`--format`, repeatable) are `mat` (`.mat`), `npz`
+(`.npz`) and `cop-csv` (`_cop.csv`). `index.csv` lists every exam (patient, exam, acquisitions, files,
+status). `--dry-run` only prints the file names. Decrypting takes about 5 s per exam.
+
+## MATLAB
+
+The `.mat` files load in MATLAB and GNU Octave:
+
+```matlab
+d = load('exam.mat');
+imagesc(d.acq(1).pressure(:, :, 100)); axis image   % rows × columns × frames
+plot(d.acq(1).cop_total(:, 1), d.acq(1).cop_total(:, 2))
+```
 
 ## Library
 

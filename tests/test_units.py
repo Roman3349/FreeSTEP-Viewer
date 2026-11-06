@@ -7,13 +7,16 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from scipy.io import loadmat
 
+from freestep.batch import safe_name
 from freestep.convert import to_date, to_float
 from freestep.gui import i18n, po
 from freestep.gui.colormap import colorize
 from freestep.ini import parse_ini
 from freestep.mdb import decode_jet4_text
 from freestep.postura import Postura
+from freestep.writers import write_mat
 
 
 def test_ini_repairs_malformed_lines() -> None:
@@ -186,3 +189,25 @@ def test_tr_switches_language() -> None:
         assert i18n.tr("Exam {id}", id=158) == "Exam 158"
     finally:
         i18n.set_language(i18n.DEFAULT_LANGUAGE)
+
+
+def test_safe_name() -> None:
+    """Diacritics are removed, spaces and other characters become one underscore."""
+    assert safe_name("Roman Ondráček") == "Roman_Ondracek"
+    assert safe_name("  Žluťoučký   kůň / O'Neil ") == "Zlutoucky_kun_O_Neil"
+    assert safe_name("") == "unknown"
+
+
+def test_write_mat(tmp_path: Path) -> None:
+    """The MATLAB file holds the frames (rows × columns × frames), COP, timestamps and the header."""
+    post = Postura.parse(_synthetic_postura(3, [3, 5]))
+    path = tmp_path / "exam.mat"
+    write_mat(post, path)
+    mat = loadmat(path, squeeze_me=True, struct_as_record=False)
+    assert mat["platform"] == "Test" and list(mat["cell_size_mm"]) == [5, 5]
+    assert mat["header"].version == 3 and mat["header"].rows == 4
+    second = mat["acq"][1]
+    assert second.pressure.shape == (4, 6, 5)
+    assert second.pressure[1, 2, 2] == 12
+    assert list(second.timestamp_ms) == [1000, 1040, 1080, 1120, 1160]
+    assert second.cop_total.shape == (5, 2) and second.label == "label 1"

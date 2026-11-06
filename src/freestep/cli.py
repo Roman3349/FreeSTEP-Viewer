@@ -1,4 +1,4 @@
-"""Command line interface: ``freestep info|exam|dump``."""
+"""Command line interface: ``freestep info|exam|batch|dump``."""
 
 from __future__ import annotations
 
@@ -10,8 +10,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
+from .batch import FORMATS, batch_export, exam_stem
 from .ini import DEFAULT_ANSI_ENCODING
-from .writers import write_cop_csv, write_npz
+from .models import Exam
+from .writers import write_cop_csv, write_mat, write_npz
 
 
 def _fmt(value: object) -> str:
@@ -72,7 +74,7 @@ def cmd_exam(args: argparse.Namespace) -> int:
     """``freestep exam``: print exam details and optionally export its data.
 
     Args:
-        args: Parsed arguments (``source``, ``exam``, ``csv``, ``npz``, ``preview``, ``raw``, …).
+        args: Parsed arguments (``source``, ``exam``, ``csv``, ``npz``, ``mat``, ``preview``, ``raw``, …).
 
     Returns:
         Process exit code.
@@ -114,6 +116,9 @@ def cmd_exam(args: argparse.Namespace) -> int:
         if args.npz:
             write_npz(post, args.npz)
             print(f"Frames written to {args.npz}")
+        if args.mat:
+            write_mat(post, args.mat)
+            print(f"MATLAB file written to {args.mat}")
         if args.preview:
             jpeg = fre.preview_jpeg()
             if jpeg is None:
@@ -129,6 +134,36 @@ def cmd_exam(args: argparse.Namespace) -> int:
         if export is not None:
             export.close()
     return 0
+
+
+def cmd_batch(args: argparse.Namespace) -> int:
+    """``freestep batch``: export every exam of an export into a directory.
+
+    Files are named ``<birth date>_<name>_exam_<ID><suffix>`` (see :mod:`freestep.batch`).
+
+    Args:
+        args: Parsed arguments (``export``, ``output``, ``format``, ``dry_run``).
+
+    Returns:
+        Process exit code (1 when an exam could not be exported).
+    """
+    formats = args.format or ["mat"]
+
+    def progress(index: int, count: int, exam: Exam) -> bool:
+        print(f"[{index + 1}/{count}] exam {exam.id}", flush=True)
+        return True
+
+    with FreeStepExport(args.export, args.password, args.encoding) as export:
+        patients = {p.id: p for p in export.patients}
+        if args.dry_run:
+            for exam in export.exams:
+                print(exam_stem(patients.get(exam.patient_id), exam))
+            return 0
+        result = batch_export(export, args.output, formats, progress=progress)
+    print(f"{len(result.written)} files written to {args.output}")
+    for exam, reason in result.skipped:
+        print(f"exam {exam.id} skipped: {reason}", file=sys.stderr)
+    return 1 if result.skipped else 0
 
 
 def cmd_dump(args: argparse.Namespace) -> int:
@@ -156,7 +191,7 @@ def cmd_dump(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the argument parser with the ``info``, ``exam`` and ``dump`` sub-commands.
+    """Build the argument parser with the ``info``, ``exam``, ``batch`` and ``dump`` sub-commands.
 
     Returns:
         The parser; each sub-command stores its handler in ``func``.
@@ -179,9 +214,22 @@ def build_parser() -> argparse.ArgumentParser:
     exam.add_argument("--exam", type=int, help="exam ID when the source is an export ZIP")
     exam.add_argument("--csv", help="write per-frame time and COP of all acquisitions to CSV")
     exam.add_argument("--npz", help="write frames and COP of all acquisitions to a NumPy .npz")
+    exam.add_argument("--mat", help="write frames and COP of all acquisitions to a MATLAB .mat")
     exam.add_argument("--preview", help="save Preview1.jpg")
     exam.add_argument("--raw", help="save decrypted Postura.dat")
     exam.set_defaults(func=cmd_exam)
+
+    batch = sub.add_parser("batch", help="export all exams of an export ZIP as <birth date>_<name>_exam_<ID>.<format>")
+    batch.add_argument("export")
+    batch.add_argument("output", help="output directory")
+    batch.add_argument(
+        "--format",
+        action="append",
+        choices=list(FORMATS),
+        help="format to write, repeatable (default: mat): mat = frames and COP, cop-csv, npz",
+    )
+    batch.add_argument("--dry-run", action="store_true", help="only print the file name stems")
+    batch.set_defaults(func=cmd_batch)
 
     dump = sub.add_parser("dump", help="dump Export.mdb tables to CSV")
     dump.add_argument("export")
