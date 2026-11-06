@@ -183,9 +183,14 @@ open "dist/FreeSTEP Viewer.app"
 ### Flatpak (locally)
 
 ```bash
+flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak-builder --user --install-deps-from=flathub --force-clean --install build-flatpak packaging/flatpak/cz.romanondracek.FreeStepViewer.yml
 flatpak run cz.romanondracek.FreeStepViewer
 ```
+
+The build installs the SDK into the user installation, which needs its own Flathub remote even
+when Flathub is already set up system-wide (otherwise it fails with "No remote refs found for
+'flathub'").
 
 PySide6 comes from the `io.qt.PySide.BaseApp` base. The other Python dependencies are pinned
 with checksums in `packaging/flatpak/python3-dependencies.json`, so the build works offline as
