@@ -1,7 +1,8 @@
 """Batch export of all exams of a FreeSTEP export into one directory.
 
-Files are named ``<birth date>_<name>_exam_<ID><suffix>``, e.g.
-``1998-06-06_Jan_Novak_exam_160.mat``: the birth date in ISO format, the name
+Files are named ``<birth date>_<name>_<exam date>_<exam time><suffix>``, e.g.
+``1998-06-06_Jan_Novak_2025-03-10_09-37.mat``: the dates in ISO format, the time
+as ``HH-MM`` (no colons, they are not allowed in Windows file names), the name
 without diacritics and with ``_`` instead of spaces and other characters.
 """
 
@@ -57,7 +58,10 @@ def safe_name(text: str) -> str:
 
 
 def exam_stem(patient: Patient | None, exam: Exam) -> str:
-    """Return the file name stem ``<birth date>_<name>_exam_<ID>`` of an exam.
+    """Return the file name stem ``<birth date>_<name>_<exam date>_<HH-MM>`` of an exam.
+
+    FreeSTEP stores the exam time in minutes. Without the date or time of the
+    exam, ``exam_<ID>`` is used instead.
 
     Args:
         patient: The exam's patient (``None`` when unknown).
@@ -65,6 +69,8 @@ def exam_stem(patient: Patient | None, exam: Exam) -> str:
     """
     birth = patient.birth_date.isoformat() if patient is not None and patient.birth_date else "unknown"
     name = safe_name(patient.name) if patient is not None else "unknown"
+    if exam.exam_date is not None and exam.exam_time is not None:
+        return f"{birth}_{name}_{exam.exam_date.isoformat()}_{exam.exam_time.strftime('%H-%M')}"
     return f"{birth}_{name}_exam_{exam.id}"
 
 
@@ -214,12 +220,16 @@ def batch_export(
     result = BatchResult()
     rows: list[dict[str, object]] = []
     index_rows: list[dict[str, object]] = []
+    used: set[str] = set()
     for index, exam in enumerate(exams):
         if progress is not None and not progress(index, len(exams), exam):
             result.cancelled = True
             break
         patient = patients.get(exam.patient_id)
         stem = exam_stem(patient, exam)
+        if stem.casefold() in used:  # two exams of a patient in the same minute
+            stem = f"{stem}_exam_{exam.id}"
+        used.add(stem.casefold())
         entry = _index_row(stem, patient, exam)
         index_rows.append(entry)
         if not exam.file_name or exam.file_name.lower() not in present:

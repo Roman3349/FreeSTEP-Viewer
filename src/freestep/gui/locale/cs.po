@@ -34,8 +34,8 @@ msgstr "Hromadný export"
 
 #: freestep/gui/app.py
 #, python-brace-format
-msgid "Exports every exam of the open export. Files are named <birth date>_<name>_exam_<ID>, e.g. 1990-01-31_Jan_Novak_exam_160.mat; {index} lists the exported exams."
-msgstr "Exportuje všechna vyšetření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_exam_<ID>, např. 1990-01-31_Jan_Novak_exam_160.mat; {index} obsahuje seznam exportovaných vyšetření."
+msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
+msgstr "Exportuje všechna vyšetření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_<datum vyšetření>_<HH-MM>, např. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} obsahuje seznam exportovaných vyšetření."
 
 #: freestep/gui/app.py
 msgid "Browse…"

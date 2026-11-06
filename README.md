@@ -56,8 +56,9 @@ The archives are opened with the built-in default password (change it with `--pa
 ## Batch export
 
 `freestep batch` and File › Batch export write every exam of an export into one directory as
-`<birth date>_<name>_exam_<ID><suffix>`, e.g. `1998-06-06_Jan_Novak_exam_160.npz`. The name has no
-diacritics and `_` instead of spaces. The formats (`--format`, repeatable) are `mat` (`.mat`, data and
+`<birth date>_<name>_<exam date>_<HH-MM><suffix>`, e.g. `1998-06-06_Jan_Novak_2025-03-10_09-37.npz`
+(the same names are proposed when exporting a single exam). The name has no diacritics and `_` instead of
+spaces. The formats (`--format`, repeatable) are `mat` (`.mat`, data and
 parameters), `mat-raw` (`_raw.mat`, recorded data only), `npz` (`.npz`), `cop-csv` (`_cop.csv`) and
 `stats-csv` (`_stabilometry.csv`). `index.csv` lists every exam (patient, exam, acquisitions, files,
 status) and `stabilometry_summary.csv` holds the parameters of all acquisitions, one row each (turn it

@@ -79,7 +79,16 @@ from PySide6.QtWidgets import (
 )
 
 from ..archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
-from ..batch import FORMATS, INDEX_NAME, SUMMARY_NAME, BatchResult, batch_export, safe_name, write_summary_csv
+from ..batch import (
+    FORMATS,
+    INDEX_NAME,
+    SUMMARY_NAME,
+    BatchResult,
+    batch_export,
+    exam_stem,
+    safe_name,
+    write_summary_csv,
+)
 from ..history import (
     ROMBERG_CONDITION,
     ROMBERG_PREFIX,
@@ -220,7 +229,7 @@ class _BatchDialog(QDialog):
         info = QLabel(
             tr(
                 "Exports every exam of the open export. Files are named "
-                "<birth date>_<name>_exam_<ID>, e.g. 1990-01-31_Jan_Novak_exam_160.mat; "
+                "<birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; "
                 "{index} lists the exported exams.",
                 index=INDEX_NAME,
             )
@@ -1811,7 +1820,7 @@ class MainWindow(QMainWindow):
     # -- exporting -------------------------------------------------------------------
 
     def _save_name(self, title: str, suffix: str, filter_: str) -> Path | None:
-        """Ask for an output file, proposing ``<exam file stem><suffix>``.
+        """Ask for an output file, proposing ``<birth date>_<name>_exam_<ID><suffix>`` like the batch export.
 
         Args:
             title: Translated dialog title.
@@ -1823,7 +1832,7 @@ class MainWindow(QMainWindow):
         """
         assert self._current is not None
         start = Path(str(self._settings.value("last_dir", str(Path.home()))))
-        name = f"{Path(self._current.exam.file_name or 'exam').stem}{suffix}"
+        name = f"{exam_stem(self._current.patient, self._current.exam)}{suffix}"
         path, _ = QFileDialog.getSaveFileName(self, title, str(start / name), filter_)
         return Path(path) if path else None
 

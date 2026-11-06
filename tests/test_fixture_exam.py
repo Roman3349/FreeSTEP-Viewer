@@ -4,6 +4,7 @@ import csv
 import shutil
 import subprocess
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -120,11 +121,13 @@ def test_raw_mat_has_no_analysis(fre: FreFile, tmp_path: Path) -> None:
 
 
 def test_export_exam_names_and_formats(fre: FreFile, tmp_path: Path) -> None:
-    """Every format is written under the ``<birth date>_<name>_exam_<ID>`` stem."""
+    """Every format is written under the ``<birth date>_<name>_<exam date>_<HH-MM>`` stem."""
     post = fre.postura
     results = analyze_all(post)
     stem = exam_stem(fre.patient, fre.exam)
-    assert stem == "1990-01-01_Testovaci_Pacient_exam_160"
+    assert stem == "1990-01-01_Testovaci_Pacient_2025-03-10_09-37"
+    # Without the time of the exam the ID is used
+    assert exam_stem(fre.patient, replace(fre.exam, exam_time=None)) == "1990-01-01_Testovaci_Pacient_exam_160"
     files = export_exam(post, tmp_path, stem, list(FORMATS), results=results, romberg=None)
     assert sorted(f.name for f in files) == sorted(f"{stem}{suffix}" for suffix in FORMATS.values())
     assert all(f.stat().st_size > 0 for f in files)

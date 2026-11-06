@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 21:55+0000\n"
+"POT-Creation-Date: 2026-11-06 22:12+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -34,7 +34,7 @@ msgstr ""
 
 #: freestep/gui/app.py
 #, python-brace-format
-msgid "Exports every exam of the open export. Files are named <birth date>_<name>_exam_<ID>, e.g. 1990-01-31_Jan_Novak_exam_160.mat; {index} lists the exported exams."
+msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
 msgstr ""
 
 #: freestep/gui/app.py

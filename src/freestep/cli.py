@@ -213,7 +213,7 @@ def _value(result: Stabilometry | None, name: str) -> str:
 def cmd_batch(args: argparse.Namespace) -> int:
     """``freestep batch``: export every exam of an export into a directory.
 
-    Files are named ``<birth date>_<name>_exam_<ID><suffix>`` (see :mod:`freestep.batch`).
+    Files are named ``<birth date>_<name>_<exam date>_<HH-MM><suffix>`` (see :mod:`freestep.batch`).
 
     Args:
         args: Parsed arguments (``export``, ``output``, ``format``, ``no_summary``, ``lowpass``, …).
@@ -389,7 +389,9 @@ def build_parser() -> argparse.ArgumentParser:
     exam.add_argument("--raw", help="save decrypted Postura.dat")
     exam.set_defaults(func=cmd_exam)
 
-    batch = sub.add_parser("batch", help="export all exams of an export ZIP as <birth date>_<name>_exam_<ID>.<format>")
+    batch = sub.add_parser(
+        "batch", help="export all exams of an export ZIP as <birth date>_<name>_<exam date>_<HH-MM>.<format>"
+    )
     batch.add_argument("export")
     batch.add_argument("output", help="output directory")
     batch.add_argument(
