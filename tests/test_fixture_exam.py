@@ -1,4 +1,4 @@
-"""Integration tests with the anonymised exam in ``tests/data`` (a Romberg test, runs in CI)."""
+"""Integration tests with the anonymised exams in ``tests/data`` (Romberg tests of one patient, run in CI)."""
 
 import csv
 import shutil
@@ -12,6 +12,17 @@ from scipy.io import loadmat
 from freestep import FreFile
 from freestep.batch import FORMATS, exam_stem, export_exam, summary_rows, write_summary_csv
 from freestep.cli import main
+from freestep.history import (
+    ROMBERG_CONDITION,
+    ROMBERG_PREFIX,
+    ExamAnalysis,
+    analyze_exam,
+    analyze_exams,
+    history_rows,
+    patient_exams,
+    series,
+)
+from freestep.models import Exam
 from freestep.stabilometry import analyze_all, evaluate_romberg
 from freestep.writers import write_mat
 
@@ -123,3 +134,61 @@ def test_export_exam_names_and_formats(fre: FreFile, tmp_path: Path) -> None:
         table = list(csv.DictReader(handle))
     assert [r["acquisition"] for r in table] == ["1", "2"]
     assert table[0]["name"] == "Testovací Pacient" and float(table[1]["path_length_mm"]) == pytest.approx(160.37, 0.01)
+
+
+def test_history_series(fre: FreFile) -> None:
+    """The history has one series per eye condition and one for the Romberg quotient."""
+    analysis = analyze_exam(fre.postura, fre.exam)
+    assert analysis.conditions == ["eyes_open", "eyes_closed"]
+    failed = ExamAnalysis(exam=fre.exam, results=[None], romberg=None, conditions=["acquisition_1"])
+    values = series([analysis, failed, analysis], "path_length_mm")
+    assert list(values) == ["eyes_open", "eyes_closed", "acquisition_1"]
+    assert values["eyes_open"][0] == pytest.approx(114.83, abs=0.01) and values["eyes_open"][1] is None
+    assert values["acquisition_1"] == [None, None, None]
+    quotient = series([analysis, failed], f"{ROMBERG_PREFIX}path_length_mm")
+    assert list(quotient) == [ROMBERG_CONDITION]
+    assert quotient[ROMBERG_CONDITION][0] == pytest.approx(160.37 / 114.83, rel=1e-3)
+    assert quotient[ROMBERG_CONDITION][1] is None
+    with pytest.raises(ValueError):
+        series([analysis], "no_such_parameter")
+    rows = history_rows([analysis])
+    assert [(r["exam_id"], r["condition"]) for r in rows] == [(160, "eyes_open"), (160, "eyes_closed")]
+    assert rows[0]["romberg_ellipse_area_mm2"] == pytest.approx(140.48 / 54.99, rel=1e-3)
+
+
+class _Export:
+    """Stand-in for :class:`~freestep.FreeStepExport` with the two test exams of one patient."""
+
+    def __init__(self) -> None:
+        self.exams = []
+        for name in ("00000161.fre", "00000160.fre"):
+            with FreFile(FIXTURE.with_name(name)) as fre:
+                self.exams.append(fre.exam)
+        self.fre_names = [e.file_name for e in self.exams if e.file_name]
+
+    def exams_of(self, patient_id: int) -> list[Exam]:
+        return sorted((e for e in self.exams if e.patient_id == patient_id), key=lambda e: e.id or 0)
+
+    def open_fre(self, exam: Exam) -> FreFile:
+        assert exam.file_name is not None
+        return FreFile(FIXTURE.with_name(exam.file_name))
+
+
+def test_patient_history() -> None:
+    """Both exams of the test patient are analysed, oldest first, with progress and cancelling."""
+    export = _Export()
+    exams = patient_exams(export, 46)  # type: ignore[arg-type]
+    assert [e.id for e in exams] == [160, 161]
+    calls: list[int] = []
+
+    def progress(index: int, count: int, exam: Exam) -> bool:
+        calls.append(exam.id or 0)
+        return True
+
+    analyses, failed = analyze_exams(export, exams, progress=progress)  # type: ignore[arg-type]
+    assert not failed and calls == [160, 161]
+    values = series(analyses, "ellipse_area_mm2")
+    assert values["eyes_open"] == pytest.approx([54.99, 134.87], abs=0.01)
+    assert values["eyes_closed"] == pytest.approx([140.48, 64.72], abs=0.01)
+    stopped, _ = analyze_exams(export, exams, progress=lambda i, n, e: i == 0)  # type: ignore[arg-type]
+    assert [a.exam.id for a in stopped] == [160]

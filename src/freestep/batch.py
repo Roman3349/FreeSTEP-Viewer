@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .archive import FreeStepExport
+from .history import analyze_exam
 from .models import Exam, Patient
 from .postura import Postura
 from .stabilometry import (
@@ -23,8 +24,6 @@ from .stabilometry import (
     ROMBERG_PARAMETERS,
     Romberg,
     Stabilometry,
-    analyze_all,
-    evaluate_romberg,
 )
 from .writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 
@@ -230,8 +229,13 @@ def batch_export(
         try:
             with export.open_fre(exam.file_name) as fre:
                 post = fre.postura
-                results = analyze_all(post, lowpass_hz, detrend=detrend) if analyse else []
-                romberg = evaluate_romberg(post, results, exam.exam_type, eyes_closed_first) if analyse else None
+                results: list[Stabilometry | None] = []
+                romberg: Romberg | None = None
+                if analyse:
+                    analysis = analyze_exam(
+                        post, exam, lowpass_hz=lowpass_hz, detrend=detrend, eyes_closed_first=eyes_closed_first
+                    )
+                    results, romberg = analysis.results, analysis.romberg
                 files = export_exam(post, out, stem, formats, results=results, romberg=romberg)
                 if summary:
                     rows += summary_rows(patient, exam, post, results, romberg)

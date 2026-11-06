@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 13:53+0000\n"
+"POT-Creation-Date: 2026-11-06 13:59+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -114,6 +114,11 @@ msgstr ""
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Acquisition {number} ({duration} s)"
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Romberg quotient: {parameter}"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -464,7 +469,23 @@ msgid "Stabilogram"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Export CSV…"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "All parameters of all exams of the patient"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Exams of the patient, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "Stabilometry"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "History"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -641,6 +662,55 @@ msgid "AP (y)"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Open a FreeSTEP export (.zip) to see the history of a patient."
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "{name}: {n} exam"
+msgid_plural "{name}: {n} exams"
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Analysing {n} exam…"
+msgid_plural "Analysing {n} exams…"
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Analysing exam {id} ({n} of {count})…"
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id} skipped: {reason}"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Cannot analyse the exams"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Romberg quotient"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Export history"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "CSV (*.csv)"
+msgstr ""
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Saved {path}"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "total"
 msgstr ""
 
@@ -799,15 +869,6 @@ msgid "Export COP"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "CSV (*.csv)"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Saved {path}"
-msgstr ""
-
-#: freestep/gui/app.py
 msgid "Export frames"
 msgstr ""
 
@@ -911,4 +972,8 @@ msgstr ""
 
 #: freestep/gui/widgets.py
 msgid "time [s]"
+msgstr ""
+
+#: freestep/gui/widgets.py
+msgid "No data"
 msgstr ""

@@ -78,11 +78,22 @@ from PySide6.QtWidgets import (
 )
 
 from ..archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
-from ..batch import FORMATS, INDEX_NAME, SUMMARY_NAME, BatchResult, batch_export
+from ..batch import FORMATS, INDEX_NAME, SUMMARY_NAME, BatchResult, batch_export, safe_name, write_summary_csv
+from ..history import (
+    ROMBERG_CONDITION,
+    ROMBERG_PREFIX,
+    ExamAnalysis,
+    analyze_exam,
+    analyze_exams,
+    history_rows,
+    patient_exams,
+    series,
+)
 from ..models import Exam, FilterSettings, Patient
 from ..postura import Acquisition, Postura
 from ..stabilometry import (
     DEFAULT_LOWPASS_HZ,
+    ROMBERG_PARAMETERS,
     Romberg,
     Stabilometry,
     analyze_all,
@@ -111,6 +122,7 @@ from .widgets import (
     ORIGIN_PLATE,
     CopPlot,
     HeatmapView,
+    HistoryPlot,
     StabilogramPlot,
 )
 
@@ -398,6 +410,17 @@ def _png_bytes(image: QImage) -> bytes:
     return bytes(data.data())
 
 
+def _history_parameters() -> list[tuple[str, str]]:
+    """Translated choices of the History tab: ``(parameter, label)``, Romberg quotients last."""
+    parameters = [item for _, group in _parameter_groups() for item in group]
+    labels = dict(parameters)
+    quotients = [
+        (f"{ROMBERG_PREFIX}{name}", tr("Romberg quotient: {parameter}", parameter=labels.get(name, name)))
+        for name in ROMBERG_PARAMETERS
+    ]
+    return parameters + quotients
+
+
 def _setting_float(value: object, default: float) -> float:
     """Convert a stored setting to a float, ``default`` when missing or invalid."""
     try:
@@ -585,6 +608,12 @@ class MainWindow(QMainWindow):
         self._cop_origin = int(_setting_float(self._settings.value("cop_origin"), ORIGIN_PLATE))
         self._stabilometry: list[Stabilometry | None] = []
         self._romberg: Romberg | None = None
+        # History: analyses by (exam ID, low-pass, detrend, eyes closed first); the shown patient
+        self._history_cache: dict[tuple[object, ...], ExamAnalysis] = {}
+        self._history_patient: int | None = None
+        self._history_analyses: list[ExamAnalysis] = []
+        self._history_cancel: threading.Event | None = None
+        self._history_parameter = str(self._settings.value("history_parameter", "ellipse_area_mm2"))
         self._window_actions: list[QAction] = []
 
         self._timer = QTimer(self)
@@ -749,8 +778,37 @@ class MainWindow(QMainWindow):
 
         self.tabs.addTab(cop_tab, tr("COP"))
         self.tabs.addTab(stabilogram_tab, tr("Stabilogram"))
+        self.history_title = QLabel()
+        self.history_parameter = QComboBox()
+        for name, label in _history_parameters():
+            self.history_parameter.addItem(label, name)
+        index = self.history_parameter.findData(self._history_parameter)
+        self.history_parameter.setCurrentIndex(max(index, 0))
+        self.history_parameter.currentIndexChanged.connect(self._on_history_parameter)
+        self.history_export = QPushButton(tr("Export CSV…"))
+        self.history_export.setToolTip(tr("All parameters of all exams of the patient"))
+        self.history_export.clicked.connect(self._export_history)
+        self.history_plot = HistoryPlot()
+        self.history_plot.selected.connect(self._on_history_selected)
+        history_note = QLabel(
+            tr("Exams of the patient, oldest first; click an exam to show it. Settings of the Stabilometry tab apply.")
+        )
+        history_note.setWordWrap(True)
+        history_controls = QHBoxLayout()
+        history_controls.addWidget(self.history_parameter, 1)
+        history_controls.addWidget(self.history_export)
+        self.history_tab = QWidget()
+        history_layout = QVBoxLayout(self.history_tab)
+        history_layout.setContentsMargins(0, 4, 0, 0)
+        history_layout.addWidget(self.history_title)
+        history_layout.addLayout(history_controls)
+        history_layout.addWidget(self.history_plot, 1)
+        history_layout.addWidget(history_note)
+
         self.tabs.addTab(analysis, tr("Stabilometry"))
+        self.tabs.addTab(self.history_tab, tr("History"))
         self.tabs.addTab(self.info, tr("Info"))
+        self.tabs.currentChanged.connect(self._update_history)
         self.tabs.addTab(preview_scroll, tr("Preview"))
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -1104,6 +1162,8 @@ class MainWindow(QMainWindow):
         for patient in sorted(export.patients, key=lambda p: p.name.casefold()):
             node = QTreeWidgetItem([patient.name, _plain(patient.birth_date), ""])
             node.setToolTip(0, tr("ID {id}", id=patient.id))
+            if patient.id is not None:
+                node.setData(0, _EXAM_ROLE, ("patient", patient.id))
             self.tree.addTopLevelItem(node)
             exams = export.exams_of(patient.id) if patient.id is not None else []
             for exam in exams:
@@ -1122,12 +1182,16 @@ class MainWindow(QMainWindow):
 
     @Slot(QTreeWidgetItem, int)
     def _on_item_activated(self, item: QTreeWidgetItem, _column: int = 0) -> None:
-        """Load the exam of a clicked tree item (patients and the shown exam are ignored)."""
+        """Load the exam of a clicked tree item; a patient shows their history (the shown exam is ignored)."""
         key = item.data(0, _EXAM_ROLE)
         if not key or key == self._loading_exam_id or (self._current is not None and key == self._current_key):
             return
         kind, value = key
-        if kind == "exam" and self._export is not None:
+        if kind == "patient":
+            self._history_patient = int(value)
+            self.tabs.setCurrentWidget(self.history_tab)
+            self._update_history()
+        elif kind == "exam" and self._export is not None:
             export = self._export
             self._load(lambda: export.open_fre(int(value)), key)
 
@@ -1183,6 +1247,9 @@ class MainWindow(QMainWindow):
         self.acquisition.setEnabled(len(post.acquisitions) > 1)
         self.info.setHtml(self._info_html(loaded))
         self._update_stabilometry()
+        if self._export is not None and loaded.exam.patient_id is not None:
+            self._history_patient = loaded.exam.patient_id
+        self._update_history()
         if loaded.preview:
             pixmap = QPixmap()
             pixmap.loadFromData(loaded.preview)
@@ -1228,6 +1295,7 @@ class MainWindow(QMainWindow):
         self._settings.setValue("detrend", "true" if self._detrend else "false")
         self._settings.setValue("eyes_closed_first", "true" if self._eyes_closed_first else "false")
         self._update_stabilometry()
+        self._update_history()
 
     def _update_stabilometry(self) -> None:
         """Compute the stabilometric parameters and the Romberg test of the shown exam and show them."""
@@ -1276,6 +1344,158 @@ class MainWindow(QMainWindow):
         self._stop()
         self.mode.setCurrentIndex(_MODE_FRAME)
         self.slider.setValue(frame)
+
+    # -- history ---------------------------------------------------------------------
+
+    def _history_key(self, exam: Exam) -> tuple[object, ...]:
+        """Cache key of an exam's analysis with the current analysis settings."""
+        return (exam.id, self._lowpass_hz or None, self._detrend, self._eyes_closed_first)
+
+    @Slot()
+    def _update_history(self) -> None:
+        """Show the history of :attr:`_history_patient` when its tab is visible.
+
+        Exams not analysed yet with the current settings are decrypted in the
+        worker thread first (a few seconds each); a newer request cancels it.
+        """
+        if self.tabs.currentWidget() is not self.history_tab:
+            return
+        export, patient_id = self._export, self._history_patient
+        if export is None or patient_id is None:
+            self.history_title.setText("")
+            self.history_plot.set_message(tr("Open a FreeSTEP export (.zip) to see the history of a patient."))
+            return
+        patient = export.patient(patient_id)
+        exams = patient_exams(export, patient_id)
+        name = patient.name if patient is not None else str(patient_id)
+        self.history_title.setText(ntr("{name}: {n} exam", "{name}: {n} exams", len(exams), name=name))
+        current = self._current
+        if current is not None and current.exam.patient_id == patient_id:
+            key = self._history_key(current.exam)
+            if key not in self._history_cache:
+                self._history_cache[key] = analyze_exam(
+                    current.postura,
+                    current.exam,
+                    lowpass_hz=self._lowpass_hz or None,
+                    detrend=self._detrend,
+                    eyes_closed_first=self._eyes_closed_first,
+                )
+        if self._history_cancel is not None:
+            self._history_cancel.set()
+            self._history_cancel = None
+        missing = [e for e in exams if self._history_key(e) not in self._history_cache]
+        if missing:
+            self._analyse_history(exams, missing)
+        else:
+            self._history_analyses = [self._history_cache[self._history_key(e)] for e in exams]
+            self._draw_history()
+
+    def _analyse_history(self, exams: list[Exam], missing: list[Exam]) -> None:
+        """Analyse ``missing`` in the worker thread, then show the history of ``exams``."""
+        export = self._export
+        assert export is not None
+        self.history_plot.set_message(ntr("Analysing {n} exam…", "Analysing {n} exams…", len(missing)))
+        cancel = threading.Event()
+        self._history_cancel = cancel
+        reporter = _Progress()
+
+        def changed(index: int, count: int, exam_id: object) -> None:
+            text = tr("Analysing exam {id} ({n} of {count})…", id=exam_id, n=index + 1, count=count)
+            self.statusBar().showMessage(text)
+
+        reporter.changed.connect(changed)
+        lowpass_hz, detrend, eyes_closed_first = self._lowpass_hz or None, self._detrend, self._eyes_closed_first
+
+        def work() -> tuple[list[ExamAnalysis], list[tuple[Exam, str]]]:
+            def report(index: int, count: int, exam: Exam) -> bool:
+                reporter.changed.emit(index, count, exam.id)
+                return not cancel.is_set()
+
+            return analyze_exams(
+                export,
+                missing,
+                lowpass_hz=lowpass_hz,
+                detrend=detrend,
+                eyes_closed_first=eyes_closed_first,
+                progress=report,
+            )
+
+        def done(result: tuple[list[ExamAnalysis], list[tuple[Exam, str]]]) -> None:
+            reporter.deleteLater()
+            analyses, failed = result
+            for analysis in analyses:
+                self._history_cache[(analysis.exam.id, lowpass_hz, detrend, eyes_closed_first)] = analysis
+            if cancel.is_set():
+                return
+            self._history_cancel = None
+            self.statusBar().clearMessage()
+            for exam, reason in failed:
+                self.statusBar().showMessage(tr("Exam {id} skipped: {reason}", id=exam.id, reason=reason))
+            keys = [self._history_key(e) for e in exams]
+            self._history_analyses = [self._history_cache[k] for k in keys if k in self._history_cache]
+            self._draw_history()
+
+        def fail(exc: BaseException) -> None:
+            reporter.deleteLater()
+            if not cancel.is_set():
+                self._error(tr("Cannot analyse the exams"), exc)
+
+        self._run(work, done, fail)
+
+    def _draw_history(self) -> None:
+        """Plot the selected parameter of :attr:`_history_analyses`."""
+        analyses = self._history_analyses
+        parameter = str(self.history_parameter.currentData())
+        names = {
+            "eyes_open": tr("Eyes open"),
+            "eyes_closed": tr("Eyes closed"),
+            ROMBERG_CONDITION: tr("Romberg quotient"),
+        }
+        colours = {"eyes_open": ML_COLOR, "eyes_closed": AP_COLOR, ROMBERG_CONDITION: COP_TOTAL_COLOR}
+        palette = [COP_LEFT_COLOR, COP_RIGHT_COLOR, ML_COLOR, AP_COLOR]
+        plotted = []
+        for i, (condition, values) in enumerate(series(analyses, parameter).items()):
+            label = names.get(condition) or tr("Acquisition {number}", number=condition.removeprefix("acquisition_"))
+            plotted.append((label, colours.get(condition, palette[i % len(palette)]), values))
+        labels = [f"{_plain(a.exam.exam_date)}\n{tr('Exam {id}', id=a.exam.id)}" for a in analyses]
+        shown = self._current.exam.id if self._current is not None else None
+        current = next((i for i, a in enumerate(analyses) if a.exam.id == shown), None)
+        romberg = parameter.startswith(ROMBERG_PREFIX)
+        reference = 1.0 if romberg else None  # quotient 1 = no difference between the eye conditions
+        self.history_plot.set_data(labels, plotted, "" if romberg else unit(parameter), current, reference)
+
+    @Slot(int)
+    def _on_history_parameter(self, _index: int) -> None:
+        """Remember the plotted parameter and redraw."""
+        self._history_parameter = str(self.history_parameter.currentData())
+        self._settings.setValue("history_parameter", self._history_parameter)
+        if self._history_analyses:
+            self._draw_history()
+
+    @Slot(int)
+    def _on_history_selected(self, index: int) -> None:
+        """Show the exam clicked in the history plot."""
+        if self._export is None or not 0 <= index < len(self._history_analyses):
+            return
+        exam_id = self._history_analyses[index].exam.id
+        key = ("exam", exam_id)
+        if exam_id is None or key == self._loading_exam_id or (self._current is not None and key == self._current_key):
+            return
+        export = self._export
+        self._load(lambda: export.open_fre(exam_id), key)
+
+    def _export_history(self) -> None:
+        """Save all parameters of the shown patient's exams as CSV."""
+        if not self._history_analyses or self._export is None or self._history_patient is None:
+            return
+        patient = self._export.patient(self._history_patient)
+        stem = safe_name(patient.name) if patient is not None else str(self._history_patient)
+        start = Path(str(self._settings.value("last_dir", str(Path.home())))) / f"{stem}_history.csv"
+        path, _ = QFileDialog.getSaveFileName(self, tr("Export history"), str(start), tr("CSV (*.csv)"))
+        if not path:
+            return
+        write_summary_csv(history_rows(self._history_analyses), path)
+        self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _current_acquisition(self) -> Acquisition | None:
         """Return the acquisition selected in the selection box."""

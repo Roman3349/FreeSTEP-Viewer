@@ -1,4 +1,4 @@
-"""Command line interface: ``freestep info|exam|batch|dump``."""
+"""Command line interface: ``freestep info|exam|batch|history|dump``."""
 
 from __future__ import annotations
 
@@ -10,7 +10,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
-from .batch import FORMATS, batch_export, exam_stem
+from .batch import FORMATS, batch_export, exam_stem, write_summary_csv
+from .history import ROMBERG_PREFIX, analyze_exams, history_rows, patient_exams
 from .ini import DEFAULT_ANSI_ENCODING
 from .models import Exam
 from .stabilometry import (
@@ -248,6 +249,72 @@ def cmd_batch(args: argparse.Namespace) -> int:
     return 1 if result.skipped else 0
 
 
+#: Parameters printed by ``freestep history`` without ``--parameter``.
+_HISTORY_PARAMETERS = ("path_length_mm", "mean_velocity_mm_s", "ellipse_area_mm2", "left_load_pct")
+
+
+def cmd_history(args: argparse.Namespace) -> int:
+    """``freestep history``: stabilometric parameters of all exams of a patient, oldest first.
+
+    Args:
+        args: Parsed arguments (``export``, ``patient``, ``parameter``, ``csv``, ``lowpass``, …).
+
+    Returns:
+        Process exit code (1 when an exam could not be analysed).
+    """
+    parameters = args.parameter or list(_HISTORY_PARAMETERS)
+    with FreeStepExport(args.export, args.password, args.encoding) as export:
+        patient = export.patient(args.patient)
+        if patient is None:
+            sys.exit(f"Patient {args.patient} not found")
+        exams = patient_exams(export, args.patient)
+        print(f"Patient {patient.id}: {patient.name}, born {_fmt(patient.birth_date)}, {len(exams)} exam(s)")
+
+        def progress(index: int, count: int, exam: Exam) -> bool:
+            print(f"[{index + 1}/{count}] exam {exam.id}", file=sys.stderr, flush=True)
+            return True
+
+        analyses, failed = analyze_exams(
+            export,
+            exams,
+            lowpass_hz=args.lowpass or None,
+            detrend=args.detrend,
+            eyes_closed_first=args.eyes_closed_first,
+            progress=progress,
+        )
+    rows = history_rows(analyses)
+    widths = [max(10, len(p)) for p in parameters]
+    header = "".join(f"  {p:>{w}}" for p, w in zip(parameters, widths, strict=True))
+    print(f"{'exam':>6}  {'date':<10}  {'time':<8}  {'condition':<14}{header}")
+    for row in rows:
+        values = "".join(f"  {_cell(row.get(p)):>{w}}" for p, w in zip(parameters, widths, strict=True))
+        print(
+            f"{_fmt(row['exam_id']):>6}  {_fmt(row['exam_date']):<10}  {_fmt(row['exam_time']):<8}  "
+            f"{row['condition']!s:<14}{values}"
+        )
+    if args.csv:
+        write_summary_csv(rows, args.csv)
+        print(f"History written to {args.csv}")
+    for exam, reason in failed:
+        print(f"exam {exam.id} skipped: {reason}", file=sys.stderr)
+    return 1 if failed else 0
+
+
+def _cell(value: object) -> str:
+    """Format a value of :func:`cmd_history`'s table, missing values as a dash."""
+    if isinstance(value, float):
+        return f"{value:.2f}"
+    return "–" if value is None or value == "" else str(value)
+
+
+def _history_parameter(name: str) -> str:
+    """Validate a ``--parameter`` of ``freestep history`` (argparse type)."""
+    valid = set(Stabilometry.__dataclass_fields__) | {f"{ROMBERG_PREFIX}{p}" for p in ROMBERG_PARAMETERS}
+    if name not in valid:
+        raise argparse.ArgumentTypeError(f"unknown parameter {name!r} (see the --stats CSV for the names)")
+    return name
+
+
 def _add_analysis_options(parser: argparse.ArgumentParser) -> None:
     """Add ``--lowpass``, ``--detrend`` and ``--eyes-closed-first`` to a sub-command."""
     parser.add_argument(
@@ -291,7 +358,7 @@ def cmd_dump(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the argument parser with the ``info``, ``exam``, ``batch`` and ``dump`` sub-commands.
+    """Build the argument parser with the ``info``, ``exam``, ``batch``, ``history`` and ``dump`` sub-commands.
 
     Returns:
         The parser; each sub-command stores its handler in ``func``.
@@ -336,6 +403,20 @@ def build_parser() -> argparse.ArgumentParser:
     batch.add_argument("--dry-run", action="store_true", help="only print the file name stems")
     _add_analysis_options(batch)
     batch.set_defaults(func=cmd_batch)
+
+    history = sub.add_parser("history", help="stabilometric parameters of all exams of a patient")
+    history.add_argument("export")
+    history.add_argument("patient", type=int, help="patient ID (see freestep info)")
+    history.add_argument(
+        "--parameter",
+        action="append",
+        type=_history_parameter,
+        help=f"parameter to print, repeatable (default: {', '.join(_HISTORY_PARAMETERS)}); "
+        f"{ROMBERG_PREFIX}<parameter> prints the Romberg quotient",
+    )
+    history.add_argument("--csv", help="write all parameters of all exams to CSV")
+    _add_analysis_options(history)
+    history.set_defaults(func=cmd_history)
 
     dump = sub.add_parser("dump", help="dump Export.mdb tables to CSV")
     dump.add_argument("export")

@@ -117,6 +117,11 @@ msgid "Acquisition {number} ({duration} s)"
 msgstr "Měření {number} ({duration} s)"
 
 #: freestep/gui/app.py
+#, python-brace-format
+msgid "Romberg quotient: {parameter}"
+msgstr "Rombergův kvocient: {parameter}"
+
+#: freestep/gui/app.py
 msgid "Position and spread"
 msgstr "Poloha a rozptyl"
 
@@ -464,8 +469,24 @@ msgid "Stabilogram"
 msgstr "Stabilogram"
 
 #: freestep/gui/app.py
+msgid "Export CSV…"
+msgstr "Exportovat CSV…"
+
+#: freestep/gui/app.py
+msgid "All parameters of all exams of the patient"
+msgstr "Všechny parametry všech vyšetření pacienta"
+
+#: freestep/gui/app.py
+msgid "Exams of the patient, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
+msgstr "Vyšetření pacienta od nejstaršího; kliknutím vyšetření zobrazíte. Platí nastavení ze záložky Stabilometrie."
+
+#: freestep/gui/app.py
 msgid "Stabilometry"
 msgstr "Stabilometrie"
+
+#: freestep/gui/app.py
+msgid "History"
+msgstr "Vývoj"
 
 #: freestep/gui/app.py
 msgid "Info"
@@ -642,6 +663,57 @@ msgid "AP (y)"
 msgstr "AP (y)"
 
 #: freestep/gui/app.py
+msgid "Open a FreeSTEP export (.zip) to see the history of a patient."
+msgstr "Pro zobrazení vývoje pacienta otevřete export FreeSTEP (.zip)."
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "{name}: {n} exam"
+msgid_plural "{name}: {n} exams"
+msgstr[0] "{name}: {n} vyšetření"
+msgstr[1] "{name}: {n} vyšetření"
+msgstr[2] "{name}: {n} vyšetření"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Analysing {n} exam…"
+msgid_plural "Analysing {n} exams…"
+msgstr[0] "Vyhodnocuji {n} vyšetření…"
+msgstr[1] "Vyhodnocuji {n} vyšetření…"
+msgstr[2] "Vyhodnocuji {n} vyšetření…"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Analysing exam {id} ({n} of {count})…"
+msgstr "Vyhodnocuji vyšetření {id} ({n} z {count})…"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Exam {id} skipped: {reason}"
+msgstr "Vyšetření {id} přeskočeno: {reason}"
+
+#: freestep/gui/app.py
+msgid "Cannot analyse the exams"
+msgstr "Vyšetření nelze vyhodnotit"
+
+#: freestep/gui/app.py
+msgid "Romberg quotient"
+msgstr "Rombergův kvocient"
+
+#: freestep/gui/app.py
+msgid "Export history"
+msgstr "Export vývoje"
+
+#: freestep/gui/app.py
+msgid "CSV (*.csv)"
+msgstr "CSV (*.csv)"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Saved {path}"
+msgstr "Uloženo: {path}"
+
+#: freestep/gui/app.py
 msgid "total"
 msgstr "celkem"
 
@@ -800,15 +872,6 @@ msgid "Export COP"
 msgstr "Export COP"
 
 #: freestep/gui/app.py
-msgid "CSV (*.csv)"
-msgstr "CSV (*.csv)"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Saved {path}"
-msgstr "Uloženo: {path}"
-
-#: freestep/gui/app.py
 msgid "Export frames"
 msgstr "Export snímků"
 
@@ -914,3 +977,7 @@ msgstr "Žádná data COP"
 #: freestep/gui/widgets.py
 msgid "time [s]"
 msgstr "čas [s]"
+
+#: freestep/gui/widgets.py
+msgid "No data"
+msgstr "Žádná data"

@@ -30,6 +30,8 @@ uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
   of the Romberg test.
 - Export of the COP to CSV, of the frames to NPZ, of everything (frames, COP, parameters) or only the recorded
   (raw) data to MATLAB `.mat`, of the parameters to CSV, of the heat map to PNG and of all frames as PNGs in a ZIP.
+- History of a patient: one parameter (or Romberg quotient) over all their exams, per eye condition; click a
+  patient in the tree or open the History tab, click an exam in the plot to show it, export everything to CSV.
 - Batch export of all exams of an export (File › Batch export), see below.
 - English and Czech UI (View › Language, switches without a restart). The default is the system language.
 
@@ -44,6 +46,7 @@ uv run freestep exam FreeStep_Export.zip --exam 158 --csv cop.csv --npz frames.n
 uv run freestep exam 00000158.fre --raw Postura.dat           # a single .fre file
 uv run freestep exam 00000158.fre --mat exam.mat --mat-raw raw.mat --stats stats.csv --lowpass 5
 uv run freestep batch FreeStep_Export.zip out/ --format npz --format cop-csv  # all exams
+uv run freestep history FreeStep_Export.zip 46 --parameter ellipse_area_mm2 --csv history.csv  # patient 46
 uv run freestep dump FreeStep_Export.zip out/                 # Export.mdb tables to CSV
 ```
 
@@ -210,9 +213,9 @@ FREESTEP_ALL_EXAMS=1 uv run pytest     # all 22 exams (~1.5 min)
 
 If GNU Octave (`octave-cli`) is installed, a test also checks that it reads the exported `.mat` file.
 The integration tests look for the sample export in the repository root. ZIP, `.fre` and
-`.mdb` files are listed in `.gitignore` because they contain personal data. The only exception is
-`tests/data/00000160.fre`, an anonymised Romberg exam used by the tests in CI; it was created by
-`tests/data/anonymize_fre.py`.
+`.mdb` files are listed in `.gitignore` because they contain personal data. The only exceptions are
+`tests/data/00000160.fre` and `00000161.fre`, anonymised Romberg exams of one patient used by the
+tests in CI; they were created by `tests/data/anonymize_fre.py`.
 
 ## License
 
