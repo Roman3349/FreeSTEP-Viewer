@@ -56,8 +56,17 @@ jobs:
           if-no-files-found: error
 
   macos:
-    name: macOS disk image
-    runs-on: macos-latest
+    name: macOS disk image (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-latest
+          # GitHub keeps Intel runners only until August 2027.
+          - arch: x86_64
+            runner: macos-15-intel
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -88,7 +97,7 @@ jobs:
             "dist/FreeStepViewer-${{ steps.version.outputs.version }}-macos-$(uname -m).dmg"
       - uses: actions/upload-artifact@v7
         with:
-          name: macos
+          name: macos-${{ matrix.arch }}
           path: dist/*.dmg
           if-no-files-found: error
 
