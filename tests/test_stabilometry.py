@@ -19,6 +19,7 @@ from freestep.stabilometry import (
     detect_romberg,
     evaluate_romberg,
     load_distribution,
+    speed,
     unit,
 )
 from freestep.writers import write_mat, write_stabilometry_csv
@@ -52,6 +53,15 @@ def test_circle_parameters() -> None:
     assert result.sway_area_mm2_s == pytest.approx(math.pi * radius**2 * frequency, rel=1e-2)
     assert result.median_frequency_ml_hz == pytest.approx(frequency, abs=0.05)
     assert result.mean_frequency_ap_hz == pytest.approx(frequency, abs=0.1)
+
+
+def test_speed_curve() -> None:
+    """The speed curve of a circle is constant and its mean is the mean velocity."""
+    cop = _circle(4.0, 0.5)
+    curve = speed(cop, FS)
+    assert curve.shape == (len(cop) - 1,)
+    assert curve == pytest.approx(np.full(len(curve), 2 * np.pi * 4.0 * 0.5), rel=1e-2)
+    assert curve.mean() == pytest.approx(compute(cop, FS, lowpass_hz=None).mean_velocity_mm_s)
 
 
 def test_lowpass_removes_noise() -> None:

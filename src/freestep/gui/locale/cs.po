@@ -461,12 +461,28 @@ msgid "COP of the whole plate minus its mean (or trend), filtered as set in the 
 msgstr "COP celé plošiny bez průměrné polohy (nebo trendu), filtrovaný podle nastavení v záložce Stabilometrie. Kliknutím přejdete na daný čas."
 
 #: freestep/gui/app.py
+msgid "Compare acquisitions"
+msgstr "Porovnat záznamy"
+
+#: freestep/gui/app.py
+msgid "Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"
+msgstr "Vykreslit do stejného grafu i ostatní záznamy vyšetření (např. oči otevřené a zavřené)"
+
+#: freestep/gui/app.py
+msgid "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; its mean is the mean velocity. Click to seek."
+msgstr "Okamžitá rychlost COP celé plošiny, filtrovaného podle nastavení v záložce Stabilometrie; její průměr je průměrná rychlost. Kliknutím přejdete na daný čas."
+
+#: freestep/gui/app.py
 msgid "COP"
 msgstr "COP"
 
 #: freestep/gui/app.py
 msgid "Stabilogram"
 msgstr "Stabilogram"
+
+#: freestep/gui/app.py
+msgid "Speed"
+msgstr "Rychlost"
 
 #: freestep/gui/app.py
 msgid "Export CSV…"
@@ -661,6 +677,10 @@ msgstr "ML (x)"
 #: freestep/gui/app.py
 msgid "AP (y)"
 msgstr "AP (y)"
+
+#: freestep/gui/app.py
+msgid "COP speed"
+msgstr "Rychlost COP"
 
 #: freestep/gui/app.py
 msgid "Open a FreeSTEP export (.zip) to see the history of a patient."

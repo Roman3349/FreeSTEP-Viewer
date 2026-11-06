@@ -7,6 +7,8 @@ x grows to the right, y grows downward (row 0 at the top).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtCore import QPointF, QRectF, QSize, Qt, Signal
@@ -429,7 +431,9 @@ class CopPlot(QWidget):
         )
 
         painter.setClipRect(plot)
-        for (_, colour, _), data in zip(self._series, valid, strict=True):
+        base = self.palette().base().color()
+        colours = [_readable(colour, base) for _, colour, _ in self._series]
+        for colour, data in zip(colours, valid, strict=True):
             _draw_polyline(painter, [to_px(x, y) for x, y in data], QPen(colour, 1))
         if ellipse is not None:
             _draw_polyline(painter, [to_px(x, y) for x, y in ellipse], QPen(ELLIPSE_COLOR, 1.5, Qt.PenStyle.DashLine))
@@ -440,7 +444,7 @@ class CopPlot(QWidget):
                 painter.drawEllipse(to_px(*data[self._current]), 4, 4)
         painter.setClipping(False)
 
-        entries = [(label, QPen(colour, 3)) for label, colour, _ in self._series]
+        entries = [(label, QPen(colour, 3)) for (label, _, _), colour in zip(self._series, colours, strict=True)]
         if ellipse is not None:
             entries.append((tr("95% ellipse"), QPen(ELLIPSE_COLOR, 2, Qt.PenStyle.DashLine)))
         _draw_legend(painter, QPointF(plot.left(), margin), entries, text_colour)
@@ -476,6 +480,25 @@ def _draw_legend(painter: QPainter, origin: QPointF, entries: list[tuple[str, QP
         x += 20 + painter.fontMetrics().horizontalAdvance(label) + 14
 
 
+#: Minimum difference of lightness between a line and the plot background (0…1).
+_MIN_LIGHTNESS_CONTRAST = 0.3
+#: Difference of lightness from the background of a line adjusted by :func:`_readable`.
+_ADJUSTED_LIGHTNESS_CONTRAST = 0.45
+
+
+def _readable(colour: QColor, background: QColor) -> QColor:
+    """Return ``colour`` with its lightness changed when it would be hard to see on ``background``.
+
+    The hue is kept, so e.g. the near-black COP of the whole plate becomes light
+    grey in a dark theme while the feet stay purple and teal.
+    """
+    lightness, ground = colour.lightnessF(), background.lightnessF()
+    if abs(lightness - ground) >= _MIN_LIGHTNESS_CONTRAST:
+        return colour
+    target = ground + _ADJUSTED_LIGHTNESS_CONTRAST if ground < 0.5 else ground - _ADJUSTED_LIGHTNESS_CONTRAST
+    return QColor.fromHslF(colour.hslHueF(), colour.hslSaturationF(), target, colour.alphaF())
+
+
 def _nice_step(span: float, count: int) -> float:
     """Return a 1/2/5 × 10^n grid step giving about ``count`` intervals over ``span``."""
     raw = max(span, 1e-9) / count
@@ -486,9 +509,14 @@ def _nice_step(span: float, count: int) -> float:
 class StabilogramPlot(QWidget):
     """Stabilogram: COP displacement over time, one panel per direction (ML above AP).
 
-    All panels share the time axis and the (symmetric) value scale, so the sway
-    in both directions can be compared. The current frame is marked by a
-    vertical line; clicking or dragging emits :attr:`seeked`.
+    All panels share the time axis and the value scale, so the sway in both
+    directions can be compared. The current frame is marked by a vertical line;
+    clicking or dragging emits :attr:`seeked`. Signals of further acquisitions
+    can be drawn under the shown one for comparison (e.g. eyes open and closed).
+
+    Attributes:
+        symmetric: The value scale is symmetric around 0 (displacement); otherwise
+            it starts at 0 (non-negative values such as the speed).
 
     Signals:
         seeked(int): Frame index of the acquisition under the mouse.
@@ -506,9 +534,12 @@ class StabilogramPlot(QWidget):
         self.setMinimumSize(240, 200)
         self._time: NDArray[np.float64] | None = None
         self._panels: list[tuple[str, QColor, NDArray[np.float64]]] = []
+        self._label = ""
+        self._others: list[tuple[str, QColor, NDArray[np.float64], list[NDArray[np.float64]]]] = []
         self._unit = ""
         self._offset = 0
         self._current = 0
+        self.symmetric = True
 
     def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
         """Return the preferred size."""
@@ -518,6 +549,7 @@ class StabilogramPlot(QWidget):
         """Remove the data."""
         self._time = None
         self._panels = []
+        self._others = []
         self.update()
 
     def set_data(
@@ -526,6 +558,9 @@ class StabilogramPlot(QWidget):
         panels: list[tuple[str, QColor, NDArray[np.floating]]],
         unit: str,
         frame_offset: int = 0,
+        *,
+        label: str = "",
+        others: Sequence[tuple[str, QColor, NDArray[np.floating], Sequence[NDArray[np.floating]]]] = (),
     ) -> None:
         """Replace the plotted signals.
 
@@ -535,9 +570,17 @@ class StabilogramPlot(QWidget):
             unit: Unit of the values (axis label).
             frame_offset: Frame index of the first sample (the signals may leave
                 out unloaded frames at the start of the acquisition).
+            label: Legend label of the signals, shown with ``others``.
+            others: Signals of further acquisitions drawn under the signals for
+                comparison: ``(legend label, colour, times (m,), values (m,) per panel)``.
         """
         self._time = np.asarray(time_s, dtype=np.float64)
         self._panels = [(title, colour, np.asarray(v, dtype=np.float64)) for title, colour, v in panels]
+        self._label = label
+        self._others = [
+            (name, colour, np.asarray(t, dtype=np.float64), [np.asarray(v, dtype=np.float64) for v in values])
+            for name, colour, t, values in others
+        ]
         self._unit = unit
         self._offset = frame_offset
         self.update()
@@ -564,6 +607,11 @@ class StabilogramPlot(QWidget):
         height = (area.height() - self._GAP * (count - 1)) / count
         return [QRectF(area.left(), area.top() + i * (height + self._GAP), area.width(), height) for i in range(count)]
 
+    def _time_range(self) -> tuple[float, float]:
+        """First and last time of the shown and the compared signals (the time axis)."""
+        times = [t for t in [self._time, *(t for _, _, t, _ in self._others)] if t is not None and len(t) >= 2]
+        return min(float(t[0]) for t in times), max(float(t[-1]) for t in times)
+
     # -- painting -------------------------------------------------------------
 
     def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802 (Qt API)
@@ -578,10 +626,13 @@ class StabilogramPlot(QWidget):
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("No COP data"))
             return
 
-        t0, t1 = float(time[0]), float(time[-1])
-        limit = max(0.1, *(float(np.abs(v).max()) for _, _, v in self._panels)) * 1.1
+        others = [(name, colour, t, values) for name, colour, t, values in self._others if len(t) >= 2]
+        t0, t1 = self._time_range()
+        signals = [v for _, _, v in self._panels] + [v for *_, values in others for v in values]
+        limit = max(0.1, *(float(np.abs(v).max()) for v in signals)) * 1.1
         t_step = _nice_step(t1 - t0, 6)
-        v_step = _nice_step(2 * limit, 4)
+        low = -limit if self.symmetric else 0.0
+        v_step = _nice_step(limit - low, 4)
         grid_pen = QPen(QColor(128, 128, 128, 60), 1)
         current = self._current - self._offset
 
@@ -591,7 +642,7 @@ class StabilogramPlot(QWidget):
                 """Convert (time, value) to widget coordinates inside the panel."""
                 return QPointF(
                     rect.left() + (t - t0) / (t1 - t0) * rect.width(),
-                    rect.center().y() - v / limit * rect.height() / 2,
+                    rect.bottom() - (v - low) / (limit - low) * rect.height(),
                 )
 
             for t in np.arange(np.ceil(t0 / t_step) * t_step, t1 + 1e-9, t_step):
@@ -601,7 +652,7 @@ class StabilogramPlot(QWidget):
                 if index == len(self._panels) - 1:
                     painter.setPen(text_colour)
                     painter.drawText(QRectF(x - 30, rect.bottom() + 4, 60, 14), Qt.AlignmentFlag.AlignCenter, f"{t:g}")
-            for v in np.arange(np.ceil(-limit / v_step) * v_step, limit + 1e-9, v_step):
+            for v in np.arange(np.ceil(low / v_step) * v_step, limit + 1e-9, v_step):
                 y = to_px(t0, float(v)).y()
                 painter.setPen(QPen(QColor(128, 128, 128, 140 if abs(v) < 1e-9 else 60), 1))
                 painter.drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y))
@@ -615,14 +666,23 @@ class StabilogramPlot(QWidget):
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRect(rect)
             painter.setPen(text_colour)
-            painter.drawText(QPointF(rect.left(), rect.top() - 6), f"{title} [{self._unit}]")
+            heading = f"{title} [{self._unit}]"
+            painter.drawText(QPointF(rect.left(), rect.top() - 6), heading)
+            base = self.palette().base().color()
+            if others and index == 0:
+                entries = [(self._label, QPen(_readable(colour, base), 3))]
+                entries += [(name, QPen(_readable(c, base), 3)) for name, c, _, _ in others]
+                x = rect.left() + painter.fontMetrics().horizontalAdvance(heading) + 24
+                _draw_legend(painter, QPointF(x, rect.top() - 18), entries, text_colour)
 
             painter.setClipRect(rect)
-            path = QPainterPath(to_px(float(time[0]), float(values[0])))
-            for t, v in zip(time[1:], values[1:], strict=True):
-                path.lineTo(to_px(float(t), float(v)))
-            painter.setPen(QPen(colour, 1))
-            painter.drawPath(path)
+            curves = [(c, t, other_values[index]) for _, c, t, other_values in others] + [(colour, time, values)]
+            for curve_colour, curve_time, curve_values in curves:  # the shown acquisition on top
+                _draw_polyline(
+                    painter,
+                    [to_px(float(t), float(v)) for t, v in zip(curve_time, curve_values, strict=True)],
+                    QPen(_readable(curve_colour, base), 1),
+                )
             if 0 <= current < len(time):
                 x = to_px(float(time[current]), 0).x()
                 painter.setPen(QPen(CURRENT_COLOR, 1.5))
@@ -655,7 +715,8 @@ class StabilogramPlot(QWidget):
             return
         rect = self._panel_rects()[0]
         fraction = min(max((event.position().x() - rect.left()) / rect.width(), 0.0), 1.0)
-        t = time[0] + fraction * (time[-1] - time[0])
+        t0, t1 = self._time_range()
+        t = t0 + fraction * (t1 - t0)
         self.seeked.emit(int(np.searchsorted(time, t).clip(0, len(time) - 1)) + self._offset)
 
 
@@ -778,7 +839,9 @@ class HistoryPlot(QWidget):
         painter.setPen(text_colour)
         painter.drawText(QPointF(rect.left() - 50, rect.top() - 8), f"[{self._unit}]" if self._unit else "")
 
-        for _, colour, series_values in self._series:
+        base = self.palette().base().color()
+        colours = [_readable(colour, base) for _, colour, _ in self._series]
+        for colour, (_, _, series_values) in zip(colours, self._series, strict=True):
             points = [
                 QPointF(self._x(rect, i), y_px(v)) if v is not None else None for i, v in enumerate(series_values)
             ]
@@ -794,7 +857,8 @@ class HistoryPlot(QWidget):
             for point in points:
                 if point is not None:
                     painter.drawEllipse(point, 4, 4)
-        _draw_legend(painter, QPointF(rect.left(), 6), [(n, QPen(c, 3)) for n, c, _ in self._series], text_colour)
+        entries = [(name, QPen(colour, 3)) for (name, _, _), colour in zip(self._series, colours, strict=True)]
+        _draw_legend(painter, QPointF(rect.left(), 6), entries, text_colour)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
         """Emit :attr:`selected` for the exam under the mouse (Qt event handler)."""

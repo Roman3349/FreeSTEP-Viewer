@@ -39,6 +39,7 @@ from PySide6.QtGui import (
     QAction,
     QActionGroup,
     QCloseEvent,
+    QColor,
     QDragEnterEvent,
     QDropEvent,
     QFileOpenEvent,
@@ -98,6 +99,7 @@ from ..stabilometry import (
     Stabilometry,
     analyze_all,
     evaluate_romberg,
+    speed,
     sway,
     unit,
 )
@@ -605,6 +607,7 @@ class MainWindow(QMainWindow):
         self._eyes_closed_first = str(self._settings.value("eyes_closed_first", "false")).lower() == "true"
         self._detrend = str(self._settings.value("detrend", "false")).lower() == "true"
         self._show_ellipse = str(self._settings.value("show_ellipse", "true")).lower() == "true"
+        self._compare = str(self._settings.value("compare_acquisitions", "false")).lower() == "true"
         self._cop_origin = int(_setting_float(self._settings.value("cop_origin"), ORIGIN_PLATE))
         self._stabilometry: list[Stabilometry | None] = []
         self._romberg: Romberg | None = None
@@ -770,14 +773,41 @@ class MainWindow(QMainWindow):
             + _directions_note()
         )
         stabilogram_note.setWordWrap(True)
+        # One check box per tab, kept in sync by _on_compare
+        self.compare_checks = []
+        for _ in range(2):
+            check = QCheckBox(tr("Compare acquisitions"))
+            check.setToolTip(tr("Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"))
+            check.setChecked(self._compare)
+            check.toggled.connect(self._on_compare)
+            self.compare_checks.append(check)
         stabilogram_tab = QWidget()
         stabilogram_layout = QVBoxLayout(stabilogram_tab)
         stabilogram_layout.setContentsMargins(0, 4, 0, 0)
         stabilogram_layout.addWidget(stabilogram_note)
+        stabilogram_layout.addWidget(self.compare_checks[0])
         stabilogram_layout.addWidget(self.stabilogram, 1)
+
+        self.speed_curve = StabilogramPlot()
+        self.speed_curve.symmetric = False
+        self.speed_curve.seeked.connect(self._seek)
+        speed_note = QLabel(
+            tr(
+                "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; "
+                "its mean is the mean velocity. Click to seek."
+            )
+        )
+        speed_note.setWordWrap(True)
+        speed_tab = QWidget()
+        speed_layout = QVBoxLayout(speed_tab)
+        speed_layout.setContentsMargins(0, 4, 0, 0)
+        speed_layout.addWidget(speed_note)
+        speed_layout.addWidget(self.compare_checks[1])
+        speed_layout.addWidget(self.speed_curve, 1)
 
         self.tabs.addTab(cop_tab, tr("COP"))
         self.tabs.addTab(stabilogram_tab, tr("Stabilogram"))
+        self.tabs.addTab(speed_tab, tr("Speed"))
         self.history_title = QLabel()
         self.history_parameter = QComboBox()
         for name, label in _history_parameters():
@@ -1277,6 +1307,17 @@ class MainWindow(QMainWindow):
         self.cop_plot.show_ellipse = show
         self.cop_plot.update()
 
+    @Slot(bool)
+    def _on_compare(self, compare: bool) -> None:
+        """Draw the other acquisitions in the stabilogram and the speed curve, or only the selected one."""
+        self._compare = compare
+        self._settings.setValue("compare_acquisitions", "true" if compare else "false")
+        for check in self.compare_checks:
+            check.blockSignals(True)
+            check.setChecked(compare)
+            check.blockSignals(False)
+        self._update_stabilogram()
+
     @Slot(int)
     def _on_cop_origin(self, origin: int) -> None:
         """Move the origin of the COP plot (plate corner, plate centre or mean position)."""
@@ -1313,7 +1354,7 @@ class MainWindow(QMainWindow):
         self._update_stabilogram()
 
     def _update_stabilogram(self) -> None:
-        """Show the COP displacement of the selected acquisition over time and its ellipse in the COP plot."""
+        """Show the COP displacement and speed of the selected acquisition over time and its ellipse in the COP plot."""
         acq = self._current_acquisition()
         result = self._stabilometry[acq.index] if acq is not None and acq.index < len(self._stabilometry) else None
         if result is None:
@@ -1325,18 +1366,65 @@ class MainWindow(QMainWindow):
                 result.ellipse_minor_mm / 10,
                 result.ellipse_angle_deg,
             )
+        signals = self._signals(acq) if acq is not None else None
+        if acq is None or signals is None:
+            self.stabilogram.clear()
+            self.speed_curve.clear()
+            return
+        time, cop, curve, first = signals
+        others = []
+        if self._compare and self._current is not None:
+            for other in self._current.postura.acquisitions:
+                if other.index != acq.index and (other_signals := self._signals(other)) is not None:
+                    others.append((other, other_signals))
+        if others:
+            # Colour by acquisition (as in the History tab), the same in all panels
+            label, colour = self._acquisition_style(acq)
+            styles = [self._acquisition_style(other) for other, _ in others]
+            displacement = [
+                (name, c, t, [o[:, 0], o[:, 1]]) for (name, c), (_, (t, o, _, _)) in zip(styles, others, strict=True)
+            ]
+            speeds = [(name, c, t[1:], [v]) for (name, c), (_, (t, _, v, _)) in zip(styles, others, strict=True)]
+            self.stabilogram.set_data(
+                time,
+                [(tr("ML (x)"), colour, cop[:, 0]), (tr("AP (y)"), colour, cop[:, 1])],
+                "mm",
+                first,
+                label=label,
+                others=displacement,
+            )
+            self.speed_curve.set_data(
+                time[1:], [(tr("COP speed"), colour, curve)], "mm/s", first + 1, label=label, others=speeds
+            )
+        else:
+            self.stabilogram.set_data(
+                time, [(tr("ML (x)"), ML_COLOR, cop[:, 0]), (tr("AP (y)"), AP_COLOR, cop[:, 1])], "mm", first
+            )
+            # The speed of a step belongs to the frame it ends at
+            self.speed_curve.set_data(time[1:], [(tr("COP speed"), COP_TOTAL_COLOR, curve)], "mm/s", first + 1)
+        for plot in (self.stabilogram, self.speed_curve):
+            plot.set_current(self.slider.value())
+
+    def _signals(
+        self, acq: Acquisition
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], int] | None:
+        """Return ``(times, COP displacement, speed, first frame)`` of an acquisition, ``None`` when too short."""
         try:
-            if acq is None:
-                raise ValueError("no acquisition")
             cop, first = sway(acq, self._lowpass_hz or None, detrend=self._detrend)
         except ValueError:
-            self.stabilogram.clear()
-            return
+            return None
         time = (first + np.arange(len(cop))) / acq.sampling_rate_hz  # uniform, like the analysis
-        self.stabilogram.set_data(
-            time, [(tr("ML (x)"), ML_COLOR, cop[:, 0]), (tr("AP (y)"), AP_COLOR, cop[:, 1])], "mm", first
-        )
-        self.stabilogram.set_current(self.slider.value())
+        return time, cop, speed(cop, acq.sampling_rate_hz), first
+
+    def _acquisition_style(self, acq: Acquisition) -> tuple[str, QColor]:
+        """Legend label and colour of an acquisition compared in the stabilogram and the speed curve."""
+        romberg = self._romberg
+        if romberg is not None and acq.index == romberg.eyes_open:
+            return tr("Eyes open"), ML_COLOR
+        if romberg is not None and acq.index == romberg.eyes_closed:
+            return tr("Eyes closed"), AP_COLOR
+        palette = [ML_COLOR, AP_COLOR, COP_LEFT_COLOR, COP_RIGHT_COLOR]
+        return tr("Acquisition {number}", number=acq.index + 1), palette[acq.index % len(palette)]
 
     @Slot(int)
     def _seek(self, frame: int) -> None:
@@ -1618,6 +1706,7 @@ class MainWindow(QMainWindow):
             self.frame_label.setText(tr("all frames"))
         self.cop_plot.set_current(frame)
         self.stabilogram.set_current(frame)
+        self.speed_curve.set_current(frame)
 
     @Slot(int, int, int)
     def _on_hover(self, col: int, row: int, value: int) -> None:

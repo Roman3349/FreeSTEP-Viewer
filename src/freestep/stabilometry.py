@@ -465,6 +465,23 @@ def sway(
     return (signal.detrend(cop, axis=0, type="linear") if detrend else cop - cop.mean(axis=0)), first
 
 
+def speed(displacement_mm: NDArray[np.floating], sampling_rate_hz: float) -> NDArray[np.float64]:
+    """Return the instantaneous COP speed (speed curve) of a uniformly sampled trajectory.
+
+    The speed of a step is assigned to the frame it ends at, so the result is one
+    shorter than the input; its mean is :attr:`Stabilometry.mean_velocity_mm_s`.
+
+    Args:
+        displacement_mm: Positions ``(frames, 2)`` in mm, e.g. from :func:`sway`.
+        sampling_rate_hz: Sampling rate.
+
+    Returns:
+        Speed in mm/s, shape ``(frames - 1,)``.
+    """
+    steps = np.diff(np.asarray(displacement_mm, dtype=np.float64), axis=0)
+    return np.hypot(steps[:, 0], steps[:, 1]) * float(sampling_rate_hz)
+
+
 def _spectrum(values: NDArray[np.float64], fs: float) -> tuple[float, float, float, float]:
     """Return the mean, median and 95 % frequency and the total power of a signal in :data:`FREQUENCY_BAND_HZ`.
 
