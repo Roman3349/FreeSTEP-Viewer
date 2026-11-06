@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 21:24+0000\n"
+"POT-Creation-Date: 2026-11-06 21:31+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -992,6 +992,11 @@ msgstr ""
 
 #: freestep/gui/widgets.py
 msgid "time [s]"
+msgstr ""
+
+#: freestep/gui/widgets.py
+#, python-brace-format
+msgid "time {value} s"
 msgstr ""
 
 #: freestep/gui/widgets.py

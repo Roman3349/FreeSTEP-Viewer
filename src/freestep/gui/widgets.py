@@ -11,7 +11,7 @@ from collections.abc import Sequence
 
 import numpy as np
 from numpy.typing import NDArray
-from PySide6.QtCore import QPointF, QRectF, QSize, Qt, Signal
+from PySide6.QtCore import QEvent, QPointF, QRectF, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QImage, QMouseEvent, QPainter, QPainterPath, QPaintEvent, QPen
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
@@ -287,6 +287,8 @@ class CopPlot(QWidget):
         self.plate_cm = (0.0, 0.0)
         self.show_ellipse = True
         self._ellipse: tuple[NDArray[np.float64], float, float, float] | None = None
+        self._hover: QPointF | None = None
+        self.setMouseTracking(True)
 
     def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
         """Return the preferred size."""
@@ -449,6 +451,24 @@ class CopPlot(QWidget):
             entries.append((tr("95% ellipse"), QPen(ELLIPSE_COLOR, 2, Qt.PenStyle.DashLine)))
         _draw_legend(painter, QPointF(plot.left(), margin), entries, text_colour)
 
+        if self._hover is not None and plot.contains(self._hover):
+            painter.setPen(QPen(QColor(128, 128, 128, 160), 1, Qt.PenStyle.DotLine))
+            painter.drawLine(QPointF(self._hover.x(), plot.top()), QPointF(self._hover.x(), plot.bottom()))
+            painter.drawLine(QPointF(plot.left(), self._hover.y()), QPointF(plot.right(), self._hover.y()))
+            x = centre[0] + ((self._hover.x() - plot.left()) / plot.width() - 0.5) * span
+            y = centre[1] + ((self._hover.y() - plot.top()) / plot.height() - 0.5) * span
+            _draw_readout(painter, self, self._hover, [(f"x = {x:.2f} cm", None), (f"y = {y:.2f} cm", None)])
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
+        """Show the position under the mouse (Qt event handler)."""
+        self._hover = event.position()
+        self.update()
+
+    def leaveEvent(self, event: QEvent) -> None:  # noqa: N802 (Qt API)
+        """Hide the readout (Qt event handler)."""
+        self._hover = None
+        self.update()
+
 
 def _draw_polyline(painter: QPainter, points: list[QPointF], pen: QPen) -> None:
     """Draw connected line segments through ``points`` (nothing for fewer than two)."""
@@ -460,6 +480,39 @@ def _draw_polyline(painter: QPainter, points: list[QPointF], pen: QPen) -> None:
     painter.setPen(pen)
     painter.setBrush(Qt.BrushStyle.NoBrush)
     painter.drawPath(path)
+
+
+def _draw_readout(painter: QPainter, widget: QWidget, anchor: QPointF, lines: list[tuple[str, QColor | None]]) -> None:
+    """Draw a box with values read at the mouse position next to ``anchor``, kept inside the widget.
+
+    Args:
+        painter: Active painter.
+        widget: The plot (its palette and size).
+        anchor: Mouse position.
+        lines: ``(text, colour of the sample line or None)`` per line.
+    """
+    metrics = painter.fontMetrics()
+    swatch, padding, line_height = 14, 6, metrics.height()
+    width = max(metrics.horizontalAdvance(text) + (swatch + 4 if colour else 0) for text, colour in lines) + 2 * padding
+    height = len(lines) * line_height + 2 * padding
+    x = anchor.x() + 14 if anchor.x() + 14 + width <= widget.width() else anchor.x() - 14 - width
+    y = anchor.y() + 14 if anchor.y() + 14 + height <= widget.height() else anchor.y() - 14 - height
+    box = QRectF(max(x, 0.0), max(y, 0.0), width, height)
+    background = QColor(widget.palette().base().color())
+    background.setAlpha(225)
+    painter.setPen(QPen(QColor(128, 128, 128), 1))
+    painter.setBrush(background)
+    painter.drawRoundedRect(box, 3, 3)
+    text_colour = widget.palette().text().color()
+    for index, (text, colour) in enumerate(lines):
+        top = box.top() + padding + index * line_height
+        left = box.left() + padding
+        if colour is not None:
+            painter.setPen(QPen(colour, 3))
+            painter.drawLine(QPointF(left, top + line_height / 2), QPointF(left + swatch, top + line_height / 2))
+            left += swatch + 4
+        painter.setPen(text_colour)
+        painter.drawText(QPointF(left, top + metrics.ascent()), text)
 
 
 def _draw_legend(painter: QPainter, origin: QPointF, entries: list[tuple[str, QPen]], text_colour: QColor) -> None:
@@ -539,7 +592,9 @@ class StabilogramPlot(QWidget):
         self._unit = ""
         self._offset = 0
         self._current = 0
+        self._hover: QPointF | None = None
         self.symmetric = True
+        self.setMouseTracking(True)
 
     def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
         """Return the preferred size."""
@@ -696,6 +751,31 @@ class StabilogramPlot(QWidget):
             Qt.AlignmentFlag.AlignCenter,
             tr("time [s]"),
         )
+        self._paint_readout(painter, t0, t1)
+
+    def _paint_readout(self, painter: QPainter, t0: float, t1: float) -> None:
+        """Draw a guide line at the time under the mouse and the values of all signals at that time."""
+        rects = self._panel_rects()
+        hover = self._hover
+        if hover is None or self._time is None or not rects[0].left() <= hover.x() <= rects[0].right():
+            return
+        t = t0 + (hover.x() - rects[0].left()) / rects[0].width() * (t1 - t0)
+        painter.setPen(QPen(QColor(128, 128, 128, 200), 1, Qt.PenStyle.DotLine))
+        for rect in rects:
+            painter.drawLine(QPointF(hover.x(), rect.top()), QPointF(hover.x(), rect.bottom()))
+        base = self.palette().base().color()
+        curves = [(self._label, self._time, [(c, v) for _, c, v in self._panels])]
+        curves += [(name, times, [(c, v) for v in values]) for name, c, times, values in self._others]
+        lines: list[tuple[str, QColor | None]] = [(tr("time {value} s", value=f"{t:.2f}"), None)]
+        for index, (title, _, _) in enumerate(self._panels):
+            for name, times, signals in curves:
+                if len(times) < 2 or not times[0] <= t <= times[-1]:
+                    continue
+                colour, values = signals[index]
+                value = values[min(int(np.searchsorted(times, t)), len(values) - 1)]
+                label = f"{title}, {name}" if self._others else title
+                lines.append((f"{label}: {value:.2f} {self._unit}", _readable(colour, base)))
+        _draw_readout(painter, self, hover, lines)
 
     # -- mouse ----------------------------------------------------------------
 
@@ -704,9 +784,16 @@ class StabilogramPlot(QWidget):
         self._seek(event)
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
-        """Seek while dragging (Qt event handler)."""
+        """Show the values under the mouse; seek while dragging (Qt event handler)."""
+        self._hover = event.position()
         if event.buttons() & Qt.MouseButton.LeftButton:
             self._seek(event)
+        self.update()
+
+    def leaveEvent(self, event: QEvent) -> None:  # noqa: N802 (Qt API)
+        """Hide the readout (Qt event handler)."""
+        self._hover = None
+        self.update()
 
     def _seek(self, event: QMouseEvent) -> None:
         """Emit :attr:`seeked` with the frame nearest to the mouse position."""
@@ -746,6 +833,8 @@ class HistoryPlot(QWidget):
         self._current: int | None = None
         self._reference: float | None = None
         self._message = ""
+        self._hover: QPointF | None = None
+        self.setMouseTracking(True)
 
     def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
         """Return the preferred size."""
@@ -859,12 +948,41 @@ class HistoryPlot(QWidget):
                     painter.drawEllipse(point, 4, 4)
         entries = [(name, QPen(colour, 3)) for (name, _, _), colour in zip(self._series, colours, strict=True)]
         _draw_legend(painter, QPointF(rect.left(), 6), entries, text_colour)
+        self._paint_readout(painter, rect, colours)
+
+    def _paint_readout(self, painter: QPainter, rect: QRectF, colours: list[QColor]) -> None:
+        """Draw the values of the exam under the mouse."""
+        hover = self._hover
+        exam = self._index_at(hover.x()) if hover is not None and rect.contains(hover) else None
+        if hover is None or exam is None:
+            return
+        lines: list[tuple[str, QColor | None]] = [(self._labels[exam].replace("\n", ", "), None)]
+        for (name, _, series_values), colour in zip(self._series, colours, strict=True):
+            value = series_values[exam]
+            text = "–" if value is None else f"{value:.3g} {self._unit}".rstrip()
+            lines.append((f"{name}: {text}", colour))
+        _draw_readout(painter, self, hover, lines)
+
+    def _index_at(self, x: float) -> int | None:
+        """Return the exam at a horizontal position, ``None`` outside the plot."""
+        rect = self._plot_rect()
+        if not self._labels or not rect.width():
+            return None
+        index = int((x - rect.left()) / rect.width() * len(self._labels))
+        return index if 0 <= index < len(self._labels) else None
 
     def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
         """Emit :attr:`selected` for the exam under the mouse (Qt event handler)."""
-        rect = self._plot_rect()
-        if not self._labels or not rect.width():
-            return
-        index = int((event.position().x() - rect.left()) / rect.width() * len(self._labels))
-        if 0 <= index < len(self._labels):
+        index = self._index_at(event.position().x())
+        if index is not None:
             self.selected.emit(index)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
+        """Show the values of the exam under the mouse (Qt event handler)."""
+        self._hover = event.position()
+        self.update()
+
+    def leaveEvent(self, event: QEvent) -> None:  # noqa: N802 (Qt API)
+        """Hide the readout (Qt event handler)."""
+        self._hover = None
+        self.update()

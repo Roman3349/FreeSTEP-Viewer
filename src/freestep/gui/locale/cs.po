@@ -999,5 +999,10 @@ msgid "time [s]"
 msgstr "čas [s]"
 
 #: freestep/gui/widgets.py
+#, python-brace-format
+msgid "time {value} s"
+msgstr "čas {value} s"
+
+#: freestep/gui/widgets.py
 msgid "No data"
 msgstr "Žádná data"

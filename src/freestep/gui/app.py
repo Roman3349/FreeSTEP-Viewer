@@ -621,6 +621,7 @@ class MainWindow(QMainWindow):
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._advance_frame)
+        self._frame_actions: list[QAction] = []  # playback and seeking shortcuts, see _build_actions
         self._build_ui()
         self._build_actions()
         self._set_exam_controls_enabled(False)
@@ -651,6 +652,7 @@ class MainWindow(QMainWindow):
         self.mode = QComboBox()
         self.mode.addItems([tr("Frame"), tr("Maximum"), tr("Mean")])
         self.mode.currentIndexChanged.connect(self._refresh_frame)
+        self.mode.currentIndexChanged.connect(self._update_frame_controls)
 
         self.play_button = QToolButton()
         self.play_button.setText("▶")
@@ -899,6 +901,7 @@ class MainWindow(QMainWindow):
         play.setShortcut(Qt.Key.Key_Space)
         play.triggered.connect(self._toggle_play)
         self._window_actions.append(play)
+        self._frame_actions = [play]
         for key, delta in (
             (Qt.Key.Key_Right, 1),
             (Qt.Key.Key_Left, -1),
@@ -909,6 +912,7 @@ class MainWindow(QMainWindow):
             step.setShortcut(key)
             step.triggered.connect(lambda _=False, d=delta: self.slider.setValue(self.slider.value() + d))
             self._window_actions.append(step)
+            self._frame_actions.append(step)
         self.addActions(self._window_actions)
 
         help_menu = self.menuBar().addMenu(tr("&Help"))
@@ -959,6 +963,18 @@ class MainWindow(QMainWindow):
         for widget in (self.acquisition, self.mode, self.play_button, self.slider, self.fps, self.trail):
             widget.setEnabled(enabled)
         for action in self.export_actions:
+            action.setEnabled(enabled)
+        self._update_frame_controls()
+
+    @Slot()
+    def _update_frame_controls(self) -> None:
+        """Enable playback, its speed and the time axis only for single frames (not for the maximum / mean image)."""
+        enabled = self._current is not None and self.mode.currentIndex() == _MODE_FRAME
+        if not enabled:
+            self._stop()
+        for widget in (self.play_button, self.slider, self.fps):
+            widget.setEnabled(enabled)
+        for action in self._frame_actions:
             action.setEnabled(enabled)
 
     # -- language -------------------------------------------------------------
@@ -1728,15 +1744,14 @@ class MainWindow(QMainWindow):
     # -- playback -----------------------------------------------------------------
 
     def _toggle_play(self) -> None:
-        """Start or pause playback; starting switches to the frame mode and rewinds at the end."""
-        if self._current is None:
+        """Start or pause playback (frame mode only); starting at the end rewinds."""
+        if self._current is None or self.mode.currentIndex() != _MODE_FRAME:
             return
         if self._timer.isActive():
             self._stop()
         else:
             if self.slider.value() >= self.slider.maximum():
                 self.slider.setValue(0)
-            self.mode.setCurrentIndex(_MODE_FRAME)
             self._update_timer()
             self._timer.start()
             self.play_button.setText("⏸")
