@@ -1,7 +1,7 @@
 ; Inno Setup script of the FreeSTEP Viewer installer.
 ;
 ; Build after PyInstaller (from the repository root):
-;   iscc /DAppVersion=0.1.0 packaging\windows\installer.iss
+;   iscc /DAppVersion=0.2.0 packaging\windows\installer.iss
 ; Output: dist\FreeStepViewer-<version>-setup.exe
 
 #ifndef AppVersion

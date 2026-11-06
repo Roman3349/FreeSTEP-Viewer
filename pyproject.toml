@@ -1,6 +1,6 @@
 [project]
 name = "freestep"
-version = "0.1.0"
+version = "0.2.0"
 description = "Parser of data exported from the FreeSTEP pressure-plate software"
 readme = "README.md"
 authors = [
