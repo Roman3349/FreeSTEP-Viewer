@@ -245,6 +245,42 @@ msgid "Total power AP"
 msgstr "Celkový výkon AP"
 
 #: freestep/gui/app.py
+msgid "Load distribution"
+msgstr "Rozložení zátěže"
+
+#: freestep/gui/app.py
+msgid "Left foot"
+msgstr "Levá noha"
+
+#: freestep/gui/app.py
+msgid "Right foot"
+msgstr "Pravá noha"
+
+#: freestep/gui/app.py
+msgid "Asymmetry (right − left)"
+msgstr "Asymetrie (pravá − levá)"
+
+#: freestep/gui/app.py
+msgid "Left share variability (SD)"
+msgstr "Kolísání podílu levé (SD)"
+
+#: freestep/gui/app.py
+msgid "Forefoot"
+msgstr "Přední část chodidel"
+
+#: freestep/gui/app.py
+msgid "Rearfoot"
+msgstr "Zadní část chodidel"
+
+#: freestep/gui/app.py
+msgid "Left forefoot (of left foot)"
+msgstr "Přední část levé (z levé)"
+
+#: freestep/gui/app.py
+msgid "Right forefoot (of right foot)"
+msgstr "Přední část pravé (z pravé)"
+
+#: freestep/gui/app.py
 msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
 msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
 
@@ -285,6 +321,10 @@ msgstr "COP není filtrovaný."
 #: freestep/gui/app.py
 msgid "Linear trend removed."
 msgstr "Lineární trend odstraněn."
+
+#: freestep/gui/app.py
+msgid "Load: left and right half of the plate; front and rear half of each foot's length (toes toward the top of the heat map)."
+msgstr "Zátěž: levá a pravá polovina plošiny; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tepelné mapy)."
 
 #: freestep/gui/app.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."

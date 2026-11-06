@@ -26,7 +26,8 @@ uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
 - COP trajectory plot with the origin in the plate corner (as stored), the plate centre or the mean position and
   the 95 % confidence ellipse, and a stabilogram (ML and AP sway over time; click to seek), patient/exam/recording
   metadata and the `Preview1.jpg` preview.
-- Stabilometric parameters of every acquisition (Stabilometry tab, see below) and evaluation of the Romberg test.
+- Stabilometric parameters and load distribution of every acquisition (Stabilometry tab, see below) and evaluation
+  of the Romberg test.
 - Export of the COP to CSV, of the frames to NPZ, of everything (frames, COP, parameters) or only the recorded
   (raw) data to MATLAB `.mat`, of the parameters to CSV, of the heat map to PNG and of all frames as PNGs in a ZIP.
 - Batch export of all exams of an export (File › Batch export), see below.
@@ -69,6 +70,11 @@ RMS distance, path length and mean velocity (total, ML, AP), 95 % confidence ell
 sway area per second and, from Welch's power spectrum in 0.15–5 Hz, mean, median and 95 %
 frequency and total power (Prieto et al. 1996, Duarte & Freitas 2010). `--detrend` / "Remove trend"
 subtracts the linear trend (slow drift) instead of only the mean; it is off by default.
+
+The load distribution gives the mean share of the load on the left and right half of the plate
+(split like FreeSTEP's COP of the feet), its asymmetry and variability over time, and the share on
+the front and rear half of each foot's length. The toes are assumed to point to row 0 (the top of
+the heat map).
 
 A posturography exam with two acquisitions of the same duration is evaluated as a Romberg test:
 the Romberg quotient (eyes closed / eyes open) of path length, velocity, ellipse area, sway area,

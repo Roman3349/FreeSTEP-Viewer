@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 13:52+0000\n"
+"POT-Creation-Date: 2026-11-06 13:53+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -245,6 +245,42 @@ msgid "Total power AP"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Load distribution"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Left foot"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Right foot"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Asymmetry (right − left)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Left share variability (SD)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Forefoot"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Rearfoot"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Left forefoot (of left foot)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Right forefoot (of right foot)"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
 msgstr ""
 
@@ -284,6 +320,10 @@ msgstr ""
 
 #: freestep/gui/app.py
 msgid "Linear trend removed."
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Load: left and right half of the plate; front and rear half of each foot's length (toes toward the top of the heat map)."
 msgstr ""
 
 #: freestep/gui/app.py

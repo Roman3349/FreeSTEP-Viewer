@@ -186,6 +186,9 @@ _PRINTED_PARAMETERS = (
     "sway_area_mm2_s",
     "mean_frequency_ml_hz",
     "mean_frequency_ap_hz",
+    "left_load_pct",
+    "load_asymmetry_pct",
+    "forefoot_pct",
 )
 
 
@@ -196,8 +199,14 @@ def _print_stabilometry(results: list[Stabilometry | None], lowpass: float | Non
     print(f"Stabilometry ({filtered}{trend}, COP of the whole plate):")
     print(f"    {'parameter':<28} {'unit':<6}" + "".join(f" {'acq ' + str(i):>9}" for i in range(len(results))))
     for name in _PRINTED_PARAMETERS:
-        values = "".join(f" {r.as_dict()[name]:9.2f}" if r is not None else f" {'–':>9}" for r in results)
+        values = "".join(f" {_value(r, name):>9}" for r in results)
         print(f"    {name:<28} {unit(name):<6}{values}")
+
+
+def _value(result: Stabilometry | None, name: str) -> str:
+    """Format a parameter for :func:`_print_stabilometry`, missing values as a dash."""
+    value = None if result is None else result.as_dict()[name]
+    return "–" if value is None else f"{value:.2f}"
 
 
 def cmd_batch(args: argparse.Namespace) -> int:

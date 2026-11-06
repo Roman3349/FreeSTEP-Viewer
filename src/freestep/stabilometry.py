@@ -1,4 +1,4 @@
-"""Stabilometric parameters of the centre of pressure and evaluation of the Romberg test.
+"""Stabilometric parameters of the centre of pressure, load distribution and evaluation of the Romberg test.
 
 The COP of the whole plate is used, x is the medio-lateral (ML) and y the
 antero-posterior (AP) direction. All parameters are computed after removing the
@@ -12,7 +12,8 @@ Fisioter. 14 (2010).
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
+from typing import TypedDict
 
 import numpy as np
 from numpy.typing import NDArray
@@ -27,6 +28,8 @@ DEFAULT_LOWPASS_HZ = 5.0
 FREQUENCY_BAND_HZ = (0.15, 5.0)
 #: Coverage of the confidence ellipse.
 ELLIPSE_PROBABILITY = 0.95
+#: Rows of a foot whose summed load is below this fraction of the most loaded row are not part of the foot.
+FOOT_ROW_THRESHOLD = 0.02
 #: Minimum number of loaded frames needed for the analysis.
 MIN_FRAMES = 32
 #: Exam type code of posturography (see :data:`freestep.models.EXAM_TYPES`).
@@ -78,6 +81,21 @@ class Stabilometry:
         total_power_ml_mm2: ML power in :data:`FREQUENCY_BAND_HZ`.
         total_power_ap_mm2: AP power in :data:`FREQUENCY_BAND_HZ`.
         detrended: The linear trend was removed instead of only the mean.
+        left_load_pct: Mean share of the total load on the left half of the plate.
+        right_load_pct: Mean share of the total load on the right half of the plate.
+        load_asymmetry_pct: ``right_load_pct − left_load_pct`` (positive: more load on the right).
+        left_load_sd_pct: Standard deviation of the left share over time (weight shifting).
+        forefoot_pct: Share of the total load on the front halves of both feet.
+        rearfoot_pct: Share of the total load on the rear halves of both feet.
+        left_forefoot_pct: Share of the left foot's load on its front half.
+        right_forefoot_pct: Share of the right foot's load on its front half.
+
+    The load distribution needs the pressure data, so it is ``None`` when the
+    parameters are computed from a COP trajectory only (:func:`compute`). The
+    halves of the plate are split at ``columns / 2`` like FreeSTEP's COP of the
+    feet. The front and rear half of a foot are split in the middle of its
+    length (the rows it loads); the toes are assumed to point to row 0, as the
+    heat map shows them at the top.
     """
 
     frames: int
@@ -114,6 +132,14 @@ class Stabilometry:
     total_power_ml_mm2: float
     total_power_ap_mm2: float
     detrended: bool = False
+    left_load_pct: float | None = None
+    right_load_pct: float | None = None
+    load_asymmetry_pct: float | None = None
+    left_load_sd_pct: float | None = None
+    forefoot_pct: float | None = None
+    rearfoot_pct: float | None = None
+    left_forefoot_pct: float | None = None
+    right_forefoot_pct: float | None = None
 
     def as_dict(self) -> dict[str, float | int | bool | None]:
         """Return the parameters as ``{attribute name: value}`` in declaration order."""
@@ -162,6 +188,7 @@ def unit(name: str) -> str:
         ("_hz", "Hz"),
         ("_s", "s"),
         ("_deg", "°"),
+        ("_pct", "%"),
     ):
         if name.endswith(suffix):
             return text
@@ -187,10 +214,10 @@ def loaded_mask(acq: Acquisition) -> NDArray[np.bool_]:
 
 
 def analyze(acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False) -> Stabilometry:
-    """Compute the stabilometric parameters of an acquisition from the COP of the whole plate.
+    """Compute the stabilometric parameters and the load distribution of an acquisition.
 
-    Unloaded frames at the start and end are left out, those in between are
-    linearly interpolated.
+    The COP of the whole plate is used. Unloaded frames at the start and end are
+    left out, those in between are linearly interpolated.
 
     Args:
         acq: The acquisition.
@@ -204,8 +231,79 @@ def analyze(acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, 
     Raises:
         ValueError: Fewer than :data:`MIN_FRAMES` loaded frames or an unknown sampling rate.
     """
-    cop, _, interpolated = trimmed_cop(acq)
-    return compute(cop, acq.sampling_rate_hz, lowpass_hz, interpolated_frames=interpolated, detrend=detrend)
+    cop, first, interpolated = trimmed_cop(acq)
+    result = compute(cop, acq.sampling_rate_hz, lowpass_hz, interpolated_frames=interpolated, detrend=detrend)
+    return replace(result, **load_distribution(acq.pressure[first : first + len(cop)]))
+
+
+class LoadDistribution(TypedDict, total=False):
+    """The load distribution fields of :class:`Stabilometry` (empty when nothing is loaded)."""
+
+    left_load_pct: float
+    right_load_pct: float
+    load_asymmetry_pct: float
+    left_load_sd_pct: float
+    forefoot_pct: float | None
+    rearfoot_pct: float | None
+    left_forefoot_pct: float | None
+    right_forefoot_pct: float | None
+
+
+def load_distribution(pressure: NDArray[np.integer]) -> LoadDistribution:
+    """Compute the load distribution between the feet and between their front and rear halves.
+
+    Args:
+        pressure: Frames ``(frames, rows, columns)``; frames without load are ignored.
+
+    Returns:
+        The ``*_pct`` fields of :class:`Stabilometry` (see there for the definitions).
+    """
+    frames = pressure.astype(np.float64)
+    half = frames.shape[2] // 2
+    left, right = frames[:, :, :half].sum(axis=(1, 2)), frames[:, :, half:].sum(axis=(1, 2))
+    total = left + right
+    loaded = total > 0
+    if not loaded.any():
+        return LoadDistribution()
+    left_share = left[loaded] / total[loaded] * 100
+    summed = frames[loaded].sum(axis=0)
+    feet = [_front_rear(summed[:, :half]), _front_rear(summed[:, half:])]
+    front, rear = sum(f for f, _ in feet), sum(r for _, r in feet)
+
+    def share(part: float, whole: float) -> float | None:
+        return part / whole * 100 if whole > 0 else None
+
+    left_pct = float(left_share.mean())
+    return LoadDistribution(
+        left_load_pct=left_pct,
+        right_load_pct=100 - left_pct,
+        load_asymmetry_pct=100 - 2 * left_pct,
+        left_load_sd_pct=float(left_share.std(ddof=1)) if len(left_share) > 1 else 0.0,
+        forefoot_pct=share(front, front + rear),
+        rearfoot_pct=share(rear, front + rear),
+        left_forefoot_pct=share(feet[0][0], sum(feet[0])),
+        right_forefoot_pct=share(feet[1][0], sum(feet[1])),
+    )
+
+
+def _front_rear(foot: NDArray[np.float64]) -> tuple[float, float]:
+    """Split the summed load of one foot into its front and rear half (rows toward 0 are the front).
+
+    Args:
+        foot: Load summed over the frames, ``(rows, columns)`` of one half of the plate.
+
+    Returns:
+        ``(front load, rear load)``; both 0 for an unloaded half.
+    """
+    profile = foot.sum(axis=1)
+    if profile.max() <= 0:
+        return 0.0, 0.0
+    rows = np.flatnonzero(profile >= FOOT_ROW_THRESHOLD * profile.max())
+    middle = (int(rows[0]) + int(rows[-1]) + 1) / 2
+    index = np.arange(len(profile))
+    # A row cut by the middle is split between both halves
+    front_weight = np.clip(middle - index, 0, 1)
+    return float((profile * front_weight).sum()), float((profile * (1 - front_weight)).sum())
 
 
 def trimmed_cop(acq: Acquisition) -> tuple[NDArray[np.float64], int, int]:

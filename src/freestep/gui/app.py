@@ -461,6 +461,19 @@ def _parameter_groups() -> list[tuple[str, list[tuple[str, str]]]]:
                 ("total_power_ap_mm2", tr("Total power AP")),
             ],
         ),
+        (
+            tr("Load distribution"),
+            [
+                ("left_load_pct", tr("Left foot")),
+                ("right_load_pct", tr("Right foot")),
+                ("load_asymmetry_pct", tr("Asymmetry (right − left)")),
+                ("left_load_sd_pct", tr("Left share variability (SD)")),
+                ("forefoot_pct", tr("Forefoot")),
+                ("rearfoot_pct", tr("Rearfoot")),
+                ("left_forefoot_pct", tr("Left forefoot (of left foot)")),
+                ("right_forefoot_pct", tr("Right forefoot (of right foot)")),
+            ],
+        ),
     ]
 
 
@@ -473,8 +486,8 @@ def _directions_note() -> str:
 
 
 def _number(value: float | None) -> str:
-    """Format a parameter value for the Stabilometry tab, missing values as a dash."""
-    return "–" if value is None or not np.isfinite(value) else f"{value:.2f}"
+    """Format a parameter value for the Stabilometry tab, missing values (``None``, NaN) as a dash."""
+    return "–" if value is None or not np.isfinite(value) else f"{float(value):.2f}"
 
 
 def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romberg: Romberg | None) -> str:
@@ -498,7 +511,7 @@ def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romber
     for title, parameters in _parameter_groups():
         rows.append(f"<tr><td colspan='{len(columns) + 2}'><b><br>{html.escape(title)}</b></td></tr>")
         for name, label in parameters:
-            cells = [_number(None if r is None else float(getattr(r, name))) for r in results]
+            cells = [_number(None if r is None else getattr(r, name)) for r in results]
             if romberg is not None:
                 quotient = romberg.quotients.get(name)
                 cells.append(_number(quotient) if quotient is not None else "")
@@ -519,6 +532,12 @@ def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romber
         )
         if analysed.detrended:
             notes.append(tr("Linear trend removed."))
+        notes.append(
+            tr(
+                "Load: left and right half of the plate; front and rear half of each foot's length "
+                "(toes toward the top of the heat map)."
+            )
+        )
     if romberg is not None:
         notes.append(tr("Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."))
         if not romberg.order_from_labels:

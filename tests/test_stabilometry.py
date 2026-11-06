@@ -18,6 +18,7 @@ from freestep.stabilometry import (
     compute,
     detect_romberg,
     evaluate_romberg,
+    load_distribution,
     unit,
 )
 from freestep.writers import write_mat, write_stabilometry_csv
@@ -80,6 +81,21 @@ def test_detrend_removes_drift() -> None:
     assert detrended.mean_x_mm == pytest.approx(plain.mean_x_mm)  # the position on the plate is kept
 
 
+def test_load_distribution() -> None:
+    """Shares of the feet and of their front and rear halves (toes toward row 0)."""
+    frame = np.zeros((4, 4), np.uint16)
+    frame[:, 0] = [1, 1, 2, 2]  # left foot over rows 0-3: front 2, rear 4
+    frame[0:2, 2] = 3  # right foot over rows 0-1: front 3, rear 3
+    shares = load_distribution(np.stack([frame, frame, np.zeros_like(frame)]))
+    assert shares["left_load_pct"] == pytest.approx(50)
+    assert shares["load_asymmetry_pct"] == pytest.approx(0)
+    assert shares["left_load_sd_pct"] == pytest.approx(0)
+    assert shares["left_forefoot_pct"] == pytest.approx(100 / 3)
+    assert shares["right_forefoot_pct"] == pytest.approx(50)
+    assert shares["forefoot_pct"] == pytest.approx(5 / 12 * 100)
+    assert load_distribution(np.zeros((2, 4, 4), np.uint16)) == {}
+
+
 def test_too_short_is_rejected() -> None:
     """Too few frames cannot be analysed."""
     with pytest.raises(ValueError):
@@ -105,6 +121,8 @@ def test_unloaded_frames_are_trimmed_and_interpolated() -> None:
     result = analyze(post.acquisitions[0])
     assert result.frames == 62
     assert result.interpolated_frames == 1
+    assert result.left_load_pct == 100 and result.load_asymmetry_pct == -100  # one loaded cell on the left
+    assert result.left_forefoot_pct == pytest.approx(50) and result.right_forefoot_pct is None
     # The synthetic COP does not move: no spread, no area, no spectrum
     assert result.path_length_mm == pytest.approx(0, abs=1e-9)
     assert result.convex_hull_area_mm2 == 0

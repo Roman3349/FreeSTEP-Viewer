@@ -45,6 +45,9 @@ def test_stabilometry_and_romberg(fre: FreFile) -> None:
     assert second.path_length_mm == pytest.approx(160.37, abs=0.01)
     assert first.ellipse_area_mm2 == pytest.approx(54.99, abs=0.01)
     assert second.ellipse_area_mm2 == pytest.approx(140.48, abs=0.01)
+    assert first.left_load_pct == pytest.approx(57.05, abs=0.01)
+    assert second.load_asymmetry_pct == pytest.approx(-30.32, abs=0.01)
+    assert first.forefoot_pct == pytest.approx(41.48, abs=0.01)
     detrended = analyze_all(post, detrend=True)[0]
     assert detrended is not None and detrended.detrended
     assert detrended.ellipse_area_mm2 == pytest.approx(22.75, abs=0.01)
