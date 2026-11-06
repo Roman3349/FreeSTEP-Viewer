@@ -17,7 +17,17 @@ from pathlib import Path
 
 import numpy as np
 from PySide6.QtCore import QMarginsF, QPoint, QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QPageLayout, QPageSize, QPainter, QPalette, QPdfWriter, QTextDocument
+from PySide6.QtGui import (
+    QAbstractTextDocumentLayout,
+    QColor,
+    QFont,
+    QPageLayout,
+    QPageSize,
+    QPainter,
+    QPalette,
+    QPdfWriter,
+    QTextDocument,
+)
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QWidget
 
@@ -80,6 +90,17 @@ def _print_palette() -> QPalette:
     return palette
 
 
+def draw_document(painter: QPainter, doc: QTextDocument) -> None:
+    """Paint rich text at the painter's origin, black on white whatever the theme of the screen.
+
+    :meth:`QTextDocument.drawContents` paints text without an explicit colour
+    in the text colour of the application palette, which is white in a dark theme.
+    """
+    context = QAbstractTextDocumentLayout.PaintContext()
+    context.palette = _print_palette()
+    doc.documentLayout().draw(painter, context)
+
+
 class _Pages:
     """Paints blocks one below another and starts a new page when a block does not fit."""
 
@@ -135,7 +156,7 @@ class _Pages:
         self.ensure(height + keep_with)
         self.painter.save()
         self.painter.translate(_MARGIN, self.y)
-        doc.drawContents(self.painter)
+        draw_document(self.painter, doc)
         self.painter.restore()
         self.y += height + _GAP / 2
 
@@ -157,7 +178,7 @@ class _Pages:
                 x = _MARGIN + column * (cell + _GAP)
                 self.painter.save()
                 self.painter.translate(x, self.y)
-                caption.drawContents(self.painter)
+                draw_document(self.painter, caption)
                 self.painter.restore()
                 widget.setPalette(_print_palette())
                 widget.setFont(self.font)

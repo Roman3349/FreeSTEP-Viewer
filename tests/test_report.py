@@ -12,9 +12,10 @@ from freestep.postura import Postura
 from freestep.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze_all, evaluate_romberg
 
 pytest.importorskip("PySide6")
+from PySide6.QtGui import QColor, QImage, QPainter, QPalette, QTextDocument
 from PySide6.QtWidgets import QApplication
 
-from freestep.gui.report import ReportData, write_report
+from freestep.gui.report import ReportData, draw_document, write_report
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -68,3 +69,23 @@ def test_write_report(tmp_path: Path, acquisitions: list[int]) -> None:
     content = path.read_bytes()
     assert content.startswith(b"%PDF")
     assert len(re.findall(rb"/Type\s*/Page\b", content)) >= 3
+
+
+def test_text_is_black_in_dark_theme(app: QApplication) -> None:
+    """Text without an explicit colour is printed black even when the application palette is dark."""
+    original = app.palette()
+    dark = QPalette(original)
+    dark.setColor(QPalette.ColorRole.Text, QColor("white"))
+    app.setPalette(dark)
+    try:
+        doc = QTextDocument()
+        doc.setHtml("<h1>MMMM</h1>")
+        image = QImage(200, 60, QImage.Format.Format_RGB32)
+        image.fill(QColor("white"))
+        painter = QPainter(image)
+        draw_document(painter, doc)
+        painter.end()
+    finally:
+        app.setPalette(original)
+    darkest = min(QColor(image.pixel(x, y)).lightness() for x in range(200) for y in range(60))
+    assert darkest < 64
