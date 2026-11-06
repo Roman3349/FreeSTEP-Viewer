@@ -23,9 +23,12 @@ uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
 - Patient/exam tree read from `Export.mdb`. A single `.fre` file can be opened too, via the menu or drag & drop.
 - Pressure heat map with the COP of the whole plate and of both halves, plus a COP trail.
 - Playback (Space, arrow keys, PageUp/PageDown) and frame / maximum / mean display modes.
-- Stabilogram, patient/exam/recording metadata and the `Preview1.jpg` preview.
-- Export of the COP to CSV, of the frames to NPZ or MATLAB `.mat`, of the heat map to PNG and of all frames as
-  PNGs in a ZIP.
+- COP trajectory plot with the origin in the plate corner (as stored), the plate centre or the mean position and
+  the 95 % confidence ellipse, and a stabilogram (ML and AP sway over time; click to seek), patient/exam/recording
+  metadata and the `Preview1.jpg` preview.
+- Stabilometric parameters of every acquisition (Stabilometry tab, see below) and evaluation of the Romberg test.
+- Export of the COP to CSV, of the frames to NPZ, of everything (frames, COP, parameters) or only the recorded
+  (raw) data to MATLAB `.mat`, of the parameters to CSV, of the heat map to PNG and of all frames as PNGs in a ZIP.
 - Batch export of all exams of an export (File › Batch export), see below.
 - English and Czech UI (View › Language, switches without a restart). The default is the system language.
 
@@ -38,7 +41,7 @@ password if the archive uses a different one.
 uv run freestep info FreeStep_Export.zip                      # patients and exams
 uv run freestep exam FreeStep_Export.zip --exam 158 --csv cop.csv --npz frames.npz --preview preview.jpg
 uv run freestep exam 00000158.fre --raw Postura.dat           # a single .fre file
-uv run freestep exam 00000158.fre --mat exam.mat             # MATLAB / Octave
+uv run freestep exam 00000158.fre --mat exam.mat --mat-raw raw.mat --stats stats.csv --lowpass 5
 uv run freestep batch FreeStep_Export.zip out/ --format npz --format cop-csv  # all exams
 uv run freestep dump FreeStep_Export.zip out/                 # Export.mdb tables to CSV
 ```
@@ -50,18 +53,36 @@ The archives are opened with the built-in default password (change it with `--pa
 
 `freestep batch` and File › Batch export write every exam of an export into one directory as
 `<birth date>_<name>_exam_<ID><suffix>`, e.g. `1998-06-06_Jan_Novak_exam_160.npz`. The name has no
-diacritics and `_` instead of spaces. The formats (`--format`, repeatable) are `mat` (`.mat`), `npz`
-(`.npz`) and `cop-csv` (`_cop.csv`). `index.csv` lists every exam (patient, exam, acquisitions, files,
-status). `--dry-run` only prints the file names. Decrypting takes about 5 s per exam.
+diacritics and `_` instead of spaces. The formats (`--format`, repeatable) are `mat` (`.mat`, data and
+parameters), `mat-raw` (`_raw.mat`, recorded data only), `npz` (`.npz`), `cop-csv` (`_cop.csv`) and
+`stats-csv` (`_stabilometry.csv`). `index.csv` lists every exam (patient, exam, acquisitions, files,
+status) and `stabilometry_summary.csv` holds the parameters of all acquisitions, one row each (turn it
+off with `--no-summary`). `--dry-run` only prints the file names. Decrypting takes about 5 s per exam.
 
-## MATLAB
+## Stabilometry
 
-The `.mat` files load in MATLAB and GNU Octave:
+`freestep.stabilometry` computes the parameters from the COP of the whole plate (x = medio-lateral,
+y = antero-posterior) after a zero-phase 4th order Butterworth low-pass filter (5 Hz by default,
+`--lowpass 0` / "unfiltered" turns it off). Unloaded frames at the start and end are left out,
+those in between are interpolated. Parameters: mean position, range, standard deviation, mean and
+RMS distance, path length and mean velocity (total, ML, AP), 95 % confidence ellipse, convex hull,
+sway area per second and, from Welch's power spectrum in 0.15–5 Hz, mean, median and 95 %
+frequency and total power (Prieto et al. 1996, Duarte & Freitas 2010).
+
+A posturography exam with two acquisitions of the same duration is evaluated as a Romberg test:
+the Romberg quotient (eyes closed / eyes open) of path length, velocity, ellipse area, sway area,
+SD and range. FreeSTEP does not store which acquisition is with eyes closed (unless the labels
+say so), so the order is a setting: eyes open first by default, `--eyes-closed-first` or the
+"Eyes closed first" check box otherwise. No normative values are applied.
+
+In MATLAB / Octave:
 
 ```matlab
 d = load('exam.mat');
 imagesc(d.acq(1).pressure(:, :, 100)); axis image   % rows × columns × frames
 plot(d.acq(1).cop_total(:, 1), d.acq(1).cop_total(:, 2))
+d.acq(2).stabilometry.ellipse_area_mm2
+d.romberg.quotients.path_length_mm
 ```
 
 ## Library
@@ -180,8 +201,11 @@ uv run pytest                          # unit tests + 2 exams of the sample expo
 FREESTEP_ALL_EXAMS=1 uv run pytest     # all 22 exams (~1.5 min)
 ```
 
+If GNU Octave (`octave-cli`) is installed, a test also checks that it reads the exported `.mat` file.
 The integration tests look for the sample export in the repository root. ZIP, `.fre` and
-`.mdb` files are listed in `.gitignore` because they contain personal data.
+`.mdb` files are listed in `.gitignore` because they contain personal data. The only exception is
+`tests/data/00000160.fre`, an anonymised Romberg exam used by the tests in CI; it was created by
+`tests/data/anonymize_fre.py`.
 
 ## License
 

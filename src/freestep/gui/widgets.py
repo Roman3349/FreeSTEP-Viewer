@@ -1,4 +1,4 @@
-"""Custom painted widgets: pressure heat map and COP trajectory plot.
+"""Custom painted widgets: pressure heat map, COP trajectory plot and stabilogram.
 
 Both widgets paint everything themselves with :class:`~PySide6.QtGui.QPainter`,
 so no plotting library is needed. Coordinates follow the image convention:
@@ -22,6 +22,19 @@ COP_TOTAL_COLOR = QColor(20, 20, 20)
 COP_LEFT_COLOR = QColor(150, 0, 170)
 #: Colour of the COP of the right foot.
 COP_RIGHT_COLOR = QColor(0, 120, 120)
+#: Colour of the confidence ellipse in :class:`CopPlot`.
+ELLIPSE_COLOR = QColor(220, 120, 0)
+#: :attr:`CopPlot.origin`: (0, 0) in the plate corner (coordinates as stored by FreeSTEP).
+ORIGIN_PLATE = 0
+#: :attr:`CopPlot.origin`: (0, 0) in the centre of the plate.
+ORIGIN_PLATE_CENTRE = 1
+#: :attr:`CopPlot.origin`: (0, 0) at the mean position of every series.
+ORIGIN_MEAN = 2
+
+#: Colour of the medio-lateral (x) signal in :class:`StabilogramPlot`.
+ML_COLOR = QColor(31, 119, 180)
+#: Colour of the antero-posterior (y) signal in :class:`StabilogramPlot`.
+AP_COLOR = QColor(214, 95, 0)
 #: Colour of the marker of the current frame in :class:`CopPlot`.
 CURRENT_COLOR = QColor(220, 0, 0)
 
@@ -247,6 +260,15 @@ class CopPlot(QWidget):
 
     The view is zoomed to the data; all-zero positions (frames without load)
     are ignored. The position of the current frame is marked on every series.
+
+    Attributes:
+        origin: Where (0, 0) is: :data:`ORIGIN_PLATE` (the plate corner, as stored),
+            :data:`ORIGIN_PLATE_CENTRE` (every series is shifted by half the plate,
+            :attr:`plate_cm`) or :data:`ORIGIN_MEAN` (every series is shifted by its
+            mean position). In the latter two, (0, 0) is in the centre of the plot.
+        plate_cm: Width and height of the plate in cm (for :data:`ORIGIN_PLATE_CENTRE`).
+        show_ellipse: Draw the confidence ellipse given by :meth:`set_ellipse`
+            (it belongs to the first series and moves with it).
     """
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -259,6 +281,10 @@ class CopPlot(QWidget):
         self.setMinimumSize(240, 200)
         self._series: list[tuple[str, QColor, NDArray[np.floating]]] = []
         self._current = 0
+        self.origin = ORIGIN_PLATE
+        self.plate_cm = (0.0, 0.0)
+        self.show_ellipse = True
+        self._ellipse: tuple[NDArray[np.float64], float, float, float] | None = None
 
     def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
         """Return the preferred size."""
@@ -288,6 +314,46 @@ class CopPlot(QWidget):
         self._current = frame
         self.update()
 
+    def set_ellipse(
+        self, centre_cm: tuple[float, float] | None, major_cm: float = 0, minor_cm: float = 0, angle_deg: float = 0
+    ) -> None:
+        """Set the confidence ellipse of the first series (``centre_cm=None`` removes it).
+
+        Args:
+            centre_cm: Centre (x, y) in cm, in the coordinates of the series.
+            major_cm: Semi-major axis in cm.
+            minor_cm: Semi-minor axis in cm.
+            angle_deg: Angle of the major axis from the x axis.
+        """
+        centre = None if centre_cm is None else np.asarray(centre_cm, dtype=np.float64)
+        self._ellipse = None if centre is None else (centre, major_cm, minor_cm, angle_deg)
+        self.update()
+
+    def _offsets(self, masks: list[NDArray[np.bool_]]) -> list[NDArray[np.float64]]:
+        """Return the shift of every series that moves it to :attr:`origin`.
+
+        Args:
+            masks: Valid (loaded) positions of every series; the mean uses only these.
+        """
+        if self.origin == ORIGIN_MEAN:
+            return [
+                np.asarray(d[mask].mean(axis=0), dtype=np.float64) if mask.any() else np.zeros(2)
+                for (_, _, d), mask in zip(self._series, masks, strict=True)
+            ]
+        if self.origin == ORIGIN_PLATE_CENTRE:
+            return [np.asarray(self.plate_cm, dtype=np.float64) / 2 for _ in self._series]
+        return [np.zeros(2) for _ in self._series]
+
+    def _ellipse_points(self, offset: NDArray[np.float64]) -> NDArray[np.float64] | None:
+        """Return the outline of the ellipse (shifted like the first series), or ``None`` when not shown."""
+        if not self.show_ellipse or self._ellipse is None:
+            return None
+        centre, major, minor, angle = self._ellipse
+        t = np.linspace(0, 2 * np.pi, 97)
+        phi = np.radians(angle)
+        u, v = np.array([np.cos(phi), np.sin(phi)]), np.array([-np.sin(phi), np.cos(phi)])
+        return centre - offset + np.outer(major * np.cos(t), u) + np.outer(minor * np.sin(t), v)
+
     def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802 (Qt API)
         """Paint grid, axes, trajectories, current positions and legend (Qt event handler)."""
         painter = QPainter(self)
@@ -299,11 +365,21 @@ class CopPlot(QWidget):
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("No COP data"))
             return
 
-        valid = [d[np.all(np.isfinite(d), axis=1) & np.any(d != 0, axis=1)] for _, _, d in self._series]
-        points = np.concatenate([v for v in valid if len(v)]) if any(len(v) for v in valid) else np.zeros((1, 2))
+        masks = [np.all(np.isfinite(d), axis=1) & np.any(d != 0, axis=1) for _, _, d in self._series]
+        centred = self.origin != ORIGIN_PLATE
+        offsets = self._offsets(masks)
+        shown = [d - offset for (_, _, d), offset in zip(self._series, offsets, strict=True)]
+        valid = [d[mask] for d, mask in zip(shown, masks, strict=True)]
+        ellipse = self._ellipse_points(offsets[0])
+        parts = [v for v in valid if len(v)] + ([ellipse] if ellipse is not None else [])
+        points = np.concatenate(parts) if parts else np.zeros((1, 2))
         lo, hi = points.min(axis=0), points.max(axis=0)
-        span = max(float((hi - lo).max()), 0.5) * 1.1
-        centre = (lo + hi) / 2
+        if centred:  # symmetric around (0, 0), which is in the centre
+            span = max(2 * float(np.abs(points).max()), 0.5) * 1.1
+            centre = np.zeros(2)
+        else:
+            span = max(float((hi - lo).max()), 0.5) * 1.1
+            centre = (lo + hi) / 2
 
         margin_left, margin_bottom, margin = 46, 34, 12
         area = QRectF(self.rect()).adjusted(margin_left, margin + 18, -margin, -margin_bottom)
@@ -342,6 +418,11 @@ class CopPlot(QWidget):
             )
         painter.setPen(QPen(QColor(128, 128, 128), 1))
         painter.drawRect(plot)
+        if centred:  # axes through (0, 0)
+            painter.setPen(QPen(QColor(128, 128, 128, 160), 1, Qt.PenStyle.DashLine))
+            origin = to_px(0.0, 0.0)
+            painter.drawLine(QPointF(origin.x(), plot.top()), QPointF(origin.x(), plot.bottom()))
+            painter.drawLine(QPointF(plot.left(), origin.y()), QPointF(plot.right(), origin.y()))
         painter.setPen(text_colour)
         painter.drawText(
             QRectF(plot.left(), plot.bottom() + 18, plot.width(), 14), Qt.AlignmentFlag.AlignCenter, "x [cm]"
@@ -349,27 +430,230 @@ class CopPlot(QWidget):
 
         painter.setClipRect(plot)
         for (_, colour, _), data in zip(self._series, valid, strict=True):
-            if len(data) < 2:
-                continue
-            path = QPainterPath(to_px(*data[0]))
-            for x, y in data[1:]:
-                path.lineTo(to_px(x, y))
-            painter.setPen(QPen(colour, 1))
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawPath(path)
-        for _, _, data in self._series:
-            if 0 <= self._current < len(data) and np.any(data[self._current]):
+            _draw_polyline(painter, [to_px(x, y) for x, y in data], QPen(colour, 1))
+        if ellipse is not None:
+            _draw_polyline(painter, [to_px(x, y) for x, y in ellipse], QPen(ELLIPSE_COLOR, 1.5, Qt.PenStyle.DashLine))
+        for data, mask in zip(shown, masks, strict=True):
+            if 0 <= self._current < len(data) and mask[self._current]:
                 painter.setPen(QPen(Qt.GlobalColor.white, 1.5))
                 painter.setBrush(CURRENT_COLOR)
                 painter.drawEllipse(to_px(*data[self._current]), 4, 4)
         painter.setClipping(False)
 
-        # Legend
-        x = plot.left()
-        for label, colour, _ in self._series:
-            painter.setPen(QPen(colour, 3))
-            painter.drawLine(QPointF(x, margin + 7), QPointF(x + 16, margin + 7))
+        entries = [(label, QPen(colour, 3)) for label, colour, _ in self._series]
+        if ellipse is not None:
+            entries.append((tr("95% ellipse"), QPen(ELLIPSE_COLOR, 2, Qt.PenStyle.DashLine)))
+        _draw_legend(painter, QPointF(plot.left(), margin), entries, text_colour)
+
+
+def _draw_polyline(painter: QPainter, points: list[QPointF], pen: QPen) -> None:
+    """Draw connected line segments through ``points`` (nothing for fewer than two)."""
+    if len(points) < 2:
+        return
+    path = QPainterPath(points[0])
+    for point in points[1:]:
+        path.lineTo(point)
+    painter.setPen(pen)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawPath(path)
+
+
+def _draw_legend(painter: QPainter, origin: QPointF, entries: list[tuple[str, QPen]], text_colour: QColor) -> None:
+    """Draw a one-line legend: a line sample in the entry's pen and its label, left to right.
+
+    Args:
+        painter: Active painter.
+        origin: Top-left corner of the legend.
+        entries: ``(label, pen)`` per entry.
+        text_colour: Colour of the labels.
+    """
+    x, y = origin.x(), origin.y()
+    for label, pen in entries:
+        painter.setPen(pen)
+        painter.drawLine(QPointF(x, y + 7), QPointF(x + 16, y + 7))
+        painter.setPen(text_colour)
+        painter.drawText(QPointF(x + 20, y + 11), label)
+        x += 20 + painter.fontMetrics().horizontalAdvance(label) + 14
+
+
+def _nice_step(span: float, count: int) -> float:
+    """Return a 1/2/5 × 10^n grid step giving about ``count`` intervals over ``span``."""
+    raw = max(span, 1e-9) / count
+    magnitude = 10 ** np.floor(np.log10(raw))
+    return float(next(m * magnitude for m in (1, 2, 5, 10) if m * magnitude >= raw))
+
+
+class StabilogramPlot(QWidget):
+    """Stabilogram: COP displacement over time, one panel per direction (ML above AP).
+
+    All panels share the time axis and the (symmetric) value scale, so the sway
+    in both directions can be compared. The current frame is marked by a
+    vertical line; clicking or dragging emits :attr:`seeked`.
+
+    Signals:
+        seeked(int): Frame index of the acquisition under the mouse.
+    """
+
+    seeked = Signal(int)
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Create an empty plot.
+
+        Args:
+            parent: Parent widget.
+        """
+        super().__init__(parent)
+        self.setMinimumSize(240, 200)
+        self._time: NDArray[np.float64] | None = None
+        self._panels: list[tuple[str, QColor, NDArray[np.float64]]] = []
+        self._unit = ""
+        self._offset = 0
+        self._current = 0
+
+    def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
+        """Return the preferred size."""
+        return QSize(400, 360)
+
+    def clear(self) -> None:
+        """Remove the data."""
+        self._time = None
+        self._panels = []
+        self.update()
+
+    def set_data(
+        self,
+        time_s: NDArray[np.floating],
+        panels: list[tuple[str, QColor, NDArray[np.floating]]],
+        unit: str,
+        frame_offset: int = 0,
+    ) -> None:
+        """Replace the plotted signals.
+
+        Args:
+            time_s: Sample times in s, shape ``(n,)``.
+            panels: ``(title, colour, values (n,))`` per panel, top to bottom.
+            unit: Unit of the values (axis label).
+            frame_offset: Frame index of the first sample (the signals may leave
+                out unloaded frames at the start of the acquisition).
+        """
+        self._time = np.asarray(time_s, dtype=np.float64)
+        self._panels = [(title, colour, np.asarray(v, dtype=np.float64)) for title, colour, v in panels]
+        self._unit = unit
+        self._offset = frame_offset
+        self.update()
+
+    def set_current(self, frame: int) -> None:
+        """Mark the time of a frame.
+
+        Args:
+            frame: Zero-based frame index of the acquisition.
+        """
+        self._current = frame
+        self.update()
+
+    # -- geometry -------------------------------------------------------------
+
+    _MARGIN_LEFT, _MARGIN_RIGHT, _MARGIN_TOP, _MARGIN_BOTTOM, _GAP = 46, 12, 22, 34, 22
+
+    def _panel_rects(self) -> list[QRectF]:
+        """Areas of the panels in widget coordinates."""
+        area = QRectF(self.rect()).adjusted(
+            self._MARGIN_LEFT, self._MARGIN_TOP, -self._MARGIN_RIGHT, -self._MARGIN_BOTTOM
+        )
+        count = max(len(self._panels), 1)
+        height = (area.height() - self._GAP * (count - 1)) / count
+        return [QRectF(area.left(), area.top() + i * (height + self._GAP), area.width(), height) for i in range(count)]
+
+    # -- painting -------------------------------------------------------------
+
+    def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802 (Qt API)
+        """Paint the panels with grid, signals and the current time (Qt event handler)."""
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), self.palette().base())
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        text_colour = self.palette().text().color()
+        time = self._time
+        if time is None or len(time) < 2 or not self._panels:
             painter.setPen(text_colour)
-            width = painter.fontMetrics().horizontalAdvance(label)
-            painter.drawText(QPointF(x + 20, margin + 11), label)
-            x += 20 + width + 14
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("No COP data"))
+            return
+
+        t0, t1 = float(time[0]), float(time[-1])
+        limit = max(0.1, *(float(np.abs(v).max()) for _, _, v in self._panels)) * 1.1
+        t_step = _nice_step(t1 - t0, 6)
+        v_step = _nice_step(2 * limit, 4)
+        grid_pen = QPen(QColor(128, 128, 128, 60), 1)
+        current = self._current - self._offset
+
+        for index, (rect, (title, colour, values)) in enumerate(zip(self._panel_rects(), self._panels, strict=True)):
+
+            def to_px(t: float, v: float, rect: QRectF = rect) -> QPointF:
+                """Convert (time, value) to widget coordinates inside the panel."""
+                return QPointF(
+                    rect.left() + (t - t0) / (t1 - t0) * rect.width(),
+                    rect.center().y() - v / limit * rect.height() / 2,
+                )
+
+            for t in np.arange(np.ceil(t0 / t_step) * t_step, t1 + 1e-9, t_step):
+                x = to_px(float(t), 0).x()
+                painter.setPen(grid_pen)
+                painter.drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()))
+                if index == len(self._panels) - 1:
+                    painter.setPen(text_colour)
+                    painter.drawText(QRectF(x - 30, rect.bottom() + 4, 60, 14), Qt.AlignmentFlag.AlignCenter, f"{t:g}")
+            for v in np.arange(np.ceil(-limit / v_step) * v_step, limit + 1e-9, v_step):
+                y = to_px(t0, float(v)).y()
+                painter.setPen(QPen(QColor(128, 128, 128, 140 if abs(v) < 1e-9 else 60), 1))
+                painter.drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y))
+                painter.setPen(text_colour)
+                painter.drawText(
+                    QRectF(rect.left() - 44, y - 7, 40, 14),
+                    Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                    f"{v:g}",
+                )
+            painter.setPen(QPen(QColor(128, 128, 128), 1))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRect(rect)
+            painter.setPen(text_colour)
+            painter.drawText(QPointF(rect.left(), rect.top() - 6), f"{title} [{self._unit}]")
+
+            painter.setClipRect(rect)
+            path = QPainterPath(to_px(float(time[0]), float(values[0])))
+            for t, v in zip(time[1:], values[1:], strict=True):
+                path.lineTo(to_px(float(t), float(v)))
+            painter.setPen(QPen(colour, 1))
+            painter.drawPath(path)
+            if 0 <= current < len(time):
+                x = to_px(float(time[current]), 0).x()
+                painter.setPen(QPen(CURRENT_COLOR, 1.5))
+                painter.drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()))
+            painter.setClipping(False)
+
+        painter.setPen(text_colour)
+        bottom = self._panel_rects()[-1]
+        painter.drawText(
+            QRectF(bottom.left(), bottom.bottom() + 18, bottom.width(), 14),
+            Qt.AlignmentFlag.AlignCenter,
+            tr("time [s]"),
+        )
+
+    # -- mouse ----------------------------------------------------------------
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
+        """Seek to the clicked time (Qt event handler)."""
+        self._seek(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802 (Qt API)
+        """Seek while dragging (Qt event handler)."""
+        if event.buttons() & Qt.MouseButton.LeftButton:
+            self._seek(event)
+
+    def _seek(self, event: QMouseEvent) -> None:
+        """Emit :attr:`seeked` with the frame nearest to the mouse position."""
+        time = self._time
+        if time is None or len(time) < 2:
+            return
+        rect = self._panel_rects()[0]
+        fraction = min(max((event.position().x() - rect.left()) / rect.width(), 0.0), 1.0)
+        t = time[0] + fraction * (time[-1] - time[0])
+        self.seeked.emit(int(np.searchsorted(time, t).clip(0, len(time) - 1)) + self._offset)

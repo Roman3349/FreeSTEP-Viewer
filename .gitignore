@@ -27,3 +27,5 @@ repo/
 # IDE
 .idea/
 .vscode/
+# ...except the anonymised test exam (see tests/data/anonymize_fre.py)
+!tests/data/00000160.fre

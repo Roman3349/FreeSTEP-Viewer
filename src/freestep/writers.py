@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import csv
+import dataclasses
+import math
 import os
 
 import numpy as np
 from scipy.io import savemat
 
 from .postura import Postura
+from .stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
 
 #: Columns of :func:`write_cop_csv`.
 COP_CSV_COLUMNS = [
@@ -82,9 +85,42 @@ def write_npz(post: Postura, path: str | os.PathLike[str]) -> None:
     np.savez_compressed(path, **arrays)  # type: ignore[arg-type]
 
 
+def write_stabilometry_csv(
+    results: list[Stabilometry | None], path: str | os.PathLike[str], romberg: Romberg | None = None
+) -> None:
+    """Write the stabilometric parameters with one row per parameter and one column per acquisition.
+
+    Args:
+        results: Parameters of every acquisition (see :func:`freestep.stabilometry.analyze_all`);
+            ``None`` gives empty cells.
+        path: Output file (overwritten), UTF-8 with ``,`` as separator.
+        romberg: Adds the ``romberg_quotient`` column (eyes closed / eyes open).
+    """
+    names = [f.name for f in dataclasses.fields(Stabilometry)]
+    with open(path, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        header = ["parameter", "unit", *(f"acquisition_{i + 1}" for i in range(len(results)))]
+        writer.writerow([*header, "romberg_quotient"] if romberg else header)
+        for name in names:
+            values = [_csv_value(r.as_dict()[name]) if r is not None else "" for r in results]
+            row = [name, unit(name), *values]
+            if romberg is not None:
+                row.append(_csv_value(romberg.quotients[name]) if name in romberg.quotients else "")
+            writer.writerow(row)
+
+
+def _csv_value(value: float | int | None) -> str:
+    """Format a parameter for CSV: integers as they are, floats with 4 decimals, ``None``/NaN empty."""
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return ""
+    return str(value) if isinstance(value, int) else f"{value:.4f}"
+
+
 def write_mat(
     post: Postura,
     path: str | os.PathLike[str],
+    results: list[Stabilometry | None] | None = None,
+    romberg: Romberg | None = None,
 ) -> None:
     """Write all acquisitions to a compressed MATLAB file (format 5, readable by MATLAB and Octave).
 
@@ -97,12 +133,22 @@ def write_mat(
     shows frame ``k``), ``cop_total``, ``cop_left``, ``cop_right`` (``frames × 2``
     in cm, as stored) and ``mean_image``.
 
+    Without ``results`` and ``romberg`` the file holds only the recorded (raw)
+    data. With ``results`` every ``acq`` element has a ``stabilometry`` struct
+    (empty where the analysis failed); with a Romberg evaluation, ``romberg``
+    holds the (1-based) ``eyes_open`` / ``eyes_closed`` indexes,
+    ``order_from_labels`` and the ``quotients`` struct.
+
     Args:
         post: The recording.
         path: Output file (overwritten).
+        results: Stabilometric parameters of every acquisition.
+        romberg: Evaluation of the Romberg test.
     """
     fields = ["label", "sampling_rate_hz", "time_s", "timestamp_ms", "unknown", "pressure"]
     fields += ["cop_total", "cop_left", "cop_right", "mean_image"]
+    if results is not None:
+        fields.append("stabilometry")
     acq_array = np.empty((1, len(post.acquisitions)), dtype=[(name, object) for name in fields])
     for i, acq in enumerate(post.acquisitions):
         values: list[object] = [
@@ -117,6 +163,9 @@ def write_mat(
             np.ascontiguousarray(acq.cop_right),
             np.ascontiguousarray(acq.mean_image),
         ]
+        if results is not None:
+            result = results[i] if i < len(results) else None
+            values.append(_mat_struct(result.as_dict()) if result is not None else np.empty((0, 0)))
         acq_array[0, i] = tuple(values)
     h = post.header
     variables: dict[str, object] = {
@@ -134,4 +183,16 @@ def write_mat(
         },
         "acq": acq_array,
     }
+    if romberg is not None:
+        variables["romberg"] = {
+            "eyes_open": romberg.eyes_open + 1,
+            "eyes_closed": romberg.eyes_closed + 1,
+            "order_from_labels": romberg.order_from_labels,
+            "quotients": _mat_struct({name: romberg.quotients[name] for name in ROMBERG_PARAMETERS}),
+        }
     savemat(path, variables, do_compression=True, oned_as="column")
+
+
+def _mat_struct(values: dict[str, float | int | None]) -> dict[str, object]:
+    """Convert parameters to a MATLAB struct, ``None`` as an empty matrix."""
+    return {name: np.empty((0, 0)) if value is None else value for name, value in values.items()}

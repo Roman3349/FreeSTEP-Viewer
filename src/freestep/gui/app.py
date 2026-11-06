@@ -53,6 +53,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QDoubleSpinBox,
     QFileDialog,
     QHBoxLayout,
     QInputDialog,
@@ -77,10 +78,20 @@ from PySide6.QtWidgets import (
 )
 
 from ..archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
-from ..batch import FORMATS, INDEX_NAME, BatchResult, batch_export
+from ..batch import FORMATS, INDEX_NAME, SUMMARY_NAME, BatchResult, batch_export
 from ..models import Exam, FilterSettings, Patient
 from ..postura import Acquisition, Postura
-from ..writers import write_cop_csv, write_mat, write_npz
+from ..stabilometry import (
+    DEFAULT_LOWPASS_HZ,
+    Romberg,
+    Stabilometry,
+    analyze_all,
+    evaluate_romberg,
+    lowpass,
+    trimmed_cop,
+    unit,
+)
+from ..writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 from .i18n import (
     AUTO_LANGUAGE,
     LANGUAGES,
@@ -92,7 +103,17 @@ from .i18n import (
     system_language,
     tr,
 )
-from .widgets import COP_LEFT_COLOR, COP_RIGHT_COLOR, COP_TOTAL_COLOR, CopPlot, HeatmapView
+from .widgets import (
+    AP_COLOR,
+    COP_LEFT_COLOR,
+    COP_RIGHT_COLOR,
+    COP_TOTAL_COLOR,
+    ML_COLOR,
+    ORIGIN_PLATE,
+    CopPlot,
+    HeatmapView,
+    StabilogramPlot,
+)
 
 #: Application name (window title, About dialog, settings).
 APP_NAME = "FreeSTEP Viewer"
@@ -156,22 +177,25 @@ class _Progress(QObject):
 def _format_labels() -> dict[str, str]:
     """Translated descriptions of the batch export formats (keys of :data:`freestep.batch.FORMATS`)."""
     return {
-        "mat": tr("MATLAB: frames and COP (.mat)"),
+        "mat": tr("MATLAB: data and stabilometric parameters (.mat)"),
+        "mat-raw": tr("MATLAB: recorded data only (_raw.mat)"),
         "npz": tr("NumPy: frames and COP (.npz)"),
         "cop-csv": tr("COP per frame (_cop.csv)"),
+        "stats-csv": tr("Stabilometric parameters (_stabilometry.csv)"),
     }
 
 
 class _BatchDialog(QDialog):
-    """Options of the batch export: output directory and formats."""
+    """Options of the batch export: output directory, formats and the summary table."""
 
-    def __init__(self, parent: QWidget, directory: str, formats: list[str]) -> None:
+    def __init__(self, parent: QWidget, directory: str, formats: list[str], summary: bool) -> None:
         """Create the dialog.
 
         Args:
             parent: Parent window.
             directory: Proposed output directory.
             formats: Initially checked formats.
+            summary: Initial state of the summary option.
         """
         super().__init__(parent)
         self.setWindowTitle(tr("Batch export"))
@@ -204,6 +228,14 @@ class _BatchDialog(QDialog):
             check.toggled.connect(self._update_ok)
             self.checks[key] = check
             layout.addWidget(check)
+        self.summary = QCheckBox(tr("Summary table of all acquisitions ({name})", name=SUMMARY_NAME))
+        self.summary.setChecked(summary)
+        self.summary.toggled.connect(self._update_ok)
+        layout.addWidget(self.summary)
+        note = QLabel(tr("The parameters use the low-pass filter and Romberg order set in the Stabilometry tab."))
+        note.setWordWrap(True)
+        note.setStyleSheet("color: gray")
+        layout.addWidget(note)
 
         self.buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         self.buttons.accepted.connect(self.accept)
@@ -223,8 +255,8 @@ class _BatchDialog(QDialog):
             self.directory.setText(path)
 
     def _update_ok(self) -> None:
-        """Allow OK only with a directory and at least one format."""
-        ok = bool(self.directory.text().strip()) and bool(self.formats())
+        """Allow OK only with a directory and at least one format or the summary."""
+        ok = bool(self.directory.text().strip()) and bool(self.formats() or self.summary.isChecked())
         self.buttons.button(QDialogButtonBox.StandardButton.Ok).setEnabled(ok)
 
 
@@ -367,6 +399,135 @@ def _png_bytes(image: QImage) -> bytes:
     return bytes(data.data())
 
 
+def _setting_float(value: object, default: float) -> float:
+    """Convert a stored setting to a float, ``default`` when missing or invalid."""
+    try:
+        return float(str(value)) if value is not None else default
+    except ValueError:
+        return default
+
+
+def _parameter_groups() -> list[tuple[str, list[tuple[str, str]]]]:
+    """Translated groups of the stabilometric parameters shown in the Stabilometry tab.
+
+    Returns:
+        ``(group title, [(attribute of Stabilometry, label), …])`` per group.
+    """
+    return [
+        (
+            tr("Position and spread"),
+            [
+                ("mean_x_mm", tr("Mean position ML")),
+                ("mean_y_mm", tr("Mean position AP")),
+                ("range_ml_mm", tr("Range ML")),
+                ("range_ap_mm", tr("Range AP")),
+                ("sd_ml_mm", tr("Standard deviation ML")),
+                ("sd_ap_mm", tr("Standard deviation AP")),
+                ("mean_distance_mm", tr("Mean distance")),
+                ("rms_distance_mm", tr("RMS distance")),
+            ],
+        ),
+        (
+            tr("Path and velocity"),
+            [
+                ("path_length_mm", tr("Path length")),
+                ("path_length_ml_mm", tr("Path length ML")),
+                ("path_length_ap_mm", tr("Path length AP")),
+                ("mean_velocity_mm_s", tr("Mean velocity")),
+                ("mean_velocity_ml_mm_s", tr("Mean velocity ML")),
+                ("mean_velocity_ap_mm_s", tr("Mean velocity AP")),
+            ],
+        ),
+        (
+            tr("Area"),
+            [
+                ("ellipse_area_mm2", tr("95% confidence ellipse")),
+                ("ellipse_major_mm", tr("Ellipse semi-major axis")),
+                ("ellipse_minor_mm", tr("Ellipse semi-minor axis")),
+                ("ellipse_angle_deg", tr("Ellipse angle")),
+                ("convex_hull_area_mm2", tr("Convex hull")),
+                ("sway_area_mm2_s", tr("Sway area per second")),
+            ],
+        ),
+        (
+            tr("Frequency (0.15–5 Hz)"),
+            [
+                ("mean_frequency_ml_hz", tr("Mean frequency ML")),
+                ("mean_frequency_ap_hz", tr("Mean frequency AP")),
+                ("median_frequency_ml_hz", tr("Median frequency ML")),
+                ("median_frequency_ap_hz", tr("Median frequency AP")),
+                ("f95_ml_hz", tr("95% power frequency ML")),
+                ("f95_ap_hz", tr("95% power frequency AP")),
+                ("total_power_ml_mm2", tr("Total power ML")),
+                ("total_power_ap_mm2", tr("Total power AP")),
+            ],
+        ),
+    ]
+
+
+def _directions_note() -> str:
+    """Translated explanation of the ML and AP abbreviations."""
+    return tr(
+        "ML = medio-lateral direction (left–right, x axis of the plate), "
+        "AP = antero-posterior direction (forward–backward, y axis of the plate)."
+    )
+
+
+def _number(value: float | None) -> str:
+    """Format a parameter value for the Stabilometry tab, missing values as a dash."""
+    return "–" if value is None or not np.isfinite(value) else f"{value:.2f}"
+
+
+def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romberg: Romberg | None) -> str:
+    """Build the HTML of the Stabilometry tab: a table with one column per acquisition.
+
+    For a Romberg test the eyes-open and eyes-closed acquisitions are named and the
+    Romberg quotient (eyes closed / eyes open) of the compared parameters is added.
+    """
+
+    def words(text: str) -> str:
+        # One word per line keeps the value columns narrow
+        return "<br>".join(html.escape(w) for w in text.split())
+
+    names = [words(tr("Acquisition {number}", number=a.index + 1)) for a in post.acquisitions]
+    if romberg is not None:
+        for index, condition in ((romberg.eyes_open, tr("Eyes open")), (romberg.eyes_closed, tr("Eyes closed"))):
+            names[index] = f"{words(condition)}<br><small>{names[index].replace('<br>', ' ')}</small>"
+    columns = [*names, words(tr("Quotient"))] if romberg is not None else names
+    header = "".join(f"<th align='right' style='padding-left:12px; white-space:nowrap'>{c}</th>" for c in columns)
+    rows = [f"<tr><th align='left'>{html.escape(tr('Parameter'))}</th><th></th>{header}</tr>"]
+    for title, parameters in _parameter_groups():
+        rows.append(f"<tr><td colspan='{len(columns) + 2}'><b><br>{html.escape(title)}</b></td></tr>")
+        for name, label in parameters:
+            cells = [_number(None if r is None else float(getattr(r, name))) for r in results]
+            if romberg is not None:
+                quotient = romberg.quotients.get(name)
+                cells.append(_number(quotient) if quotient is not None else "")
+            values = "".join(f"<td align='right' style='padding-left:12px; white-space:nowrap'>{c}</td>" for c in cells)
+            rows.append(
+                f"<tr><td style='padding-right:12px; white-space:nowrap'>{html.escape(label)}</td>"
+                f"<td style='color:gray; white-space:nowrap'>{html.escape(unit(name))}</td>{values}</tr>"
+            )
+    notes = [_directions_note()]
+    if any(r is None for r in results):
+        notes.append(tr("Acquisitions with fewer than 32 loaded frames are not analysed."))
+    analysed = next((r for r in results if r is not None), None)
+    if analysed is not None:
+        notes.append(
+            tr("Low-pass filter {cutoff} Hz.", cutoff=f"{analysed.lowpass_hz:g}")
+            if analysed.lowpass_hz
+            else tr("COP not filtered.")
+        )
+    if romberg is not None:
+        notes.append(tr("Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."))
+        if not romberg.order_from_labels:
+            notes.append(tr("The eye condition is not stored in the exam; the order of the acquisitions is assumed."))
+    else:
+        notes.append(tr("Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."))
+    note_html = "".join(f"<p style='color:gray'>{html.escape(n)}</p>" for n in notes)
+    return f"<table cellspacing='0'>{''.join(rows)}</table>{note_html}"
+
+
 # -- main window ---------------------------------------------------------------
 
 
@@ -397,6 +558,12 @@ class MainWindow(QMainWindow):
         self._settings = QSettings("FreeStepViewer", "FreeStepViewer")
         self._language_pref = str(self._settings.value("language", AUTO_LANGUAGE))
         self._view_options = {"smooth": False, "show_grid": False, "show_cop": True}
+        self._lowpass_hz = _setting_float(self._settings.value("lowpass_hz"), DEFAULT_LOWPASS_HZ)
+        self._eyes_closed_first = str(self._settings.value("eyes_closed_first", "false")).lower() == "true"
+        self._show_ellipse = str(self._settings.value("show_ellipse", "true")).lower() == "true"
+        self._cop_origin = int(_setting_float(self._settings.value("cop_origin"), ORIGIN_PLATE))
+        self._stabilometry: list[Stabilometry | None] = []
+        self._romberg: Romberg | None = None
         self._window_actions: list[QAction] = []
 
         self._timer = QTimer(self)
@@ -473,6 +640,30 @@ class MainWindow(QMainWindow):
         left_layout.addLayout(controls)
 
         self.cop_plot = CopPlot()
+        self.cop_origin = QComboBox()
+        self.cop_origin.addItems([tr("Plate corner"), tr("Plate centre (0, 0)"), tr("Mean position (0, 0)")])
+        self.cop_origin.setToolTip(
+            tr("Origin of the coordinates: plate corner (as stored), plate centre or the mean of every trajectory")
+        )
+        self.cop_origin.setCurrentIndex(min(max(self._cop_origin, 0), self.cop_origin.count() - 1))
+        self.cop_plot.origin = self.cop_origin.currentIndex()
+        self.cop_origin.currentIndexChanged.connect(self._on_cop_origin)
+        self.ellipse_check = QCheckBox(tr("95% ellipse"))
+        self.ellipse_check.setToolTip(tr("Confidence ellipse of the total COP, as in the Stabilometry tab"))
+        self.ellipse_check.setChecked(self._show_ellipse)
+        self.cop_plot.show_ellipse = self._show_ellipse
+        self.ellipse_check.toggled.connect(self._on_show_ellipse)
+        cop_controls = QHBoxLayout()
+        cop_controls.addWidget(QLabel(tr("Origin")))
+        cop_controls.addWidget(self.cop_origin)
+        cop_controls.addSpacing(12)
+        cop_controls.addWidget(self.ellipse_check)
+        cop_controls.addStretch(1)
+        cop_tab = QWidget()
+        cop_layout = QVBoxLayout(cop_tab)
+        cop_layout.setContentsMargins(0, 4, 0, 0)
+        cop_layout.addLayout(cop_controls)
+        cop_layout.addWidget(self.cop_plot, 1)
         self.info = QTextBrowser()
         self.info.setOpenExternalLinks(False)
         self.preview = QLabel(tr("No preview"))
@@ -481,8 +672,52 @@ class MainWindow(QMainWindow):
         preview_scroll.setWidget(self.preview)
         preview_scroll.setWidgetResizable(True)
 
+        self.lowpass = QDoubleSpinBox()
+        self.lowpass.setRange(0.0, 12.0)
+        self.lowpass.setSingleStep(0.5)
+        self.lowpass.setDecimals(1)
+        self.lowpass.setSuffix(tr(" Hz"))
+        self.lowpass.setSpecialValueText(tr("unfiltered"))
+        self.lowpass.setValue(self._lowpass_hz)
+        self.lowpass.setToolTip(tr("Cut-off of the zero-phase low-pass filter of the COP (4th order Butterworth)"))
+        self.lowpass.valueChanged.connect(self._on_analysis_options_changed)
+        self.eyes_closed_first = QCheckBox(tr("Eyes closed first"))
+        self.eyes_closed_first.setChecked(self._eyes_closed_first)
+        self.eyes_closed_first.setToolTip(
+            tr("Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed")
+        )
+        self.eyes_closed_first.toggled.connect(self._on_analysis_options_changed)
+        self.stabilometry_view = QTextBrowser()
+        analysis_controls = QHBoxLayout()
+        analysis_controls.addWidget(QLabel(tr("Low-pass filter")))
+        analysis_controls.addWidget(self.lowpass)
+        analysis_controls.addSpacing(12)
+        analysis_controls.addWidget(self.eyes_closed_first)
+        analysis_controls.addStretch(1)
+        analysis = QWidget()
+        analysis_layout = QVBoxLayout(analysis)
+        analysis_layout.setContentsMargins(0, 4, 0, 0)
+        analysis_layout.addLayout(analysis_controls)
+        analysis_layout.addWidget(self.stabilometry_view, 1)
+
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.cop_plot, tr("COP"))
+        self.stabilogram = StabilogramPlot()
+        self.stabilogram.seeked.connect(self._seek)
+        stabilogram_note = QLabel(
+            tr("COP of the whole plate minus its mean, filtered as set in the Stabilometry tab. Click to seek.")
+            + " "
+            + _directions_note()
+        )
+        stabilogram_note.setWordWrap(True)
+        stabilogram_tab = QWidget()
+        stabilogram_layout = QVBoxLayout(stabilogram_tab)
+        stabilogram_layout.setContentsMargins(0, 4, 0, 0)
+        stabilogram_layout.addWidget(stabilogram_note)
+        stabilogram_layout.addWidget(self.stabilogram, 1)
+
+        self.tabs.addTab(cop_tab, tr("COP"))
+        self.tabs.addTab(stabilogram_tab, tr("Stabilogram"))
+        self.tabs.addTab(analysis, tr("Stabilometry"))
         self.tabs.addTab(self.info, tr("Info"))
         self.tabs.addTab(preview_scroll, tr("Preview"))
 
@@ -511,6 +746,8 @@ class MainWindow(QMainWindow):
             self._add_action(file_menu, tr("Export COP to &CSV…"), self._export_csv),
             self._add_action(file_menu, tr("Export frames to &NPZ…"), self._export_npz),
             self._add_action(file_menu, tr("Export to &MATLAB…"), self._export_mat),
+            self._add_action(file_menu, tr("Export &raw data to MATLAB…"), self._export_mat_raw),
+            self._add_action(file_menu, tr("Export &stabilometric parameters to CSV…"), self._export_stabilometry),
             self._add_action(file_menu, tr("Save heat map as &PNG…"), self._export_png),
             self._add_action(file_menu, tr("Export all images to &ZIP…"), self._export_png_zip),
         ]
@@ -913,6 +1150,7 @@ class MainWindow(QMainWindow):
         self._set_exam_controls_enabled(True)
         self.acquisition.setEnabled(len(post.acquisitions) > 1)
         self.info.setHtml(self._info_html(loaded))
+        self._update_stabilometry()
         if loaded.preview:
             pixmap = QPixmap()
             pixmap.loadFromData(loaded.preview)
@@ -932,6 +1170,81 @@ class MainWindow(QMainWindow):
             )
         )
 
+    @Slot(bool)
+    def _on_show_ellipse(self, show: bool) -> None:
+        """Show or hide the confidence ellipse in the COP plot."""
+        self._show_ellipse = show
+        self._settings.setValue("show_ellipse", "true" if show else "false")
+        self.cop_plot.show_ellipse = show
+        self.cop_plot.update()
+
+    @Slot(int)
+    def _on_cop_origin(self, origin: int) -> None:
+        """Move the origin of the COP plot (plate corner, plate centre or mean position)."""
+        self._cop_origin = origin
+        self._settings.setValue("cop_origin", origin)
+        self.cop_plot.origin = origin
+        self.cop_plot.update()
+
+    @Slot()
+    def _on_analysis_options_changed(self) -> None:
+        """Remember the filter / Romberg order and recompute the stabilometric parameters."""
+        self._lowpass_hz = self.lowpass.value()
+        self._eyes_closed_first = self.eyes_closed_first.isChecked()
+        self._settings.setValue("lowpass_hz", self._lowpass_hz)
+        self._settings.setValue("eyes_closed_first", "true" if self._eyes_closed_first else "false")
+        self._update_stabilometry()
+
+    def _update_stabilometry(self) -> None:
+        """Compute the stabilometric parameters and the Romberg test of the shown exam and show them."""
+        if self._current is None:
+            self._stabilometry, self._romberg = [], None
+            self.stabilometry_view.clear()
+            return
+        post = self._current.postura
+        self._stabilometry = analyze_all(post, self._lowpass_hz or None)
+        self._romberg = evaluate_romberg(
+            post, self._stabilometry, self._current.exam.exam_type, self._eyes_closed_first
+        )
+        self.eyes_closed_first.setEnabled(self._romberg is not None and not self._romberg.order_from_labels)
+        self.stabilometry_view.setHtml(_stabilometry_html(post, self._stabilometry, self._romberg))
+        self._update_stabilogram()
+
+    def _update_stabilogram(self) -> None:
+        """Show the COP displacement of the selected acquisition over time and its ellipse in the COP plot."""
+        acq = self._current_acquisition()
+        result = self._stabilometry[acq.index] if acq is not None and acq.index < len(self._stabilometry) else None
+        if result is None:
+            self.cop_plot.set_ellipse(None)
+        else:
+            self.cop_plot.set_ellipse(
+                (result.mean_x_mm / 10, result.mean_y_mm / 10),
+                result.ellipse_major_mm / 10,
+                result.ellipse_minor_mm / 10,
+                result.ellipse_angle_deg,
+            )
+        try:
+            if acq is None:
+                raise ValueError("no acquisition")
+            cop, first, _ = trimmed_cop(acq)
+            cop, _ = lowpass(cop, acq.sampling_rate_hz, self._lowpass_hz or None)
+        except ValueError:
+            self.stabilogram.clear()
+            return
+        cop -= cop.mean(axis=0)
+        time = (first + np.arange(len(cop))) / acq.sampling_rate_hz  # uniform, like the analysis
+        self.stabilogram.set_data(
+            time, [(tr("ML (x)"), ML_COLOR, cop[:, 0]), (tr("AP (y)"), AP_COLOR, cop[:, 1])], "mm", first
+        )
+        self.stabilogram.set_current(self.slider.value())
+
+    @Slot(int)
+    def _seek(self, frame: int) -> None:
+        """Show a frame (clicked in the stabilogram); pauses playback."""
+        self._stop()
+        self.mode.setCurrentIndex(_MODE_FRAME)
+        self.slider.setValue(frame)
+
     def _current_acquisition(self) -> Acquisition | None:
         """Return the acquisition selected in the selection box."""
         if self._current is None:
@@ -950,6 +1263,7 @@ class MainWindow(QMainWindow):
         self.slider.setRange(0, acq.frame_count - 1)
         self.slider.setValue(0)
         self.slider.blockSignals(False)
+        self.cop_plot.plate_cm = (acq.header.width_cm, acq.header.height_cm)
         self.cop_plot.set_series(
             [
                 (tr("total"), COP_TOTAL_COLOR, acq.cop_total),
@@ -958,6 +1272,7 @@ class MainWindow(QMainWindow):
             ]
         )
         self.fps.setValue(max(1, round(acq.sampling_rate_hz)) if acq.sampling_rate_hz else self.fps.value())
+        self._update_stabilogram()
         self._refresh_frame()
 
     def _info_html(self, loaded: LoadedExam) -> str:
@@ -1050,6 +1365,7 @@ class MainWindow(QMainWindow):
         else:
             self.frame_label.setText(tr("all frames"))
         self.cop_plot.set_current(frame)
+        self.stabilogram.set_current(frame)
 
     @Slot(int, int, int)
     def _on_hover(self, col: int, row: int, value: int) -> None:
@@ -1134,11 +1450,27 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_mat(self) -> None:
-        """Save the frames and COP of all acquisitions as a MATLAB file."""
+        """Save the frames, COP and stabilometric parameters as a MATLAB file."""
         title = tr("Export to MATLAB")
         if self._current is None or (path := self._save_name(title, ".mat", tr("MATLAB (*.mat)"))) is None:
             return
+        write_mat(self._current.postura, path, self._stabilometry, self._romberg)
+        self.statusBar().showMessage(tr("Saved {path}", path=path))
+
+    def _export_mat_raw(self) -> None:
+        """Save only the recorded data (no filtering, no parameters) as a MATLAB file."""
+        title = tr("Export raw data to MATLAB")
+        if self._current is None or (path := self._save_name(title, "_raw.mat", tr("MATLAB (*.mat)"))) is None:
+            return
         write_mat(self._current.postura, path)
+        self.statusBar().showMessage(tr("Saved {path}", path=path))
+
+    def _export_stabilometry(self) -> None:
+        """Save the stabilometric parameters (and Romberg quotients) as CSV."""
+        title = tr("Export stabilometric parameters")
+        if self._current is None or (path := self._save_name(title, "_stabilometry.csv", tr("CSV (*.csv)"))) is None:
+            return
+        write_stabilometry_csv(self._stabilometry, path, self._romberg)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_png(self) -> None:
@@ -1226,13 +1558,15 @@ class MainWindow(QMainWindow):
             return
         saved_formats = str(self._settings.value("batch_formats", "mat")).split(",")
         start = str(self._settings.value("batch_dir", self._settings.value("last_dir", str(Path.home()))))
-        dialog = _BatchDialog(self, start, saved_formats)
+        summary = str(self._settings.value("batch_summary", "true")).lower() == "true"
+        dialog = _BatchDialog(self, start, saved_formats, summary)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         directory = Path(dialog.directory.text().strip())
-        formats = dialog.formats()
+        formats, summary = dialog.formats(), dialog.summary.isChecked()
         self._settings.setValue("batch_dir", str(directory))
         self._settings.setValue("batch_formats", ",".join(formats))
+        self._settings.setValue("batch_summary", "true" if summary else "false")
         self._stop()
 
         progress = QProgressDialog(tr("Preparing…"), tr("Cancel"), 0, max(len(export.exams), 1), self)
@@ -1250,13 +1584,22 @@ class MainWindow(QMainWindow):
             progress.setLabelText(tr("Exam {id} ({n} of {count})", id=exam_id, n=index + 1, count=count))
 
         reporter.changed.connect(changed)
+        lowpass_hz, eyes_closed_first = self._lowpass_hz or None, self._eyes_closed_first
 
         def work() -> BatchResult:
             def report(index: int, count: int, exam: Exam) -> bool:
                 reporter.changed.emit(index, count, exam.id)
                 return not cancel.is_set()
 
-            return batch_export(export, directory, formats, progress=report)
+            return batch_export(
+                export,
+                directory,
+                formats,
+                summary=summary,
+                lowpass_hz=lowpass_hz,
+                eyes_closed_first=eyes_closed_first,
+                progress=report,
+            )
 
         def done(result: BatchResult) -> None:
             progress.close()

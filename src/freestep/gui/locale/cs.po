@@ -9,8 +9,12 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: freestep/gui/app.py
-msgid "MATLAB: frames and COP (.mat)"
-msgstr "MATLAB: snímky a COP (.mat)"
+msgid "MATLAB: data and stabilometric parameters (.mat)"
+msgstr "MATLAB: data a stabilometrické parametry (.mat)"
+
+#: freestep/gui/app.py
+msgid "MATLAB: recorded data only (_raw.mat)"
+msgstr "MATLAB: jen naměřená data (_raw.mat)"
 
 #: freestep/gui/app.py
 msgid "NumPy: frames and COP (.npz)"
@@ -19,6 +23,10 @@ msgstr "NumPy: snímky a COP (.npz)"
 #: freestep/gui/app.py
 msgid "COP per frame (_cop.csv)"
 msgstr "COP po snímcích (_cop.csv)"
+
+#: freestep/gui/app.py
+msgid "Stabilometric parameters (_stabilometry.csv)"
+msgstr "Stabilometrické parametry (_stabilometry.csv)"
 
 #: freestep/gui/app.py
 msgid "Batch export"
@@ -36,6 +44,15 @@ msgstr "Procházet…"
 #: freestep/gui/app.py
 msgid "Directory"
 msgstr "Složka"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Summary table of all acquisitions ({name})"
+msgstr "Souhrnná tabulka všech měření ({name})"
+
+#: freestep/gui/app.py
+msgid "The parameters use the low-pass filter and Romberg order set in the Stabilometry tab."
+msgstr "Parametry se počítají s dolní propustí a pořadím Rombergova testu nastavenými v záložce Stabilometrie."
 
 #: freestep/gui/app.py
 msgid "yes"
@@ -100,6 +117,184 @@ msgid "Acquisition {number} ({duration} s)"
 msgstr "Měření {number} ({duration} s)"
 
 #: freestep/gui/app.py
+msgid "Position and spread"
+msgstr "Poloha a rozptyl"
+
+#: freestep/gui/app.py
+msgid "Mean position ML"
+msgstr "Průměrná poloha ML"
+
+#: freestep/gui/app.py
+msgid "Mean position AP"
+msgstr "Průměrná poloha AP"
+
+#: freestep/gui/app.py
+msgid "Range ML"
+msgstr "Rozsah ML"
+
+#: freestep/gui/app.py
+msgid "Range AP"
+msgstr "Rozsah AP"
+
+#: freestep/gui/app.py
+msgid "Standard deviation ML"
+msgstr "Směrodatná odchylka ML"
+
+#: freestep/gui/app.py
+msgid "Standard deviation AP"
+msgstr "Směrodatná odchylka AP"
+
+#: freestep/gui/app.py
+msgid "Mean distance"
+msgstr "Průměrná vzdálenost"
+
+#: freestep/gui/app.py
+msgid "RMS distance"
+msgstr "RMS vzdálenost"
+
+#: freestep/gui/app.py
+msgid "Path and velocity"
+msgstr "Dráha a rychlost"
+
+#: freestep/gui/app.py
+msgid "Path length"
+msgstr "Délka dráhy"
+
+#: freestep/gui/app.py
+msgid "Path length ML"
+msgstr "Délka dráhy ML"
+
+#: freestep/gui/app.py
+msgid "Path length AP"
+msgstr "Délka dráhy AP"
+
+#: freestep/gui/app.py
+msgid "Mean velocity"
+msgstr "Průměrná rychlost"
+
+#: freestep/gui/app.py
+msgid "Mean velocity ML"
+msgstr "Průměrná rychlost ML"
+
+#: freestep/gui/app.py
+msgid "Mean velocity AP"
+msgstr "Průměrná rychlost AP"
+
+#: freestep/gui/app.py
+msgid "Area"
+msgstr "Plocha"
+
+#: freestep/gui/app.py
+msgid "95% confidence ellipse"
+msgstr "95% konfidenční elipsa"
+
+#: freestep/gui/app.py
+msgid "Ellipse semi-major axis"
+msgstr "Hlavní poloosa elipsy"
+
+#: freestep/gui/app.py
+msgid "Ellipse semi-minor axis"
+msgstr "Vedlejší poloosa elipsy"
+
+#: freestep/gui/app.py
+msgid "Ellipse angle"
+msgstr "Úhel elipsy"
+
+#: freestep/gui/app.py
+msgid "Convex hull"
+msgstr "Konvexní obal"
+
+#: freestep/gui/app.py
+msgid "Sway area per second"
+msgstr "Opsaná plocha za sekundu"
+
+#: freestep/gui/app.py
+msgid "Frequency (0.15–5 Hz)"
+msgstr "Frekvence (0,15–5 Hz)"
+
+#: freestep/gui/app.py
+msgid "Mean frequency ML"
+msgstr "Střední frekvence ML"
+
+#: freestep/gui/app.py
+msgid "Mean frequency AP"
+msgstr "Střední frekvence AP"
+
+#: freestep/gui/app.py
+msgid "Median frequency ML"
+msgstr "Mediánová frekvence ML"
+
+#: freestep/gui/app.py
+msgid "Median frequency AP"
+msgstr "Mediánová frekvence AP"
+
+#: freestep/gui/app.py
+msgid "95% power frequency ML"
+msgstr "Frekvence 95 % výkonu ML"
+
+#: freestep/gui/app.py
+msgid "95% power frequency AP"
+msgstr "Frekvence 95 % výkonu AP"
+
+#: freestep/gui/app.py
+msgid "Total power ML"
+msgstr "Celkový výkon ML"
+
+#: freestep/gui/app.py
+msgid "Total power AP"
+msgstr "Celkový výkon AP"
+
+#: freestep/gui/app.py
+msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
+msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Acquisition {number}"
+msgstr "Měření {number}"
+
+#: freestep/gui/app.py
+msgid "Eyes open"
+msgstr "Oči otevřené"
+
+#: freestep/gui/app.py
+msgid "Eyes closed"
+msgstr "Oči zavřené"
+
+#: freestep/gui/app.py
+msgid "Quotient"
+msgstr "Kvocient"
+
+#: freestep/gui/app.py
+msgid "Parameter"
+msgstr "Parametr"
+
+#: freestep/gui/app.py
+msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
+msgstr "Měření s méně než 32 zatíženými snímky se nevyhodnocují."
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Low-pass filter {cutoff} Hz."
+msgstr "Dolní propust {cutoff} Hz."
+
+#: freestep/gui/app.py
+msgid "COP not filtered."
+msgstr "COP není filtrovaný."
+
+#: freestep/gui/app.py
+msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
+msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 znamená větší výchylky se zavřenýma očima."
+
+#: freestep/gui/app.py
+msgid "The eye condition is not stored in the exam; the order of the acquisitions is assumed."
+msgstr "Vyšetření neobsahuje informaci o očích; pořadí měření je předpokládané."
+
+#: freestep/gui/app.py
+msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
+msgstr "Nejde o Rombergův test (vyžaduje posturografické vyšetření se dvěma stejně dlouhými měřeními)."
+
+#: freestep/gui/app.py
 msgid "Patient / exam"
 msgstr "Pacient / vyšetření"
 
@@ -148,12 +343,77 @@ msgid "Number of previous frames drawn as the COP trail"
 msgstr "Počet předchozích snímků vykreslených jako stopa COP"
 
 #: freestep/gui/app.py
+msgid "Plate corner"
+msgstr "Roh plošiny"
+
+#: freestep/gui/app.py
+msgid "Plate centre (0, 0)"
+msgstr "Střed plošiny (0, 0)"
+
+#: freestep/gui/app.py
+msgid "Mean position (0, 0)"
+msgstr "Průměrná poloha (0, 0)"
+
+#: freestep/gui/app.py
+msgid "Origin of the coordinates: plate corner (as stored), plate centre or the mean of every trajectory"
+msgstr "Počátek souřadnic: roh plošiny (jak jsou uložené), střed plošiny nebo průměr každé trajektorie"
+
+#: freestep/gui/app.py
+#: freestep/gui/widgets.py
+msgid "95% ellipse"
+msgstr "95% elipsa"
+
+#: freestep/gui/app.py
+msgid "Confidence ellipse of the total COP, as in the Stabilometry tab"
+msgstr "Konfidenční elipsa celkového COP, jako v záložce Stabilometrie"
+
+#: freestep/gui/app.py
+msgid "Origin"
+msgstr "Počátek"
+
+#: freestep/gui/app.py
 msgid "No preview"
 msgstr "Bez náhledu"
 
 #: freestep/gui/app.py
+msgid " Hz"
+msgstr " Hz"
+
+#: freestep/gui/app.py
+msgid "unfiltered"
+msgstr "bez filtru"
+
+#: freestep/gui/app.py
+msgid "Cut-off of the zero-phase low-pass filter of the COP (4th order Butterworth)"
+msgstr "Mezní frekvence dolní propusti COP s nulovým fázovým posunem (Butterworth 4. řádu)"
+
+#: freestep/gui/app.py
+msgid "Eyes closed first"
+msgstr "Nejdřív zavřené oči"
+
+#: freestep/gui/app.py
+msgid "Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed"
+msgstr "Rombergův test: FreeSTEP neukládá, zda měl pacient oči otevřené; první měření je se zavřenýma očima"
+
+#: freestep/gui/app.py
+msgid "Low-pass filter"
+msgstr "Dolní propust"
+
+#: freestep/gui/app.py
+msgid "COP of the whole plate minus its mean, filtered as set in the Stabilometry tab. Click to seek."
+msgstr "COP celé plošiny bez průměrné polohy, filtrovaný podle nastavení v záložce Stabilometrie. Kliknutím přejdete na daný čas."
+
+#: freestep/gui/app.py
 msgid "COP"
 msgstr "COP"
+
+#: freestep/gui/app.py
+msgid "Stabilogram"
+msgstr "Stabilogram"
+
+#: freestep/gui/app.py
+msgid "Stabilometry"
+msgstr "Stabilometrie"
 
 #: freestep/gui/app.py
 msgid "Info"
@@ -186,6 +446,14 @@ msgstr "Exportovat snímky do &NPZ…"
 #: freestep/gui/app.py
 msgid "Export to &MATLAB…"
 msgstr "Exportovat do &MATLABu…"
+
+#: freestep/gui/app.py
+msgid "Export &raw data to MATLAB…"
+msgstr "Exportovat surová &data do MATLABu…"
+
+#: freestep/gui/app.py
+msgid "Export &stabilometric parameters to CSV…"
+msgstr "Exportovat &stabilometrické parametry do CSV…"
 
 #: freestep/gui/app.py
 msgid "Save heat map as &PNG…"
@@ -312,6 +580,14 @@ msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
 msgstr[0] "Vyšetření {id} — {name}: {n} měření, {platform}"
 msgstr[1] "Vyšetření {id} — {name}: {n} měření, {platform}"
 msgstr[2] "Vyšetření {id} — {name}: {n} měření, {platform}"
+
+#: freestep/gui/app.py
+msgid "ML (x)"
+msgstr "ML (x)"
+
+#: freestep/gui/app.py
+msgid "AP (y)"
+msgstr "AP (y)"
 
 #: freestep/gui/app.py
 msgid "total"
@@ -497,6 +773,14 @@ msgid "MATLAB (*.mat)"
 msgstr "MATLAB (*.mat)"
 
 #: freestep/gui/app.py
+msgid "Export raw data to MATLAB"
+msgstr "Export surových dat do MATLABu"
+
+#: freestep/gui/app.py
+msgid "Export stabilometric parameters"
+msgstr "Export stabilometrických parametrů"
+
+#: freestep/gui/app.py
 msgid "Save image"
 msgstr "Uložit obrázek"
 
@@ -574,3 +858,7 @@ msgstr "Není načteno žádné vyšetření"
 #: freestep/gui/widgets.py
 msgid "No COP data"
 msgstr "Žádná data COP"
+
+#: freestep/gui/widgets.py
+msgid "time [s]"
+msgstr "čas [s]"

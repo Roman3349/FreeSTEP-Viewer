@@ -13,7 +13,16 @@ from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
 from .batch import FORMATS, batch_export, exam_stem
 from .ini import DEFAULT_ANSI_ENCODING
 from .models import Exam
-from .writers import write_cop_csv, write_mat, write_npz
+from .stabilometry import (
+    DEFAULT_LOWPASS_HZ,
+    ROMBERG_PARAMETERS,
+    Romberg,
+    Stabilometry,
+    analyze_all,
+    evaluate_romberg,
+    unit,
+)
+from .writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 
 
 def _fmt(value: object) -> str:
@@ -70,11 +79,43 @@ def _open_exam(args: argparse.Namespace) -> tuple[FreFile, FreeStepExport | None
     return export.open_fre(args.exam), export
 
 
+def _write_outputs(
+    args: argparse.Namespace, fre: FreFile, results: list[Stabilometry | None], romberg: Romberg | None
+) -> None:
+    """Write the files requested by the ``freestep exam`` options (``--csv``, ``--mat``, …)."""
+    post = fre.postura
+    if args.csv:
+        write_cop_csv(post, args.csv)
+        print(f"COP written to {args.csv}")
+    if args.npz:
+        write_npz(post, args.npz)
+        print(f"Frames written to {args.npz}")
+    if args.mat:
+        write_mat(post, args.mat, results, romberg)
+        print(f"MATLAB file written to {args.mat}")
+    if args.mat_raw:
+        write_mat(post, args.mat_raw)
+        print(f"Raw data written to {args.mat_raw}")
+    if args.stats:
+        write_stabilometry_csv(results, args.stats, romberg)
+        print(f"Stabilometric parameters written to {args.stats}")
+    if args.preview:
+        jpeg = fre.preview_jpeg()
+        if jpeg is None:
+            print("No preview image in the archive")
+        else:
+            Path(args.preview).write_bytes(jpeg)
+            print(f"Preview written to {args.preview}")
+    if args.raw:
+        Path(args.raw).write_bytes(fre.postura_bytes)
+        print(f"Postura.dat written to {args.raw}")
+
+
 def cmd_exam(args: argparse.Namespace) -> int:
     """``freestep exam``: print exam details and optionally export its data.
 
     Args:
-        args: Parsed arguments (``source``, ``exam``, ``csv``, ``npz``, ``mat``, ``preview``, ``raw``, …).
+        args: Parsed arguments (``source``, ``exam``, ``csv``, ``npz``, ``mat``, ``stats``, ``lowpass``, …).
 
     Returns:
         Process exit code.
@@ -110,30 +151,52 @@ def cmd_exam(args: argparse.Namespace) -> int:
                 f"y: {cop[:, 1].min():.2f}..{cop[:, 1].max():.2f} cm"
             )
 
-        if args.csv:
-            write_cop_csv(post, args.csv)
-            print(f"COP written to {args.csv}")
-        if args.npz:
-            write_npz(post, args.npz)
-            print(f"Frames written to {args.npz}")
-        if args.mat:
-            write_mat(post, args.mat)
-            print(f"MATLAB file written to {args.mat}")
-        if args.preview:
-            jpeg = fre.preview_jpeg()
-            if jpeg is None:
-                print("No preview image in the archive")
-            else:
-                Path(args.preview).write_bytes(jpeg)
-                print(f"Preview written to {args.preview}")
-        if args.raw:
-            Path(args.raw).write_bytes(fre.postura_bytes)
-            print(f"Postura.dat written to {args.raw}")
+        lowpass = args.lowpass or None
+        results = analyze_all(post, lowpass)
+        romberg = evaluate_romberg(post, results, exam.exam_type, args.eyes_closed_first)
+        _print_stabilometry(results, lowpass)
+        if romberg is not None:
+            order = "from labels" if romberg.order_from_labels else "assumed"
+            print(
+                f"Romberg test: eyes open = acquisition {romberg.eyes_open}, "
+                f"eyes closed = acquisition {romberg.eyes_closed} ({order}); quotients EC/EO:"
+            )
+            for name in ROMBERG_PARAMETERS:
+                print(f"    {name:<28} {romberg.quotients[name]:8.2f}")
+
+        _write_outputs(args, fre, results, romberg)
     finally:
         fre.close()
         if export is not None:
             export.close()
     return 0
+
+
+#: Parameters printed by ``freestep exam`` (all are in the ``--stats`` CSV).
+_PRINTED_PARAMETERS = (
+    "path_length_mm",
+    "mean_velocity_mm_s",
+    "mean_velocity_ml_mm_s",
+    "mean_velocity_ap_mm_s",
+    "sd_ml_mm",
+    "sd_ap_mm",
+    "range_ml_mm",
+    "range_ap_mm",
+    "ellipse_area_mm2",
+    "sway_area_mm2_s",
+    "mean_frequency_ml_hz",
+    "mean_frequency_ap_hz",
+)
+
+
+def _print_stabilometry(results: list[Stabilometry | None], lowpass: float | None) -> None:
+    """Print the main stabilometric parameters with one column per acquisition."""
+    filtered = f"low-pass {lowpass:g} Hz" if lowpass else "unfiltered"
+    print(f"Stabilometry ({filtered}, COP of the whole plate):")
+    print(f"    {'parameter':<28} {'unit':<6}" + "".join(f" {'acq ' + str(i):>9}" for i in range(len(results))))
+    for name in _PRINTED_PARAMETERS:
+        values = "".join(f" {r.as_dict()[name]:9.2f}" if r is not None else f" {'–':>9}" for r in results)
+        print(f"    {name:<28} {unit(name):<6}{values}")
 
 
 def cmd_batch(args: argparse.Namespace) -> int:
@@ -142,7 +205,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
     Files are named ``<birth date>_<name>_exam_<ID><suffix>`` (see :mod:`freestep.batch`).
 
     Args:
-        args: Parsed arguments (``export``, ``output``, ``format``, ``dry_run``).
+        args: Parsed arguments (``export``, ``output``, ``format``, ``no_summary``, ``lowpass``, …).
 
     Returns:
         Process exit code (1 when an exam could not be exported).
@@ -159,11 +222,34 @@ def cmd_batch(args: argparse.Namespace) -> int:
             for exam in export.exams:
                 print(exam_stem(patients.get(exam.patient_id), exam))
             return 0
-        result = batch_export(export, args.output, formats, progress=progress)
+        result = batch_export(
+            export,
+            args.output,
+            formats,
+            summary=not args.no_summary,
+            lowpass_hz=args.lowpass or None,
+            eyes_closed_first=args.eyes_closed_first,
+            progress=progress,
+        )
     print(f"{len(result.written)} files written to {args.output}")
     for exam, reason in result.skipped:
         print(f"exam {exam.id} skipped: {reason}", file=sys.stderr)
     return 1 if result.skipped else 0
+
+
+def _add_analysis_options(parser: argparse.ArgumentParser) -> None:
+    """Add ``--lowpass`` and ``--eyes-closed-first`` to a sub-command."""
+    parser.add_argument(
+        "--lowpass",
+        type=float,
+        default=DEFAULT_LOWPASS_HZ,
+        help="cut-off of the COP low-pass filter in Hz, 0 = unfiltered (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--eyes-closed-first",
+        action="store_true",
+        help="Romberg test: the first acquisition is with eyes closed (default: eyes open first)",
+    )
 
 
 def cmd_dump(args: argparse.Namespace) -> int:
@@ -214,7 +300,10 @@ def build_parser() -> argparse.ArgumentParser:
     exam.add_argument("--exam", type=int, help="exam ID when the source is an export ZIP")
     exam.add_argument("--csv", help="write per-frame time and COP of all acquisitions to CSV")
     exam.add_argument("--npz", help="write frames and COP of all acquisitions to a NumPy .npz")
-    exam.add_argument("--mat", help="write frames and COP of all acquisitions to a MATLAB .mat")
+    exam.add_argument("--mat", help="write frames, COP and stabilometric parameters to a MATLAB .mat")
+    exam.add_argument("--mat-raw", help="write only the recorded data (no filtering, no parameters) to a .mat")
+    exam.add_argument("--stats", help="write all stabilometric parameters (and Romberg quotients) to CSV")
+    _add_analysis_options(exam)
     exam.add_argument("--preview", help="save Preview1.jpg")
     exam.add_argument("--raw", help="save decrypted Postura.dat")
     exam.set_defaults(func=cmd_exam)
@@ -226,9 +315,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         action="append",
         choices=list(FORMATS),
-        help="format to write, repeatable (default: mat): mat = frames and COP, cop-csv, npz",
+        help="format to write, repeatable (default: mat): "
+        "mat = data + parameters, mat-raw = recorded data only, cop-csv, stats-csv = parameters, npz",
     )
+    batch.add_argument("--no-summary", action="store_true", help="do not write the summary table of all exams")
     batch.add_argument("--dry-run", action="store_true", help="only print the file name stems")
+    _add_analysis_options(batch)
     batch.set_defaults(func=cmd_batch)
 
     dump = sub.add_parser("dump", help="dump Export.mdb tables to CSV")
