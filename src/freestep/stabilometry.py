@@ -2,10 +2,11 @@
 
 The COP of the whole plate is used, x is the medio-lateral (ML) and y the
 antero-posterior (AP) direction. All parameters are computed after removing the
-mean position; lengths are in mm, areas in mm², frequencies in Hz. Definitions
-follow Prieto et al., *Measures of postural steadiness*, IEEE Trans. Biomed. Eng.
-43 (1996) and Duarte & Freitas, *Revision of posturography based on force plate
-for balance evaluation*, Rev. Bras. Fisioter. 14 (2010).
+mean position (optionally the linear trend); lengths are in mm, areas in mm²,
+frequencies in Hz. Definitions follow Prieto et al., *Measures of postural
+steadiness*, IEEE Trans. Biomed. Eng. 43 (1996) and Duarte & Freitas, *Revision
+of posturography based on force plate for balance evaluation*, Rev. Bras.
+Fisioter. 14 (2010).
 """
 
 from __future__ import annotations
@@ -76,6 +77,7 @@ class Stabilometry:
         f95_ap_hz: Frequency below which 95 % of the AP power lies.
         total_power_ml_mm2: ML power in :data:`FREQUENCY_BAND_HZ`.
         total_power_ap_mm2: AP power in :data:`FREQUENCY_BAND_HZ`.
+        detrended: The linear trend was removed instead of only the mean.
     """
 
     frames: int
@@ -111,8 +113,9 @@ class Stabilometry:
     f95_ap_hz: float
     total_power_ml_mm2: float
     total_power_ap_mm2: float
+    detrended: bool = False
 
-    def as_dict(self) -> dict[str, float | int | None]:
+    def as_dict(self) -> dict[str, float | int | bool | None]:
         """Return the parameters as ``{attribute name: value}`` in declaration order."""
         return {f.name: getattr(self, f.name) for f in fields(self)}
 
@@ -165,12 +168,14 @@ def unit(name: str) -> str:
     return ""
 
 
-def analyze_all(post: Postura, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ) -> list[Stabilometry | None]:
+def analyze_all(
+    post: Postura, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False
+) -> list[Stabilometry | None]:
     """Analyse every acquisition of a recording (see :func:`analyze`), ``None`` where it is not possible."""
     results: list[Stabilometry | None] = []
     for acq in post.acquisitions:
         try:
-            results.append(analyze(acq, lowpass_hz))
+            results.append(analyze(acq, lowpass_hz, detrend=detrend))
         except ValueError:
             results.append(None)
     return results
@@ -181,7 +186,7 @@ def loaded_mask(acq: Acquisition) -> NDArray[np.bool_]:
     return np.asarray(acq.pressure.reshape(acq.frame_count, -1).any(axis=1))
 
 
-def analyze(acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ) -> Stabilometry:
+def analyze(acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False) -> Stabilometry:
     """Compute the stabilometric parameters of an acquisition from the COP of the whole plate.
 
     Unloaded frames at the start and end are left out, those in between are
@@ -191,6 +196,7 @@ def analyze(acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ) -> 
         acq: The acquisition.
         lowpass_hz: Cut-off of the zero-phase low-pass filter; ``None`` or 0
             disables filtering, as does a cut-off at or above the Nyquist frequency.
+        detrend: Remove the linear trend (slow drift) instead of only the mean.
 
     Returns:
         The parameters.
@@ -199,7 +205,7 @@ def analyze(acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ) -> 
         ValueError: Fewer than :data:`MIN_FRAMES` loaded frames or an unknown sampling rate.
     """
     cop, _, interpolated = trimmed_cop(acq)
-    return compute(cop, acq.sampling_rate_hz, lowpass_hz, interpolated_frames=interpolated)
+    return compute(cop, acq.sampling_rate_hz, lowpass_hz, interpolated_frames=interpolated, detrend=detrend)
 
 
 def trimmed_cop(acq: Acquisition) -> tuple[NDArray[np.float64], int, int]:
@@ -255,6 +261,8 @@ def compute(
     sampling_rate_hz: float,
     lowpass_hz: float | None = DEFAULT_LOWPASS_HZ,
     interpolated_frames: int = 0,
+    *,
+    detrend: bool = False,
 ) -> Stabilometry:
     """Compute the stabilometric parameters of a uniformly sampled COP trajectory.
 
@@ -263,6 +271,7 @@ def compute(
         sampling_rate_hz: Sampling rate.
         lowpass_hz: Cut-off of the zero-phase low-pass filter (``None`` or 0: no filtering).
         interpolated_frames: Reported in :attr:`Stabilometry.interpolated_frames`.
+        detrend: Remove the linear trend instead of only the mean.
 
     Returns:
         The parameters.
@@ -278,9 +287,9 @@ def compute(
     cop, cutoff = lowpass(cop_mm, fs, lowpass_hz)
 
     mean = cop.mean(axis=0)
-    centred = cop - mean
+    centred = signal.detrend(cop, axis=0, type="linear") if detrend else cop - mean
     distance = np.hypot(centred[:, 0], centred[:, 1])
-    steps = np.diff(cop, axis=0)
+    steps = np.diff(centred, axis=0)
     duration = (len(cop) - 1) / fs
     path = float(np.hypot(steps[:, 0], steps[:, 1]).sum())
     path_ml, path_ap = (float(v) for v in np.abs(steps).sum(axis=0))
@@ -307,8 +316,8 @@ def compute(
         lowpass_hz=cutoff,
         mean_x_mm=float(mean[0]),
         mean_y_mm=float(mean[1]),
-        range_ml_mm=float(np.ptp(cop[:, 0])),
-        range_ap_mm=float(np.ptp(cop[:, 1])),
+        range_ml_mm=float(np.ptp(centred[:, 0])),
+        range_ap_mm=float(np.ptp(centred[:, 1])),
         sd_ml_mm=float(centred[:, 0].std(ddof=1)),
         sd_ap_mm=float(centred[:, 1].std(ddof=1)),
         mean_distance_mm=float(distance.mean()),
@@ -333,7 +342,29 @@ def compute(
         f95_ap_hz=spectra[1][2],
         total_power_ml_mm2=spectra[0][3],
         total_power_ap_mm2=spectra[1][3],
+        detrended=detrend,
     )
+
+
+def sway(
+    acq: Acquisition, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False
+) -> tuple[NDArray[np.float64], int]:
+    """Return the COP displacement of an acquisition as analysed by :func:`analyze` (for plotting).
+
+    Args:
+        acq: The acquisition.
+        lowpass_hz: Cut-off of the low-pass filter (see :func:`lowpass`).
+        detrend: Remove the linear trend instead of only the mean.
+
+    Returns:
+        ``(displacement (frames, 2) in mm, index of the first frame)``.
+
+    Raises:
+        ValueError: Fewer than :data:`MIN_FRAMES` loaded frames.
+    """
+    cop, first, _ = trimmed_cop(acq)
+    cop, _ = lowpass(cop, acq.sampling_rate_hz, lowpass_hz)
+    return (signal.detrend(cop, axis=0, type="linear") if detrend else cop - cop.mean(axis=0)), first
 
 
 def _spectrum(values: NDArray[np.float64], fs: float) -> tuple[float, float, float, float]:

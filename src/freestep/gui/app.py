@@ -87,8 +87,7 @@ from ..stabilometry import (
     Stabilometry,
     analyze_all,
     evaluate_romberg,
-    lowpass,
-    trimmed_cop,
+    sway,
     unit,
 )
 from ..writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
@@ -232,7 +231,7 @@ class _BatchDialog(QDialog):
         self.summary.setChecked(summary)
         self.summary.toggled.connect(self._update_ok)
         layout.addWidget(self.summary)
-        note = QLabel(tr("The parameters use the low-pass filter and Romberg order set in the Stabilometry tab."))
+        note = QLabel(tr("The parameters use the filter, trend and Romberg settings of the Stabilometry tab."))
         note.setWordWrap(True)
         note.setStyleSheet("color: gray")
         layout.addWidget(note)
@@ -518,6 +517,8 @@ def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romber
             if analysed.lowpass_hz
             else tr("COP not filtered.")
         )
+        if analysed.detrended:
+            notes.append(tr("Linear trend removed."))
     if romberg is not None:
         notes.append(tr("Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."))
         if not romberg.order_from_labels:
@@ -560,6 +561,7 @@ class MainWindow(QMainWindow):
         self._view_options = {"smooth": False, "show_grid": False, "show_cop": True}
         self._lowpass_hz = _setting_float(self._settings.value("lowpass_hz"), DEFAULT_LOWPASS_HZ)
         self._eyes_closed_first = str(self._settings.value("eyes_closed_first", "false")).lower() == "true"
+        self._detrend = str(self._settings.value("detrend", "false")).lower() == "true"
         self._show_ellipse = str(self._settings.value("show_ellipse", "true")).lower() == "true"
         self._cop_origin = int(_setting_float(self._settings.value("cop_origin"), ORIGIN_PLATE))
         self._stabilometry: list[Stabilometry | None] = []
@@ -687,10 +689,18 @@ class MainWindow(QMainWindow):
             tr("Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed")
         )
         self.eyes_closed_first.toggled.connect(self._on_analysis_options_changed)
+        self.detrend = QCheckBox(tr("Remove trend"))
+        self.detrend.setChecked(self._detrend)
+        self.detrend.setToolTip(
+            tr("Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters")
+        )
+        self.detrend.toggled.connect(self._on_analysis_options_changed)
         self.stabilometry_view = QTextBrowser()
         analysis_controls = QHBoxLayout()
         analysis_controls.addWidget(QLabel(tr("Low-pass filter")))
         analysis_controls.addWidget(self.lowpass)
+        analysis_controls.addSpacing(12)
+        analysis_controls.addWidget(self.detrend)
         analysis_controls.addSpacing(12)
         analysis_controls.addWidget(self.eyes_closed_first)
         analysis_controls.addStretch(1)
@@ -704,7 +714,10 @@ class MainWindow(QMainWindow):
         self.stabilogram = StabilogramPlot()
         self.stabilogram.seeked.connect(self._seek)
         stabilogram_note = QLabel(
-            tr("COP of the whole plate minus its mean, filtered as set in the Stabilometry tab. Click to seek.")
+            tr(
+                "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. "
+                "Click to seek."
+            )
             + " "
             + _directions_note()
         )
@@ -1191,7 +1204,9 @@ class MainWindow(QMainWindow):
         """Remember the filter / Romberg order and recompute the stabilometric parameters."""
         self._lowpass_hz = self.lowpass.value()
         self._eyes_closed_first = self.eyes_closed_first.isChecked()
+        self._detrend = self.detrend.isChecked()
         self._settings.setValue("lowpass_hz", self._lowpass_hz)
+        self._settings.setValue("detrend", "true" if self._detrend else "false")
         self._settings.setValue("eyes_closed_first", "true" if self._eyes_closed_first else "false")
         self._update_stabilometry()
 
@@ -1202,7 +1217,7 @@ class MainWindow(QMainWindow):
             self.stabilometry_view.clear()
             return
         post = self._current.postura
-        self._stabilometry = analyze_all(post, self._lowpass_hz or None)
+        self._stabilometry = analyze_all(post, self._lowpass_hz or None, detrend=self._detrend)
         self._romberg = evaluate_romberg(
             post, self._stabilometry, self._current.exam.exam_type, self._eyes_closed_first
         )
@@ -1226,12 +1241,10 @@ class MainWindow(QMainWindow):
         try:
             if acq is None:
                 raise ValueError("no acquisition")
-            cop, first, _ = trimmed_cop(acq)
-            cop, _ = lowpass(cop, acq.sampling_rate_hz, self._lowpass_hz or None)
+            cop, first = sway(acq, self._lowpass_hz or None, detrend=self._detrend)
         except ValueError:
             self.stabilogram.clear()
             return
-        cop -= cop.mean(axis=0)
         time = (first + np.arange(len(cop))) / acq.sampling_rate_hz  # uniform, like the analysis
         self.stabilogram.set_data(
             time, [(tr("ML (x)"), ML_COLOR, cop[:, 0]), (tr("AP (y)"), AP_COLOR, cop[:, 1])], "mm", first
@@ -1584,7 +1597,7 @@ class MainWindow(QMainWindow):
             progress.setLabelText(tr("Exam {id} ({n} of {count})", id=exam_id, n=index + 1, count=count))
 
         reporter.changed.connect(changed)
-        lowpass_hz, eyes_closed_first = self._lowpass_hz or None, self._eyes_closed_first
+        lowpass_hz, detrend, eyes_closed_first = self._lowpass_hz or None, self._detrend, self._eyes_closed_first
 
         def work() -> BatchResult:
             def report(index: int, count: int, exam: Exam) -> bool:
@@ -1597,6 +1610,7 @@ class MainWindow(QMainWindow):
                 formats,
                 summary=summary,
                 lowpass_hz=lowpass_hz,
+                detrend=detrend,
                 eyes_closed_first=eyes_closed_first,
                 progress=report,
             )

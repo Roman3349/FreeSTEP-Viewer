@@ -152,9 +152,9 @@ def cmd_exam(args: argparse.Namespace) -> int:
             )
 
         lowpass = args.lowpass or None
-        results = analyze_all(post, lowpass)
+        results = analyze_all(post, lowpass, detrend=args.detrend)
         romberg = evaluate_romberg(post, results, exam.exam_type, args.eyes_closed_first)
-        _print_stabilometry(results, lowpass)
+        _print_stabilometry(results, lowpass, args.detrend)
         if romberg is not None:
             order = "from labels" if romberg.order_from_labels else "assumed"
             print(
@@ -189,10 +189,11 @@ _PRINTED_PARAMETERS = (
 )
 
 
-def _print_stabilometry(results: list[Stabilometry | None], lowpass: float | None) -> None:
+def _print_stabilometry(results: list[Stabilometry | None], lowpass: float | None, detrend: bool) -> None:
     """Print the main stabilometric parameters with one column per acquisition."""
     filtered = f"low-pass {lowpass:g} Hz" if lowpass else "unfiltered"
-    print(f"Stabilometry ({filtered}, COP of the whole plate):")
+    trend = ", linear trend removed" if detrend else ""
+    print(f"Stabilometry ({filtered}{trend}, COP of the whole plate):")
     print(f"    {'parameter':<28} {'unit':<6}" + "".join(f" {'acq ' + str(i):>9}" for i in range(len(results))))
     for name in _PRINTED_PARAMETERS:
         values = "".join(f" {r.as_dict()[name]:9.2f}" if r is not None else f" {'–':>9}" for r in results)
@@ -228,6 +229,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
             formats,
             summary=not args.no_summary,
             lowpass_hz=args.lowpass or None,
+            detrend=args.detrend,
             eyes_closed_first=args.eyes_closed_first,
             progress=progress,
         )
@@ -238,12 +240,15 @@ def cmd_batch(args: argparse.Namespace) -> int:
 
 
 def _add_analysis_options(parser: argparse.ArgumentParser) -> None:
-    """Add ``--lowpass`` and ``--eyes-closed-first`` to a sub-command."""
+    """Add ``--lowpass``, ``--detrend`` and ``--eyes-closed-first`` to a sub-command."""
     parser.add_argument(
         "--lowpass",
         type=float,
         default=DEFAULT_LOWPASS_HZ,
         help="cut-off of the COP low-pass filter in Hz, 0 = unfiltered (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--detrend", action="store_true", help="remove the linear trend (slow drift) of the COP, not only its mean"
     )
     parser.add_argument(
         "--eyes-closed-first",

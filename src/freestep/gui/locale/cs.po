@@ -51,8 +51,8 @@ msgid "Summary table of all acquisitions ({name})"
 msgstr "Souhrnná tabulka všech měření ({name})"
 
 #: freestep/gui/app.py
-msgid "The parameters use the low-pass filter and Romberg order set in the Stabilometry tab."
-msgstr "Parametry se počítají s dolní propustí a pořadím Rombergova testu nastavenými v záložce Stabilometrie."
+msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
+msgstr "Parametry se počítají s filtrem, odstraněním trendu a pořadím Rombergova testu podle záložky Stabilometrie."
 
 #: freestep/gui/app.py
 msgid "yes"
@@ -283,6 +283,10 @@ msgid "COP not filtered."
 msgstr "COP není filtrovaný."
 
 #: freestep/gui/app.py
+msgid "Linear trend removed."
+msgstr "Lineární trend odstraněn."
+
+#: freestep/gui/app.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
 msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 znamená větší výchylky se zavřenýma očima."
 
@@ -396,12 +400,20 @@ msgid "Romberg test: FreeSTEP does not store the eye condition; the first acquis
 msgstr "Rombergův test: FreeSTEP neukládá, zda měl pacient oči otevřené; první měření je se zavřenýma očima"
 
 #: freestep/gui/app.py
+msgid "Remove trend"
+msgstr "Odstranit trend"
+
+#: freestep/gui/app.py
+msgid "Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters"
+msgstr "Odečte lineární trend (pomalý posun) COP místo pouhého průměru; ovlivňuje parametry výchylek"
+
+#: freestep/gui/app.py
 msgid "Low-pass filter"
 msgstr "Dolní propust"
 
 #: freestep/gui/app.py
-msgid "COP of the whole plate minus its mean, filtered as set in the Stabilometry tab. Click to seek."
-msgstr "COP celé plošiny bez průměrné polohy, filtrovaný podle nastavení v záložce Stabilometrie. Kliknutím přejdete na daný čas."
+msgid "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. Click to seek."
+msgstr "COP celé plošiny bez průměrné polohy (nebo trendu), filtrovaný podle nastavení v záložce Stabilometrie. Kliknutím přejdete na daný čas."
 
 #: freestep/gui/app.py
 msgid "COP"

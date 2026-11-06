@@ -67,6 +67,19 @@ def test_lowpass_removes_noise() -> None:
     assert compute(cop, FS, lowpass_hz=13.0).lowpass_hz is None
 
 
+def test_detrend_removes_drift() -> None:
+    """With detrending a linear drift does not inflate the spread and the ellipse."""
+    cop = _circle(2.0, 0.5)
+    drifted = cop + np.linspace(0, 20, len(cop))[:, None] * [1.0, -0.5]
+    plain = compute(drifted, FS, lowpass_hz=None)
+    detrended = compute(drifted, FS, lowpass_hz=None, detrend=True)
+    assert detrended.detrended and not plain.detrended
+    assert detrended.sd_ml_mm == pytest.approx(2.0 / math.sqrt(2), rel=0.02)
+    assert plain.sd_ml_mm > 2 * detrended.sd_ml_mm
+    assert detrended.ellipse_area_mm2 == pytest.approx(compute(cop, FS, lowpass_hz=None).ellipse_area_mm2, rel=0.05)
+    assert detrended.mean_x_mm == pytest.approx(plain.mean_x_mm)  # the position on the plate is kept
+
+
 def test_too_short_is_rejected() -> None:
     """Too few frames cannot be analysed."""
     with pytest.raises(ValueError):

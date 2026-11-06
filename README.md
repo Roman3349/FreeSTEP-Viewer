@@ -67,7 +67,8 @@ y = antero-posterior) after a zero-phase 4th order Butterworth low-pass filter (
 those in between are interpolated. Parameters: mean position, range, standard deviation, mean and
 RMS distance, path length and mean velocity (total, ML, AP), 95 % confidence ellipse, convex hull,
 sway area per second and, from Welch's power spectrum in 0.15–5 Hz, mean, median and 95 %
-frequency and total power (Prieto et al. 1996, Duarte & Freitas 2010).
+frequency and total power (Prieto et al. 1996, Duarte & Freitas 2010). `--detrend` / "Remove trend"
+subtracts the linear trend (slow drift) instead of only the mean; it is off by default.
 
 A posturography exam with two acquisitions of the same duration is evaluated as a Romberg test:
 the Romberg quotient (eyes closed / eyes open) of path length, velocity, ellipse area, sway area,

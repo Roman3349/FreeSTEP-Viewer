@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 13:51+0000\n"
+"POT-Creation-Date: 2026-11-06 13:52+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -51,7 +51,7 @@ msgid "Summary table of all acquisitions ({name})"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "The parameters use the low-pass filter and Romberg order set in the Stabilometry tab."
+msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -283,6 +283,10 @@ msgid "COP not filtered."
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Linear trend removed."
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
 msgstr ""
 
@@ -396,11 +400,19 @@ msgid "Romberg test: FreeSTEP does not store the eye condition; the first acquis
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Remove trend"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "Low-pass filter"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "COP of the whole plate minus its mean, filtered as set in the Stabilometry tab. Click to seek."
+msgid "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. Click to seek."
 msgstr ""
 
 #: freestep/gui/app.py

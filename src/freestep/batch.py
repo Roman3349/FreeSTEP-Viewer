@@ -181,6 +181,7 @@ def batch_export(
     *,
     summary: bool = True,
     lowpass_hz: float | None = DEFAULT_LOWPASS_HZ,
+    detrend: bool = False,
     eyes_closed_first: bool = False,
     progress: Callable[[int, int, Exam], bool] | None = None,
 ) -> BatchResult:
@@ -194,6 +195,7 @@ def batch_export(
             :data:`INDEX_NAME` with one row per exam (patient, exam, files, status)
             is written always.
         lowpass_hz: Low-pass filter of the analysis (see :func:`freestep.stabilometry.analyze`).
+        detrend: Remove the linear trend of the COP (see :func:`freestep.stabilometry.analyze`).
         eyes_closed_first: Romberg order without labels (see :func:`freestep.stabilometry.detect_romberg`).
         progress: Called before each exam with ``(index, count, exam)``; returning
             ``False`` cancels the export (the files written so far are kept).
@@ -228,7 +230,7 @@ def batch_export(
         try:
             with export.open_fre(exam.file_name) as fre:
                 post = fre.postura
-                results = analyze_all(post, lowpass_hz) if analyse else []
+                results = analyze_all(post, lowpass_hz, detrend=detrend) if analyse else []
                 romberg = evaluate_romberg(post, results, exam.exam_type, eyes_closed_first) if analyse else None
                 files = export_exam(post, out, stem, formats, results=results, romberg=romberg)
                 if summary:
