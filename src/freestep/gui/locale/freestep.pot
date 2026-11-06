@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 21:31+0000\n"
+"POT-Creation-Date: 2026-11-06 22:05+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -286,6 +286,22 @@ msgid "Right forefoot (of right foot)"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Left forefoot (of total)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Left rearfoot (of total)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Right forefoot (of total)"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Right rearfoot (of total)"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
 msgstr ""
 
@@ -328,7 +344,7 @@ msgid "Linear trend removed."
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Load: left and right half of the plate; front and rear half of each foot's length (toes toward the top of the heat map)."
+msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -574,6 +590,10 @@ msgstr ""
 
 #: freestep/gui/app.py
 msgid "COP markers"
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "Load quadrants (maximum / mean)"
 msgstr ""
 
 #: freestep/gui/app.py

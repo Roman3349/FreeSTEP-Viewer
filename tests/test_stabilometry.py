@@ -19,6 +19,7 @@ from freestep.stabilometry import (
     detect_romberg,
     evaluate_romberg,
     load_distribution,
+    load_regions,
     speed,
     unit,
 )
@@ -103,7 +104,26 @@ def test_load_distribution() -> None:
     assert shares["left_forefoot_pct"] == pytest.approx(100 / 3)
     assert shares["right_forefoot_pct"] == pytest.approx(50)
     assert shares["forefoot_pct"] == pytest.approx(5 / 12 * 100)
+    quadrants = [shares["left_front_pct"], shares["left_rear_pct"], shares["right_front_pct"], shares["right_rear_pct"]]
+    assert quadrants == pytest.approx([2 / 12 * 100, 4 / 12 * 100, 25, 25])
     assert load_distribution(np.zeros((2, 4, 4), np.uint16)) == {}
+
+
+def test_load_regions_off_centre() -> None:
+    """The feet are split in the gap between them, also when the patient does not stand in the centre."""
+    frame = np.zeros((4, 10), np.uint16)
+    frame[:, 0:2] = 1  # left foot
+    frame[:, 4] = 2  # right foot, left of the middle of the plate (column 5)
+    regions = load_regions(frame)
+    assert 2 <= regions.split_column <= 4
+    assert regions.left is not None and regions.right is not None
+    assert regions.left.cop == pytest.approx((0.5, 1.5))
+    assert regions.right.cop == pytest.approx((4, 1.5))
+    assert (regions.right.first_row, regions.right.last_row, regions.right.middle_row) == (0, 3, 2)
+    assert load_distribution(frame[None])["left_load_pct"] == pytest.approx(50)
+    # Touching feet: split at the least loaded column
+    frame = np.array([[3, 3, 1, 3, 3]] * 2, np.uint16)
+    assert load_regions(frame).split_column == 3
 
 
 def test_too_short_is_rejected() -> None:

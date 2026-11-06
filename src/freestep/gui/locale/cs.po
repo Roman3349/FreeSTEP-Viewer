@@ -286,6 +286,22 @@ msgid "Right forefoot (of right foot)"
 msgstr "Přední část pravé (z pravé)"
 
 #: freestep/gui/app.py
+msgid "Left forefoot (of total)"
+msgstr "Přední část levé (z celku)"
+
+#: freestep/gui/app.py
+msgid "Left rearfoot (of total)"
+msgstr "Zadní část levé (z celku)"
+
+#: freestep/gui/app.py
+msgid "Right forefoot (of total)"
+msgstr "Přední část pravé (z celku)"
+
+#: freestep/gui/app.py
+msgid "Right rearfoot (of total)"
+msgstr "Zadní část pravé (z celku)"
+
+#: freestep/gui/app.py
 msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
 msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
 
@@ -328,8 +344,8 @@ msgid "Linear trend removed."
 msgstr "Lineární trend odstraněn."
 
 #: freestep/gui/app.py
-msgid "Load: left and right half of the plate; front and rear half of each foot's length (toes toward the top of the heat map)."
-msgstr "Zátěž: levá a pravá polovina plošiny; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tepelné mapy)."
+msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
+msgstr "Zátěž: levá a pravá noha rozdělené v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tepelné mapy)."
 
 #: freestep/gui/app.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
@@ -575,6 +591,10 @@ msgstr "Mřížka senzorů"
 #: freestep/gui/app.py
 msgid "COP markers"
 msgstr "Značky COP"
+
+#: freestep/gui/app.py
+msgid "Load quadrants (maximum / mean)"
+msgstr "Kvadranty zátěže (maximum / průměr)"
 
 #: freestep/gui/app.py
 msgid "&Language"

@@ -95,10 +95,14 @@ from ..postura import Acquisition, Postura
 from ..stabilometry import (
     DEFAULT_LOWPASS_HZ,
     ROMBERG_PARAMETERS,
+    LoadDistribution,
+    LoadRegions,
     Romberg,
     Stabilometry,
     analyze_all,
     evaluate_romberg,
+    load_distribution,
+    load_regions,
     speed,
     sway,
     unit,
@@ -285,6 +289,7 @@ class LoadedExam:
         postura: The decoded recording.
         pressure_sums: Per acquisition: sum of all sensor values per frame.
         max_images: Per acquisition: per-sensor maximum over all frames.
+        loads: Per acquisition: load quadrants and the load distribution.
         preview: JPEG of ``Preview1.jpg``, if present.
     """
 
@@ -295,6 +300,7 @@ class LoadedExam:
     postura: Postura
     pressure_sums: list[NDArray[np.int64]]
     max_images: list[NDArray[np.uint16]]
+    loads: list[tuple[LoadRegions, LoadDistribution]]
     preview: bytes | None
 
 
@@ -316,6 +322,7 @@ def _load_exam(fre: FreFile) -> LoadedExam:
         postura=post,
         pressure_sums=[a.pressure.reshape(a.frame_count, -1).sum(axis=1, dtype=np.int64) for a in post.acquisitions],
         max_images=[a.pressure.max(axis=0) for a in post.acquisitions],
+        loads=[(load_regions(a.pressure.sum(axis=0)), load_distribution(a.pressure)) for a in post.acquisitions],
         preview=fre.preview_jpeg(),
     )
 
@@ -397,9 +404,22 @@ def _show_on_heatmap(
             ],
             trail=acq.cop_total[max(0, frame - trail) : frame + 1] if trail else None,
         )
+        view.set_regions(None)
     else:
         image = loaded.max_images[acq.index] if mode == _MODE_MAX else acq.mean_image
         view.set_frame(image, h.max_value, cell, trail=acq.cop_total if trail else None)
+        regions, shares = loaded.loads[acq.index]
+        view.set_regions(regions, load_shares(shares))
+
+
+def load_shares(shares: LoadDistribution) -> tuple[float | None, float | None, float | None, float | None]:
+    """Shares of the left front, left rear, right front and right rear quadrant for :meth:`HeatmapView.set_regions`."""
+    return (
+        shares.get("left_front_pct"),
+        shares.get("left_rear_pct"),
+        shares.get("right_front_pct"),
+        shares.get("right_rear_pct"),
+    )
 
 
 def _png_bytes(image: QImage) -> bytes:
@@ -497,6 +517,10 @@ def _parameter_groups() -> list[tuple[str, list[tuple[str, str]]]]:
                 ("rearfoot_pct", tr("Rearfoot")),
                 ("left_forefoot_pct", tr("Left forefoot (of left foot)")),
                 ("right_forefoot_pct", tr("Right forefoot (of right foot)")),
+                ("left_front_pct", tr("Left forefoot (of total)")),
+                ("left_rear_pct", tr("Left rearfoot (of total)")),
+                ("right_front_pct", tr("Right forefoot (of total)")),
+                ("right_rear_pct", tr("Right rearfoot (of total)")),
             ],
         ),
     ]
@@ -559,7 +583,8 @@ def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romber
             notes.append(tr("Linear trend removed."))
         notes.append(
             tr(
-                "Load: left and right half of the plate; front and rear half of each foot's length "
+                "Load: left and right foot split in the gap between them; "
+                "front and rear half of each foot's length "
                 "(toes toward the top of the heat map)."
             )
         )
@@ -602,7 +627,7 @@ class MainWindow(QMainWindow):
         self._password = DEFAULT_PASSWORD
         self._settings = QSettings("FreeStepViewer", "FreeStepViewer")
         self._language_pref = str(self._settings.value("language", AUTO_LANGUAGE))
-        self._view_options = {"smooth": False, "show_grid": False, "show_cop": True}
+        self._view_options = {"smooth": False, "show_grid": False, "show_cop": True, "show_regions": True}
         self._lowpass_hz = _setting_float(self._settings.value("lowpass_hz"), DEFAULT_LOWPASS_HZ)
         self._eyes_closed_first = str(self._settings.value("eyes_closed_first", "false")).lower() == "true"
         self._detrend = str(self._settings.value("detrend", "false")).lower() == "true"
@@ -883,6 +908,7 @@ class MainWindow(QMainWindow):
         self._add_toggle(view_menu, tr("Smooth interpolation"), "smooth")
         self._add_toggle(view_menu, tr("Sensor grid"), "show_grid")
         self._add_toggle(view_menu, tr("COP markers"), "show_cop")
+        self._add_toggle(view_menu, tr("Load quadrants (maximum / mean)"), "show_regions")
         view_menu.addSeparator()
         language_menu = view_menu.addMenu(tr("&Language"))
         group = QActionGroup(language_menu)
