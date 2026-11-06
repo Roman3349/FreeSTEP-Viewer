@@ -112,6 +112,19 @@ msgid "Shoes with orthosis"
 msgstr "V obuvi s ortézou"
 
 #: freestep/gui/app.py
+msgid "Eyes open"
+msgstr "Oči otevřené"
+
+#: freestep/gui/app.py
+msgid "Eyes closed"
+msgstr "Oči zavřené"
+
+#: freestep/gui/app.py
+#, python-brace-format
+msgid "Acquisition {number}"
+msgstr "Měření {number}"
+
+#: freestep/gui/app.py
 #, python-brace-format
 msgid "Acquisition {number} ({duration} s)"
 msgstr "Měření {number} ({duration} s)"
@@ -250,6 +263,7 @@ msgid "Total power AP"
 msgstr "Celkový výkon AP"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Load distribution"
 msgstr "Rozložení zátěže"
 
@@ -306,52 +320,47 @@ msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = an
 msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
 
 #: freestep/gui/app.py
-#, python-brace-format
-msgid "Acquisition {number}"
-msgstr "Měření {number}"
-
-#: freestep/gui/app.py
-msgid "Eyes open"
-msgstr "Oči otevřené"
-
-#: freestep/gui/app.py
-msgid "Eyes closed"
-msgstr "Oči zavřené"
-
-#: freestep/gui/app.py
 msgid "Quotient"
 msgstr "Kvocient"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Parameter"
 msgstr "Parametr"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
 msgstr "Měření s méně než 32 zatíženými snímky se nevyhodnocují."
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 #, python-brace-format
 msgid "Low-pass filter {cutoff} Hz."
 msgstr "Dolní propust {cutoff} Hz."
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "COP not filtered."
 msgstr "COP není filtrovaný."
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Linear trend removed."
 msgstr "Lineární trend odstraněn."
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
 msgstr "Zátěž: levá a pravá noha rozdělené v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tepelné mapy)."
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
 msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 znamená větší výchylky se zavřenýma očima."
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "The eye condition is not stored in the exam; the order of the acquisitions is assumed."
 msgstr "Vyšetření neobsahuje informaci o očích; pořadí měření je předpokládané."
 
@@ -364,10 +373,12 @@ msgid "Patient / exam"
 msgstr "Pacient / vyšetření"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Date"
 msgstr "Datum"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Type"
 msgstr "Typ"
 
@@ -493,10 +504,12 @@ msgid "COP"
 msgstr "COP"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Stabilogram"
 msgstr "Stabilogram"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Speed"
 msgstr "Rychlost"
 
@@ -559,6 +572,10 @@ msgstr "Exportovat surová &data do MATLABu…"
 #: freestep/gui/app.py
 msgid "Export &stabilometric parameters to CSV…"
 msgstr "Exportovat &stabilometrické parametry do CSV…"
+
+#: freestep/gui/app.py
+msgid "Create PDF &report…"
+msgstr "Vytvořit PDF &report…"
 
 #: freestep/gui/app.py
 msgid "Save heat map as &PNG…"
@@ -661,6 +678,7 @@ msgid "ID {id}"
 msgstr "ID {id}"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 #, python-brace-format
 msgid "Exam {id}"
 msgstr "Vyšetření {id}"
@@ -691,14 +709,17 @@ msgstr[1] "Vyšetření {id} — {name}: {n} měření, {platform}"
 msgstr[2] "Vyšetření {id} — {name}: {n} měření, {platform}"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "ML (x)"
 msgstr "ML (x)"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "AP (y)"
 msgstr "AP (y)"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "COP speed"
 msgstr "Rychlost COP"
 
@@ -737,6 +758,7 @@ msgid "Cannot analyse the exams"
 msgstr "Vyšetření nelze vyhodnotit"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Romberg quotient"
 msgstr "Rombergův kvocient"
 
@@ -754,6 +776,7 @@ msgid "Saved {path}"
 msgstr "Uloženo: {path}"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "total"
 msgstr "celkem"
 
@@ -791,10 +814,12 @@ msgid "{min} … {max} (mean {mean})"
 msgstr "{min} … {max} (průměr {mean})"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Patient"
 msgstr "Pacient"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Name"
 msgstr "Jméno"
 
@@ -803,18 +828,22 @@ msgid "ID"
 msgstr "ID"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Born"
 msgstr "Narozen(a)"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Sex"
 msgstr "Pohlaví"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Height"
 msgstr "Výška"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Weight"
 msgstr "Hmotnost"
 
@@ -827,6 +856,7 @@ msgid "SSID"
 msgstr "SSID"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Exam"
 msgstr "Vyšetření"
 
@@ -835,6 +865,7 @@ msgid "Time"
 msgstr "Čas"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Footwear"
 msgstr "Obuv"
 
@@ -855,6 +886,7 @@ msgid "raw data"
 msgstr "surová data"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Note"
 msgstr "Poznámka"
 
@@ -867,6 +899,7 @@ msgid "Recording"
 msgstr "Záznam"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Platform"
 msgstr "Plošina"
 
@@ -891,6 +924,7 @@ msgid "Max value"
 msgstr "Max. hodnota"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "Acquisitions"
 msgstr "Měření"
 
@@ -934,6 +968,14 @@ msgstr "Export surových dat do MATLABu"
 #: freestep/gui/app.py
 msgid "Export stabilometric parameters"
 msgstr "Export stabilometrických parametrů"
+
+#: freestep/gui/app.py
+msgid "Create PDF report"
+msgstr "Vytvořit PDF report"
+
+#: freestep/gui/app.py
+msgid "PDF (*.pdf)"
+msgstr "PDF (*.pdf)"
 
 #: freestep/gui/app.py
 msgid "Save image"
@@ -1005,6 +1047,56 @@ msgstr "O aplikaci {app}"
 #: freestep/gui/app.py
 msgid "Viewer for data exported from FreeSTEP pressure plates."
 msgstr "Prohlížeč dat exportovaných z tlakových plošin FreeSTEP."
+
+#: freestep/gui/report.py
+#, python-brace-format
+msgid "Page {number}"
+msgstr "Strana {number}"
+
+#: freestep/gui/report.py
+msgid "Stabilometric report"
+msgstr "Stabilometrický report"
+
+#: freestep/gui/report.py
+msgid "Age at exam"
+msgstr "Věk při vyšetření"
+
+#: freestep/gui/report.py
+msgid "Summary"
+msgstr "Souhrn"
+
+#: freestep/gui/report.py
+msgid "Statokinesigram"
+msgstr "Statokineziogram"
+
+#: freestep/gui/report.py
+msgid "COP of the whole plate around its mean position, same scale for all acquisitions."
+msgstr "COP celé plošiny kolem jeho průměrné polohy, stejné měřítko pro všechna měření."
+
+#: freestep/gui/report.py
+msgid "Mean of every sensor over the frames where it is loaded; share of the total load in every quadrant, COP of the whole plate (black) and of the left and right foot."
+msgstr "Průměr každého senzoru přes snímky, ve kterých je zatížen; podíl celkové zátěže v každém kvadrantu, COP celé plošiny (černě) a levého a pravého chodidla."
+
+#: freestep/gui/report.py
+msgid "Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."
+msgstr "Výchylka COP celé plošiny od průměrné polohy (nebo trendu) a jeho okamžitá rychlost."
+
+#: freestep/gui/report.py
+msgid "Stabilometric parameters"
+msgstr "Stabilometrické parametry"
+
+#: freestep/gui/report.py
+msgid "Path length and mean velocity: length of the COP trajectory and its mean speed. 95% confidence ellipse: area containing 95% of the COP positions (principal components). Frequencies from the power spectrum (Welch) in 0.15–5 Hz."
+msgstr "Délka dráhy a průměrná rychlost: délka trajektorie COP a jeho průměrná rychlost. 95% konfidenční elipsa: plocha obsahující 95 % poloh COP (hlavní komponenty). Frekvence z výkonového spektra (Welch) v pásmu 0,15–5 Hz."
+
+#: freestep/gui/report.py
+#, python-brace-format
+msgid "Generated by {app} on {date}."
+msgstr "Vytvořeno aplikací {app} {date}."
+
+#: freestep/gui/report.py
+msgid "Methods"
+msgstr "Metodika"
 
 #: freestep/gui/widgets.py
 msgid "No exam loaded"

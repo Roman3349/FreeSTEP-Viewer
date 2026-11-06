@@ -370,6 +370,21 @@ def _footwear_label(exam: Exam) -> str | None:
     return names.get(exam.footwear) or tr("Unknown ({code})", code=exam.footwear)
 
 
+def acquisition_style(index: int, romberg: Romberg | None) -> tuple[str, QColor]:
+    """Legend label and colour of an acquisition in plots comparing acquisitions (as in the History tab).
+
+    Args:
+        index: Zero-based index of the acquisition.
+        romberg: Romberg evaluation of the exam; names the eye conditions.
+    """
+    if romberg is not None and index == romberg.eyes_open:
+        return tr("Eyes open"), ML_COLOR
+    if romberg is not None and index == romberg.eyes_closed:
+        return tr("Eyes closed"), AP_COLOR
+    palette = [ML_COLOR, AP_COLOR, COP_LEFT_COLOR, COP_RIGHT_COLOR]
+    return tr("Acquisition {number}", number=index + 1), palette[index % len(palette)]
+
+
 def _acquisition_label(acq: Acquisition) -> str:
     """Name of an acquisition for the selection box, e.g. "Acquisition 1 (51.2 s)"."""
     text = tr("Acquisition {number} ({duration} s)", number=acq.index + 1, duration=f"{acq.duration_s:.1f}")
@@ -895,6 +910,7 @@ class MainWindow(QMainWindow):
             self._add_action(file_menu, tr("Export to &MATLAB…"), self._export_mat),
             self._add_action(file_menu, tr("Export &raw data to MATLAB…"), self._export_mat_raw),
             self._add_action(file_menu, tr("Export &stabilometric parameters to CSV…"), self._export_stabilometry),
+            self._add_action(file_menu, tr("Create PDF &report…"), self._export_report),
             self._add_action(file_menu, tr("Save heat map as &PNG…"), self._export_png),
             self._add_action(file_menu, tr("Export all images to &ZIP…"), self._export_png_zip),
         ]
@@ -1460,13 +1476,7 @@ class MainWindow(QMainWindow):
 
     def _acquisition_style(self, acq: Acquisition) -> tuple[str, QColor]:
         """Legend label and colour of an acquisition compared in the stabilogram and the speed curve."""
-        romberg = self._romberg
-        if romberg is not None and acq.index == romberg.eyes_open:
-            return tr("Eyes open"), ML_COLOR
-        if romberg is not None and acq.index == romberg.eyes_closed:
-            return tr("Eyes closed"), AP_COLOR
-        palette = [ML_COLOR, AP_COLOR, COP_LEFT_COLOR, COP_RIGHT_COLOR]
-        return tr("Acquisition {number}", number=acq.index + 1), palette[acq.index % len(palette)]
+        return acquisition_style(acq.index, self._romberg)
 
     @Slot(int)
     def _seek(self, frame: int) -> None:
@@ -1853,6 +1863,26 @@ class MainWindow(QMainWindow):
         if self._current is None or (path := self._save_name(title, "_stabilometry.csv", tr("CSV (*.csv)"))) is None:
             return
         write_stabilometry_csv(self._stabilometry, path, self._romberg)
+        self.statusBar().showMessage(tr("Saved {path}", path=path))
+
+    def _export_report(self) -> None:
+        """Save the PDF report of the shown exam with the settings of the Stabilometry tab."""
+        from .report import ReportData, write_report  # noqa: PLC0415 — the report module imports this one
+
+        title = tr("Create PDF report")
+        if self._current is None or (path := self._save_name(title, "_report.pdf", tr("PDF (*.pdf)"))) is None:
+            return
+        loaded = self._current
+        data = ReportData(
+            loaded.patient,
+            loaded.exam,
+            loaded.postura,
+            self._stabilometry,
+            self._romberg,
+            self._lowpass_hz or None,
+            self._detrend,
+        )
+        write_report(path, data)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_png(self) -> None:

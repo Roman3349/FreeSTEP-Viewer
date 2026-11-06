@@ -366,6 +366,8 @@ class CopPlot(QWidget):
         plate_cm: Width and height of the plate in cm (for :data:`ORIGIN_PLATE_CENTRE`).
         show_ellipse: Draw the confidence ellipse given by :meth:`set_ellipse`
             (it belongs to the first series and moves with it).
+        span_cm: Fixed width and height of the shown area with a centred origin
+            (e.g. the same scale for several plots); ``None`` zooms to the data.
     """
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -381,6 +383,7 @@ class CopPlot(QWidget):
         self.origin = ORIGIN_PLATE
         self.plate_cm = (0.0, 0.0)
         self.show_ellipse = True
+        self.span_cm: float | None = None
         self._ellipse: tuple[NDArray[np.float64], float, float, float] | None = None
         self._hover: QPointF | None = None
         self.setMouseTracking(True)
@@ -474,7 +477,7 @@ class CopPlot(QWidget):
         points = np.concatenate(parts) if parts else np.zeros((1, 2))
         lo, hi = points.min(axis=0), points.max(axis=0)
         if centred:  # symmetric around (0, 0), which is in the centre
-            span = max(2 * float(np.abs(points).max()), 0.5) * 1.1
+            span = self.span_cm or max(2 * float(np.abs(points).max()), 0.5) * 1.1
             centre = np.zeros(2)
         else:
             span = max(float((hi - lo).max()), 0.5) * 1.1
