@@ -17,8 +17,8 @@ jobs:
     name: Windows installer
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
       - name: Portable ZIP
         shell: pwsh
         run: Compress-Archive -Path dist\FreeStepViewer -DestinationPath dist\FreeStepViewer-${{ steps.version.outputs.version }}-windows-portable.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: |
@@ -59,8 +59,8 @@ jobs:
     name: macOS disk image
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install dependencies
@@ -86,7 +86,7 @@ jobs:
           ln -s /Applications dist/dmg/Applications
           hdiutil create -volname "FreeSTEP Viewer" -srcfolder dist/dmg -ov -format UDZO \
             "dist/FreeStepViewer-${{ steps.version.outputs.version }}-macos-$(uname -m).dmg"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos
           path: dist/*.dmg
@@ -104,7 +104,7 @@ jobs:
           - arch: aarch64
             runner: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Install flatpak-builder
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends flatpak flatpak-builder
       - name: Add Flathub
@@ -117,7 +117,7 @@ jobs:
         run: >-
           flatpak build-bundle --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
           repo FreeStepViewer-${{ matrix.arch }}.flatpak ${APP_ID}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: flatpak-${{ matrix.arch }}
           path: FreeStepViewer-${{ matrix.arch }}.flatpak
@@ -131,16 +131,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Tag matches the project version
         run: |
           version=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
           test "v${version}" = "${GITHUB_REF_NAME}" || { echo "Tag ${GITHUB_REF_NAME} does not match version ${version}"; exit 1; }
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: artifacts/*
           generate_release_notes: true
