@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 22:12+0000\n"
+"POT-Creation-Date: 2026-11-07 14:18+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -369,7 +369,7 @@ msgid "Not a Romberg test (needs a posturography exam with two acquisitions of e
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Patient / exam"
+msgid "Subject / exam"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -518,11 +518,11 @@ msgid "Export CSV…"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "All parameters of all exams of the patient"
+msgid "All parameters of all exams of the subject"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Exams of the patient, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
+msgid "Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -665,7 +665,7 @@ msgstr ""
 
 #: freestep/gui/app.py
 #, python-brace-format
-msgid "{name}: centre {centre}, {patients} patients, {exams} exams"
+msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -723,7 +723,7 @@ msgid "COP speed"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Open a FreeSTEP export (.zip) to see the history of a patient."
+msgid "Open a FreeSTEP export (.zip) to see the history of a subject."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -812,7 +812,7 @@ msgstr ""
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
-msgid "Patient"
+msgid "Subject"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -821,6 +821,7 @@ msgid "Name"
 msgstr ""
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "ID"
 msgstr ""
 

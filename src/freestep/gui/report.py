@@ -358,7 +358,7 @@ def _paint_header(pages: _Pages, data: ReportData) -> None:
     durations = ", ".join(f"{a.duration_s:.1f} s" for a in post.acquisitions)
     right = _info_table(
         [
-            (tr("Exam"), exam.id),
+            (tr("ID"), exam.id),
             (tr("Date"), data.when),
             (tr("Type"), _exam_type_label(exam)),
             (tr("Footwear"), _footwear_label(exam)),
@@ -367,7 +367,7 @@ def _paint_header(pages: _Pages, data: ReportData) -> None:
         ]
     )
     pages.text(
-        f"<table width='100%' cellspacing='0'><tr><td width='50%' valign='top'><b>{html.escape(tr('Patient'))}</b>"
+        f"<table width='100%' cellspacing='0'><tr><td width='50%' valign='top'><b>{html.escape(tr('Subject'))}</b>"
         f"{left}</td><td width='50%' valign='top'><b>{html.escape(tr('Exam'))}</b>{right}</td></tr></table>"
     )
     if exam.note:

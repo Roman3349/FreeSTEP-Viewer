@@ -32,7 +32,7 @@ def _fmt(value: object) -> str:
 
 
 def cmd_info(args: argparse.Namespace) -> int:
-    """``freestep info``: print the export summary, patients and their exams.
+    """``freestep info``: print the export summary, subjects and their exams.
 
     Args:
         args: Parsed arguments (``export``, ``password``, ``encoding``).
@@ -44,7 +44,7 @@ def cmd_info(args: argparse.Namespace) -> int:
         idx = export.index
         print(
             f"Centre: {idx.centre_code}  created: {_fmt(idx.created)}  "
-            f"patients: {_fmt(idx.patient_count)}  exams: {_fmt(idx.exam_count)}"
+            f"subjects: {_fmt(idx.patient_count)}  exams: {_fmt(idx.exam_count)}"
         )
         print(f"Tables: {', '.join(export.database.table_names)}")
         for patient in export.patients:
@@ -128,7 +128,7 @@ def cmd_exam(args: argparse.Namespace) -> int:
             f"Exam {exam.id} ({exam.file_name}): {_fmt(exam.exam_date)} {_fmt(exam.exam_time)}, "
             f"type {exam.exam_type_name}, filter={'raw' if flt.is_raw else flt.filter} freq={_fmt(flt.frequency)}"
         )
-        print(f"Patient {patient.id}: {patient.name}, born {_fmt(patient.birth_date)}")
+        print(f"Subject {patient.id}: {patient.name}, born {_fmt(patient.birth_date)}")
         print(f"Members: {', '.join(fre.members)}")
 
         post = fre.postura
@@ -266,9 +266,9 @@ def cmd_history(args: argparse.Namespace) -> int:
     with FreeStepExport(args.export, args.password, args.encoding) as export:
         patient = export.patient(args.patient)
         if patient is None:
-            sys.exit(f"Patient {args.patient} not found")
+            sys.exit(f"Subject {args.patient} not found")
         exams = patient_exams(export, args.patient)
-        print(f"Patient {patient.id}: {patient.name}, born {_fmt(patient.birth_date)}, {len(exams)} exam(s)")
+        print(f"Subject {patient.id}: {patient.name}, born {_fmt(patient.birth_date)}, {len(exams)} exam(s)")
 
         def progress(index: int, count: int, exam: Exam) -> bool:
             print(f"[{index + 1}/{count}] exam {exam.id}", file=sys.stderr, flush=True)
@@ -372,7 +372,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    info = sub.add_parser("info", help="list patients and exams of an export ZIP")
+    info = sub.add_parser("info", help="list subjects and exams of an export ZIP")
     info.add_argument("export")
     info.set_defaults(func=cmd_info)
 
@@ -406,9 +406,9 @@ def build_parser() -> argparse.ArgumentParser:
     _add_analysis_options(batch)
     batch.set_defaults(func=cmd_batch)
 
-    history = sub.add_parser("history", help="stabilometric parameters of all exams of a patient")
+    history = sub.add_parser("history", help="stabilometric parameters of all exams of a subject")
     history.add_argument("export")
-    history.add_argument("patient", type=int, help="patient ID (see freestep info)")
+    history.add_argument("patient", type=int, help="subject ID (see freestep info)")
     history.add_argument(
         "--parameter",
         action="append",

@@ -12,6 +12,7 @@ requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Education",
     "Intended Audience :: Healthcare Industry",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",

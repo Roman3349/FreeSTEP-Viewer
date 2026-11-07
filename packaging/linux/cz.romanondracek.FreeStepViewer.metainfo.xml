@@ -12,17 +12,20 @@
   <description>
     <p>
       Opens FreeSTEP exports (.zip) and exam files (.fre) without the original software
-      and shows posturography recordings.
+      and evaluates stabilometric recordings of quiet stance on the plate, in healthcare,
+      sport and education.
     </p>
     <ul>
-      <li>Patients and exams from the export database</li>
-      <li>Pressure heat map with centre of pressure of both feet, playback of all acquisitions</li>
-      <li>Stabilogram and exam metadata</li>
-      <li>Export to CSV, NumPy and PNG</li>
+      <li>Subjects and exams from the export database</li>
+      <li>Pressure map with the centre of pressure of both feet, playback of all acquisitions</li>
+      <li>Statokinesigram, stabilogram and speed curve, stabilometric parameters and the Romberg test</li>
+      <li>Load distribution between the feet and their front and rear halves</li>
+      <li>PDF report, export to CSV, MATLAB, NumPy and PNG</li>
     </ul>
     <p xml:lang="cs">
-      Otevírá exporty FreeSTEP (.zip) a soubory vyšetření (.fre) bez původního softwaru
-      a zobrazuje posturografické záznamy.
+      Otevírá exporty FreeSTEP (.zip) a soubory měření (.fre) bez původního softwaru
+      a vyhodnocuje stabilometrické záznamy klidového stoje na plošině ve zdravotnictví,
+      sportu i vzdělávání.
     </p>
   </description>
   <url type="homepage">https://github.com/Roman3349/FreeSTEP-Viewer</url>
@@ -35,7 +38,9 @@
   </provides>
   <categories>
     <category>Science</category>
+    <category>Education</category>
     <category>MedicalSoftware</category>
+    <category>Sports</category>
   </categories>
   <content_rating type="oars-1.1"/>
   <releases>

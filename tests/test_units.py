@@ -174,9 +174,9 @@ def test_tr_switches_language() -> None:
     """``tr``/``ntr`` translate, fill in placeholders and fall back to English."""
     try:
         i18n.set_language("cs")
-        assert i18n.tr("Exam {id}", id=158) == "Vyšetření 158"
+        assert i18n.tr("Exam {id}", id=158) == "Měření 158"
         assert i18n.tr("not in the catalogue") == "not in the catalogue"
-        assert "2 měření" in i18n.ntr(
+        assert "2 záznamy" in i18n.ntr(
             "Exam {id} — {name}: {n} acquisition, {platform}",
             "Exam {id} — {name}: {n} acquisitions, {platform}",
             2,

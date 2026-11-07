@@ -683,7 +683,7 @@ class MainWindow(QMainWindow):
     def _build_ui(self) -> None:
         """Create the central widgets (replacing existing ones) with texts in the current language."""
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels([tr("Patient / exam"), tr("Date"), tr("Type")])
+        self.tree.setHeaderLabels([tr("Subject / exam"), tr("Date"), tr("Type")])
         self.tree.setColumnWidth(0, 200)
         self.tree.itemActivated.connect(self._on_item_activated)
         self.tree.itemClicked.connect(self._on_item_activated)
@@ -867,12 +867,12 @@ class MainWindow(QMainWindow):
         self.history_parameter.setCurrentIndex(max(index, 0))
         self.history_parameter.currentIndexChanged.connect(self._on_history_parameter)
         self.history_export = QPushButton(tr("Export CSV…"))
-        self.history_export.setToolTip(tr("All parameters of all exams of the patient"))
+        self.history_export.setToolTip(tr("All parameters of all exams of the subject"))
         self.history_export.clicked.connect(self._export_history)
         self.history_plot = HistoryPlot()
         self.history_plot.selected.connect(self._on_history_selected)
         history_note = QLabel(
-            tr("Exams of the patient, oldest first; click an exam to show it. Settings of the Stabilometry tab apply.")
+            tr("Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply.")
         )
         history_note.setWordWrap(True)
         history_controls = QHBoxLayout()
@@ -1207,7 +1207,7 @@ class MainWindow(QMainWindow):
         assert self._export is not None
         self.statusBar().showMessage(
             tr(
-                "{name}: centre {centre}, {patients} patients, {exams} exams",
+                "{name}: centre {centre}, {patients} subjects, {exams} exams",
                 name=self._export_name,
                 centre=self._export.index.centre_code,
                 patients=len(self._export.patients),
@@ -1512,7 +1512,7 @@ class MainWindow(QMainWindow):
         export, patient_id = self._export, self._history_patient
         if export is None or patient_id is None:
             self.history_title.setText("")
-            self.history_plot.set_message(tr("Open a FreeSTEP export (.zip) to see the history of a patient."))
+            self.history_plot.set_message(tr("Open a FreeSTEP export (.zip) to see the history of a subject."))
             return
         patient = export.patient(patient_id)
         exams = patient_exams(export, patient_id)
@@ -1706,7 +1706,7 @@ class MainWindow(QMainWindow):
         return "".join(
             [
                 table(
-                    tr("Patient"),
+                    tr("Subject"),
                     [
                         (tr("Name"), p.name),
                         (tr("ID"), p.id),

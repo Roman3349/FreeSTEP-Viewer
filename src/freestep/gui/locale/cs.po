@@ -35,7 +35,7 @@ msgstr "Hromadný export"
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
-msgstr "Exportuje všechna vyšetření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_<datum vyšetření>_<HH-MM>, např. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} obsahuje seznam exportovaných vyšetření."
+msgstr "Exportuje všechna měření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_<datum měření>_<HH-MM>, např. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} obsahuje seznam exportovaných měření."
 
 #: freestep/gui/app.py
 msgid "Browse…"
@@ -48,7 +48,7 @@ msgstr "Složka"
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Summary table of all acquisitions ({name})"
-msgstr "Souhrnná tabulka všech měření ({name})"
+msgstr "Souhrnná tabulka všech záznamů ({name})"
 
 #: freestep/gui/app.py
 msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
@@ -122,12 +122,12 @@ msgstr "Oči zavřené"
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Acquisition {number}"
-msgstr "Měření {number}"
+msgstr "Záznam {number}"
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Acquisition {number} ({duration} s)"
-msgstr "Měření {number} ({duration} s)"
+msgstr "Záznam {number} ({duration} s)"
 
 #: freestep/gui/app.py
 #, python-brace-format
@@ -265,7 +265,7 @@ msgstr "Celkový výkon AP"
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Load distribution"
-msgstr "Rozložení zátěže"
+msgstr "Rozložení zatížení"
 
 #: freestep/gui/app.py
 msgid "Left foot"
@@ -331,7 +331,7 @@ msgstr "Parametr"
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
-msgstr "Měření s méně než 32 zatíženými snímky se nevyhodnocují."
+msgstr "Záznamy s méně než 32 zatíženými snímky se nevyhodnocují."
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -352,7 +352,7 @@ msgstr "Lineární trend odstraněn."
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
-msgstr "Zátěž: levá a pravá noha rozdělené v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tepelné mapy)."
+msgstr "Zatížení: levá a pravá noha rozděleny v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tlakové mapy)."
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -362,15 +362,15 @@ msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 zn
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "The eye condition is not stored in the exam; the order of the acquisitions is assumed."
-msgstr "Vyšetření neobsahuje informaci o očích; pořadí měření je předpokládané."
+msgstr "Měření neobsahuje informaci o očích; pořadí záznamů je předpokládané."
 
 #: freestep/gui/app.py
 msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
-msgstr "Nejde o Rombergův test (vyžaduje posturografické vyšetření se dvěma stejně dlouhými měřeními)."
+msgstr "Nejde o Rombergův test (vyžaduje měření typu Posturografie se dvěma stejně dlouhými záznamy)."
 
 #: freestep/gui/app.py
-msgid "Patient / exam"
-msgstr "Pacient / vyšetření"
+msgid "Subject / exam"
+msgstr "Proband / měření"
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -384,7 +384,7 @@ msgstr "Typ"
 
 #: freestep/gui/app.py
 msgid "Acquisition (e.g. eyes open / eyes closed)"
-msgstr "Měření (např. oči otevřené / zavřené)"
+msgstr "Záznam (např. oči otevřené / zavřené)"
 
 #: freestep/gui/app.py
 msgid "Frame"
@@ -408,7 +408,7 @@ msgstr " sn./s"
 
 #: freestep/gui/app.py
 msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"
-msgstr "Rychlost přehrávání ve snímcích za sekundu (nastaví se na vzorkovací frekvenci měření)"
+msgstr "Rychlost přehrávání ve snímcích za sekundu (nastaví se na vzorkovací frekvenci záznamu)"
 
 #: freestep/gui/app.py
 msgid "trail "
@@ -469,7 +469,7 @@ msgstr "Nejdřív zavřené oči"
 
 #: freestep/gui/app.py
 msgid "Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed"
-msgstr "Rombergův test: FreeSTEP neukládá, zda měl pacient oči otevřené; první měření je se zavřenýma očima"
+msgstr "Rombergův test: FreeSTEP neukládá, zda měl proband oči otevřené; první záznam je se zavřenýma očima"
 
 #: freestep/gui/app.py
 msgid "Remove trend"
@@ -493,7 +493,7 @@ msgstr "Porovnat záznamy"
 
 #: freestep/gui/app.py
 msgid "Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"
-msgstr "Vykreslit do stejného grafu i ostatní záznamy vyšetření (např. oči otevřené a zavřené)"
+msgstr "Vykreslit do stejného grafu i ostatní záznamy měření (např. oči otevřené a zavřené)"
 
 #: freestep/gui/app.py
 msgid "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; its mean is the mean velocity. Click to seek."
@@ -518,12 +518,12 @@ msgid "Export CSV…"
 msgstr "Exportovat CSV…"
 
 #: freestep/gui/app.py
-msgid "All parameters of all exams of the patient"
-msgstr "Všechny parametry všech vyšetření pacienta"
+msgid "All parameters of all exams of the subject"
+msgstr "Všechny parametry všech měření probanda"
 
 #: freestep/gui/app.py
-msgid "Exams of the patient, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
-msgstr "Vyšetření pacienta od nejstaršího; kliknutím vyšetření zobrazíte. Platí nastavení ze záložky Stabilometrie."
+msgid "Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
+msgstr "Měření probanda od nejstaršího; kliknutím měření zobrazíte. Platí nastavení ze záložky Stabilometrie."
 
 #: freestep/gui/app.py
 msgid "Stabilometry"
@@ -543,7 +543,7 @@ msgstr "Náhled"
 
 #: freestep/gui/app.py
 msgid "Open a FreeSTEP export (.zip) or exam (.fre) — File › Open or drag & drop"
-msgstr "Otevřete export FreeSTEP (.zip) nebo vyšetření (.fre) — Soubor › Otevřít nebo přetažením"
+msgstr "Otevřete export FreeSTEP (.zip) nebo měření (.fre) — Soubor › Otevřít nebo přetažením"
 
 #: freestep/gui/app.py
 msgid "&File"
@@ -575,11 +575,11 @@ msgstr "Exportovat &stabilometrické parametry do CSV…"
 
 #: freestep/gui/app.py
 msgid "Create PDF &report…"
-msgstr "Vytvořit PDF &report…"
+msgstr "Vytvořit PDF &protokol…"
 
 #: freestep/gui/app.py
 msgid "Save heat map as &PNG…"
-msgstr "Uložit tepelnou mapu jako &PNG…"
+msgstr "Uložit tlakovou mapu jako &PNG…"
 
 #: freestep/gui/app.py
 msgid "Export all images to &ZIP…"
@@ -587,7 +587,7 @@ msgstr "Exportovat všechny obrázky do &ZIP…"
 
 #: freestep/gui/app.py
 msgid "&Batch export of all exams…"
-msgstr "&Hromadný export všech vyšetření…"
+msgstr "&Hromadný export všech měření…"
 
 #: freestep/gui/app.py
 msgid "&Quit"
@@ -611,7 +611,7 @@ msgstr "Značky COP"
 
 #: freestep/gui/app.py
 msgid "Load quadrants (maximum / mean)"
-msgstr "Kvadranty zátěže (maximum / průměr)"
+msgstr "Kvadranty zatížení (maximum / průměr)"
 
 #: freestep/gui/app.py
 msgid "&Language"
@@ -648,7 +648,7 @@ msgstr "Otevřít data FreeSTEP"
 
 #: freestep/gui/app.py
 msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
-msgstr "Data FreeSTEP (*.zip *.fre);;Export (*.zip);;Vyšetření (*.fre);;Vše (*)"
+msgstr "Data FreeSTEP (*.zip *.fre);;Export (*.zip);;Měření (*.fre);;Vše (*)"
 
 #: freestep/gui/app.py
 #, python-brace-format
@@ -665,12 +665,12 @@ msgstr "Export nelze otevřít"
 
 #: freestep/gui/app.py
 #, python-brace-format
-msgid "{name}: centre {centre}, {patients} patients, {exams} exams"
-msgstr "{name}: centrum {centre}, pacientů: {patients}, vyšetření: {exams}"
+msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
+msgstr "{name}: centrum {centre}, probandů: {patients}, měření: {exams}"
 
 #: freestep/gui/app.py
 msgid "Cannot open exam"
-msgstr "Vyšetření nelze otevřít"
+msgstr "Měření nelze otevřít"
 
 #: freestep/gui/app.py
 #, python-brace-format
@@ -681,12 +681,12 @@ msgstr "ID {id}"
 #: freestep/gui/report.py
 #, python-brace-format
 msgid "Exam {id}"
-msgstr "Vyšetření {id}"
+msgstr "Měření {id}"
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Exam {id} (missing)"
-msgstr "Vyšetření {id} (chybí)"
+msgstr "Měření {id} (chybí)"
 
 #: freestep/gui/app.py
 msgid "Decrypting and decoding Postura.dat…"
@@ -694,19 +694,19 @@ msgstr "Dešifruji a dekóduji Postura.dat…"
 
 #: freestep/gui/app.py
 msgid "Cannot decode exam"
-msgstr "Vyšetření nelze dekódovat"
+msgstr "Měření nelze dekódovat"
 
 #: freestep/gui/app.py
 msgid "No preview in this exam"
-msgstr "Vyšetření nemá náhled"
+msgstr "Měření nemá náhled"
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Exam {id} — {name}: {n} acquisition, {platform}"
 msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
-msgstr[0] "Vyšetření {id} — {name}: {n} měření, {platform}"
-msgstr[1] "Vyšetření {id} — {name}: {n} měření, {platform}"
-msgstr[2] "Vyšetření {id} — {name}: {n} měření, {platform}"
+msgstr[0] "Měření {id} — {name}: {n} záznam, {platform}"
+msgstr[1] "Měření {id} — {name}: {n} záznamy, {platform}"
+msgstr[2] "Měření {id} — {name}: {n} záznamů, {platform}"
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -724,38 +724,38 @@ msgid "COP speed"
 msgstr "Rychlost COP"
 
 #: freestep/gui/app.py
-msgid "Open a FreeSTEP export (.zip) to see the history of a patient."
-msgstr "Pro zobrazení vývoje pacienta otevřete export FreeSTEP (.zip)."
+msgid "Open a FreeSTEP export (.zip) to see the history of a subject."
+msgstr "Pro zobrazení vývoje probanda otevřete export FreeSTEP (.zip)."
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "{name}: {n} exam"
 msgid_plural "{name}: {n} exams"
-msgstr[0] "{name}: {n} vyšetření"
-msgstr[1] "{name}: {n} vyšetření"
-msgstr[2] "{name}: {n} vyšetření"
+msgstr[0] "{name}: {n} měření"
+msgstr[1] "{name}: {n} měření"
+msgstr[2] "{name}: {n} měření"
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Analysing {n} exam…"
 msgid_plural "Analysing {n} exams…"
-msgstr[0] "Vyhodnocuji {n} vyšetření…"
-msgstr[1] "Vyhodnocuji {n} vyšetření…"
-msgstr[2] "Vyhodnocuji {n} vyšetření…"
+msgstr[0] "Vyhodnocuji {n} měření…"
+msgstr[1] "Vyhodnocuji {n} měření…"
+msgstr[2] "Vyhodnocuji {n} měření…"
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Analysing exam {id} ({n} of {count})…"
-msgstr "Vyhodnocuji vyšetření {id} ({n} z {count})…"
+msgstr "Vyhodnocuji měření {id} ({n} z {count})…"
 
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Exam {id} skipped: {reason}"
-msgstr "Vyšetření {id} přeskočeno: {reason}"
+msgstr "Měření {id} přeskočeno: {reason}"
 
 #: freestep/gui/app.py
 msgid "Cannot analyse the exams"
-msgstr "Vyšetření nelze vyhodnotit"
+msgstr "Měření nelze vyhodnotit"
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -815,8 +815,8 @@ msgstr "{min} … {max} (průměr {mean})"
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
-msgid "Patient"
-msgstr "Pacient"
+msgid "Subject"
+msgstr "Proband"
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -824,6 +824,7 @@ msgid "Name"
 msgstr "Jméno"
 
 #: freestep/gui/app.py
+#: freestep/gui/report.py
 msgid "ID"
 msgstr "ID"
 
@@ -858,7 +859,7 @@ msgstr "SSID"
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Exam"
-msgstr "Vyšetření"
+msgstr "Měření"
 
 #: freestep/gui/app.py
 msgid "Time"
@@ -871,11 +872,11 @@ msgstr "Obuv"
 
 #: freestep/gui/app.py
 msgid "Height at exam"
-msgstr "Výška při vyšetření"
+msgstr "Výška při měření"
 
 #: freestep/gui/app.py
 msgid "Weight at exam"
-msgstr "Hmotnost při vyšetření"
+msgstr "Hmotnost při měření"
 
 #: freestep/gui/app.py
 msgid "Filter"
@@ -896,7 +897,7 @@ msgstr "Soubor"
 
 #: freestep/gui/app.py
 msgid "Recording"
-msgstr "Záznam"
+msgstr "Data měření"
 
 #: freestep/gui/app.py
 #: freestep/gui/report.py
@@ -926,7 +927,7 @@ msgstr "Max. hodnota"
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Acquisitions"
-msgstr "Měření"
+msgstr "Záznamy"
 
 #: freestep/gui/app.py
 msgid "Unknown settings"
@@ -971,7 +972,7 @@ msgstr "Export stabilometrických parametrů"
 
 #: freestep/gui/app.py
 msgid "Create PDF report"
-msgstr "Vytvořit PDF report"
+msgstr "Vytvořit PDF protokol"
 
 #: freestep/gui/app.py
 msgid "PDF (*.pdf)"
@@ -1017,7 +1018,7 @@ msgstr "Příprava…"
 #: freestep/gui/app.py
 #, python-brace-format
 msgid "Exam {id} ({n} of {count})"
-msgstr "Vyšetření {id} ({n} z {count})"
+msgstr "Měření {id} ({n} z {count})"
 
 #: freestep/gui/app.py
 #, python-brace-format
@@ -1033,7 +1034,7 @@ msgstr "Export byl zrušen."
 
 #: freestep/gui/app.py
 msgid "Skipped exams:"
-msgstr "Přeskočená vyšetření:"
+msgstr "Přeskočená měření:"
 
 #: freestep/gui/app.py
 msgid "Batch export failed"
@@ -1055,11 +1056,11 @@ msgstr "Strana {number}"
 
 #: freestep/gui/report.py
 msgid "Stabilometric report"
-msgstr "Stabilometrický report"
+msgstr "Stabilometrický protokol"
 
 #: freestep/gui/report.py
 msgid "Age at exam"
-msgstr "Věk při vyšetření"
+msgstr "Věk při měření"
 
 #: freestep/gui/report.py
 msgid "Summary"
@@ -1071,11 +1072,11 @@ msgstr "Statokineziogram"
 
 #: freestep/gui/report.py
 msgid "COP of the whole plate around its mean position, same scale for all acquisitions."
-msgstr "COP celé plošiny kolem jeho průměrné polohy, stejné měřítko pro všechna měření."
+msgstr "COP celé plošiny kolem jeho průměrné polohy, stejné měřítko pro všechny záznamy."
 
 #: freestep/gui/report.py
 msgid "Mean of every sensor over the frames where it is loaded; share of the total load in every quadrant, COP of the whole plate (black) and of the left and right foot."
-msgstr "Průměr každého senzoru přes snímky, ve kterých je zatížen; podíl celkové zátěže v každém kvadrantu, COP celé plošiny (černě) a levého a pravého chodidla."
+msgstr "Průměr každého senzoru přes snímky, ve kterých je zatížen; podíl celkového zatížení v každém kvadrantu, COP celé plošiny (černě) a levého a pravého chodidla."
 
 #: freestep/gui/report.py
 msgid "Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."
@@ -1100,7 +1101,7 @@ msgstr "Metodika"
 
 #: freestep/gui/widgets.py
 msgid "No exam loaded"
-msgstr "Není načteno žádné vyšetření"
+msgstr "Není načteno žádné měření"
 
 #: freestep/gui/widgets.py
 msgid "No COP data"

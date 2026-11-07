@@ -2,7 +2,8 @@
 
 [![CI](https://github.com/Roman3349/FreeSTEP-Viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/Roman3349/FreeSTEP-Viewer/actions/workflows/ci.yml)
 
-Parser and viewer for data exported from the FreeSTEP pressure-plate software. Pure Python:
+Parser and viewer for data exported from the FreeSTEP pressure-plate software, for stabilometry
+(quiet stance on the plate) in healthcare, sport and education. Pure Python:
 no ODBC or MS Access drivers needed, so it runs the same on Windows, Linux and macOS. The file
 format, determined by reverse engineering FreeSTEP exports, is described in
 [docs/FORMAT.md](docs/FORMAT.md).
@@ -20,18 +21,18 @@ uv sync --extra gui     # + the Qt viewer (PySide6)
 uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
 ```
 
-- Patient/exam tree read from `Export.mdb`. A single `.fre` file can be opened too, via the menu or drag & drop.
+- Subject/exam tree read from `Export.mdb`. A single `.fre` file can be opened too, via the menu or drag & drop.
 - Pressure heat map with the COP of the whole plate and of both halves, plus a COP trail.
 - Playback (Space, arrow keys, PageUp/PageDown) and frame / maximum / mean display modes.
 - COP trajectory plot with the origin in the plate corner (as stored), the plate centre or the mean position and
-  the 95 % confidence ellipse, and a stabilogram (ML and AP sway over time; click to seek), patient/exam/recording
+  the 95 % confidence ellipse, and a stabilogram (ML and AP sway over time; click to seek), subject/exam/recording
   metadata and the `Preview1.jpg` preview.
 - Stabilometric parameters and load distribution of every acquisition (Stabilometry tab, see below) and evaluation
   of the Romberg test.
 - Export of the COP to CSV, of the frames to NPZ, of everything (frames, COP, parameters) or only the recorded
   (raw) data to MATLAB `.mat`, of the parameters to CSV, of the heat map to PNG and of all frames as PNGs in a ZIP.
-- History of a patient: one parameter (or Romberg quotient) over all their exams, per eye condition; click a
-  patient in the tree or open the History tab, click an exam in the plot to show it, export everything to CSV.
+- History of a subject: one parameter (or Romberg quotient) over all their exams, per eye condition; click a
+  subject in the tree or open the History tab, click an exam in the plot to show it, export everything to CSV.
 - Batch export of all exams of an export (File › Batch export), see below.
 - English and Czech UI (View › Language, switches without a restart). The default is the system language.
 
@@ -41,12 +42,12 @@ password if the archive uses a different one.
 ## CLI
 
 ```bash
-uv run freestep info FreeStep_Export.zip                      # patients and exams
+uv run freestep info FreeStep_Export.zip                      # subjects and exams
 uv run freestep exam FreeStep_Export.zip --exam 158 --csv cop.csv --npz frames.npz --preview preview.jpg
 uv run freestep exam 00000158.fre --raw Postura.dat           # a single .fre file
 uv run freestep exam 00000158.fre --mat exam.mat --mat-raw raw.mat --stats stats.csv --lowpass 5
 uv run freestep batch FreeStep_Export.zip out/ --format npz --format cop-csv  # all exams
-uv run freestep history FreeStep_Export.zip 46 --parameter ellipse_area_mm2 --csv history.csv  # patient 46
+uv run freestep history FreeStep_Export.zip 46 --parameter ellipse_area_mm2 --csv history.csv  # subject 46
 uv run freestep dump FreeStep_Export.zip out/                 # Export.mdb tables to CSV
 ```
 
@@ -60,7 +61,7 @@ The archives are opened with the built-in default password (change it with `--pa
 (the same names are proposed when exporting a single exam). The name has no diacritics and `_` instead of
 spaces. The formats (`--format`, repeatable) are `mat` (`.mat`, data and
 parameters), `mat-raw` (`_raw.mat`, recorded data only), `npz` (`.npz`), `cop-csv` (`_cop.csv`) and
-`stats-csv` (`_stabilometry.csv`). `index.csv` lists every exam (patient, exam, acquisitions, files,
+`stats-csv` (`_stabilometry.csv`). `index.csv` lists every exam (subject, exam, acquisitions, files,
 status) and `stabilometry_summary.csv` holds the parameters of all acquisitions, one row each (turn it
 off with `--no-summary`). `--dry-run` only prints the file names. Decrypting takes about 5 s per exam.
 
