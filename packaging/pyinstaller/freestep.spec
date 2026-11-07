@@ -14,7 +14,7 @@ from PyInstaller.utils.hooks import collect_data_files
 
 ROOT = Path(SPECPATH).parent.parent
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-APP_ID = "cz.romanondracek.FreeStepViewer"
+APP_ID = "cz.romanondracek.freestepviewer"
 ICON = ROOT / "build" / "icons" / ("freestep-viewer.icns" if sys.platform == "darwin" else "freestep-viewer.ico")
 icon = [str(ICON)] if ICON.exists() else None
 

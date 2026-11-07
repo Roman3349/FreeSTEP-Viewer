@@ -186,8 +186,8 @@ open "dist/FreeSTEP Viewer.app"
 
 ```bash
 flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak-builder --user --install-deps-from=flathub --force-clean --install build-flatpak packaging/flatpak/cz.romanondracek.FreeStepViewer.yml
-flatpak run cz.romanondracek.FreeStepViewer
+flatpak-builder --user --install-deps-from=flathub --force-clean --install build-flatpak packaging/flatpak/cz.romanondracek.freestepviewer.yml
+flatpak run cz.romanondracek.freestepviewer
 ```
 
 The build installs the SDK into the user installation, which needs its own Flathub remote even

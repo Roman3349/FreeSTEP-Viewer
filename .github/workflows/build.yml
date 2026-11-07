@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  APP_ID: cz.romanondracek.FreeStepViewer
+  APP_ID: cz.romanondracek.freestepviewer
 
 jobs:
   windows:

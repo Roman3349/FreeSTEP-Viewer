@@ -2,12 +2,12 @@
 #
 # Build and install locally (from the repository root):
 #   flatpak-builder --user --install-deps-from=flathub --force-clean --install \
-#       build-flatpak packaging/flatpak/cz.romanondracek.FreeStepViewer.yml
+#       build-flatpak packaging/flatpak/cz.romanondracek.freestepviewer.yml
 #
 # PySide6 comes from the PySide base application; the other Python dependencies
 # are listed in python3-dependencies.json, generated from uv.lock by
 # generate_sources.py.
-id: cz.romanondracek.FreeStepViewer
+id: cz.romanondracek.freestepviewer
 runtime: org.kde.Platform
 runtime-version: '6.10'
 sdk: org.kde.Sdk

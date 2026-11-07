@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>cz.romanondracek.FreeStepViewer</id>
+  <id>cz.romanondracek.freestepviewer</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <name>FreeSTEP Viewer</name>
@@ -32,7 +32,10 @@
   <url type="bugtracker">https://github.com/Roman3349/FreeSTEP-Viewer/issues</url>
   <url type="vcs-browser">https://github.com/Roman3349/FreeSTEP-Viewer</url>
   <url type="translate">https://github.com/Roman3349/FreeSTEP-Viewer/tree/master/src/freestep/gui/locale</url>
-  <launchable type="desktop-id">cz.romanondracek.FreeStepViewer.desktop</launchable>
+  <launchable type="desktop-id">cz.romanondracek.freestepviewer.desktop</launchable>
+  <replaces>
+    <id>cz.romanondracek.FreeStepViewer</id>
+  </replaces>
   <provides>
     <binary>freestep-viewer</binary>
   </provides>
