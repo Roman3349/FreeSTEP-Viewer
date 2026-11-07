@@ -43,6 +43,7 @@ from .app import (
     _number,
     _parameter_groups,
     acquisition_style,
+    romberg_order_note,
 )
 from .i18n import tr
 from .widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, ORIGIN_MEAN, CopPlot, HeatmapView, StabilogramPlot
@@ -383,7 +384,7 @@ def _paint_summary(pages: _Pages, data: ReportData) -> None:
     if data.romberg is not None:
         notes.append(tr("Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."))
         if not data.romberg.order_from_labels:
-            notes.append(tr("The eye condition is not stored in the exam; the order of the acquisitions is assumed."))
+            notes.append(romberg_order_note(data.romberg))
     notes.append(_filter_note(data))
     pages.text(_notes(notes))
 

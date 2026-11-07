@@ -84,8 +84,9 @@ the heat map).
 A posturography exam with two acquisitions of the same duration is evaluated as a Romberg test:
 the Romberg quotient (eyes closed / eyes open) of path length, velocity, ellipse area, sway area,
 SD and range. FreeSTEP does not store which acquisition is with eyes closed (unless the labels
-say so), so the order is a setting: eyes open first by default, `--eyes-closed-first` or the
-"Eyes closed first" check box otherwise. No normative values are applied.
+say so). It measures in the order of the classic Romberg protocol, eyes open first, which is the
+default; `--eyes-closed-first` or the "Eyes closed first" check box handles the reverse order.
+No normative values are applied.
 
 In MATLAB / Octave:
 

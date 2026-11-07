@@ -550,6 +550,16 @@ def _parameter_groups() -> list[tuple[str, list[tuple[str, str]]]]:
     ]
 
 
+def romberg_order_note(romberg: Romberg) -> str:
+    """Translated note on the order of the acquisitions of a Romberg test without labels."""
+    if romberg.eyes_open < romberg.eyes_closed:
+        return tr(
+            "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: "
+            "eyes open first, then eyes closed."
+        )
+    return tr("FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set).")
+
+
 def _directions_note() -> str:
     """Translated explanation of the ML and AP abbreviations."""
     return tr(
@@ -615,7 +625,7 @@ def _stabilometry_html(post: Postura, results: list[Stabilometry | None], romber
     if romberg is not None:
         notes.append(tr("Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."))
         if not romberg.order_from_labels:
-            notes.append(tr("The eye condition is not stored in the exam; the order of the acquisitions is assumed."))
+            notes.append(romberg_order_note(romberg))
     else:
         notes.append(tr("Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."))
     note_html = "".join(f"<p style='color:gray'>{html.escape(n)}</p>" for n in notes)
@@ -788,7 +798,10 @@ class MainWindow(QMainWindow):
         self.eyes_closed_first = QCheckBox(tr("Eyes closed first"))
         self.eyes_closed_first.setChecked(self._eyes_closed_first)
         self.eyes_closed_first.setToolTip(
-            tr("Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed")
+            tr(
+                "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first "
+                "(classic protocol); check when the first acquisition was with eyes closed"
+            )
         )
         self.eyes_closed_first.toggled.connect(self._on_analysis_options_changed)
         self.detrend = QCheckBox(tr("Remove trend"))

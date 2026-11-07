@@ -316,6 +316,14 @@ msgid "Right rearfoot (of total)"
 msgstr "Zadní část pravé (z celku)"
 
 #: freestep/gui/app.py
+msgid "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: eyes open first, then eyes closed."
+msgstr "FreeSTEP neukládá, zda měl proband oči otevřené; záznamy odpovídají klasickému Rombergovu protokolu: nejdříve oči otevřené, poté zavřené."
+
+#: freestep/gui/app.py
+msgid "FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set)."
+msgstr "FreeSTEP neukládá, zda měl proband oči otevřené; první záznam je podle nastavení se zavřenýma očima."
+
+#: freestep/gui/app.py
 msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
 msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
 
@@ -358,11 +366,6 @@ msgstr "Zatížení: levá a pravá noha rozděleny v mezeře mezi nimi; předn�
 #: freestep/gui/report.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
 msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 znamená větší výchylky se zavřenýma očima."
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "The eye condition is not stored in the exam; the order of the acquisitions is assumed."
-msgstr "Měření neobsahuje informaci o očích; pořadí záznamů je předpokládané."
 
 #: freestep/gui/app.py
 msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
@@ -468,8 +471,8 @@ msgid "Eyes closed first"
 msgstr "Nejdřív zavřené oči"
 
 #: freestep/gui/app.py
-msgid "Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed"
-msgstr "Rombergův test: FreeSTEP neukládá, zda měl proband oči otevřené; první záznam je se zavřenýma očima"
+msgid "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first (classic protocol); check when the first acquisition was with eyes closed"
+msgstr "Rombergův test: FreeSTEP neukládá, zda měl proband oči otevřené, a měří nejdříve s otevřenýma očima (klasický protokol); zaškrtněte, pokud byl první záznam se zavřenýma očima"
 
 #: freestep/gui/app.py
 msgid "Remove trend"

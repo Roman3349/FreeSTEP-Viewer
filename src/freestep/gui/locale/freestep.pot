@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 14:18+0000\n"
+"POT-Creation-Date: 2026-11-07 14:36+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -316,6 +316,14 @@ msgid "Right rearfoot (of total)"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: eyes open first, then eyes closed."
+msgstr ""
+
+#: freestep/gui/app.py
+msgid "FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set)."
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
 msgstr ""
 
@@ -357,11 +365,6 @@ msgstr ""
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "The eye condition is not stored in the exam; the order of the acquisitions is assumed."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -468,7 +471,7 @@ msgid "Eyes closed first"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Romberg test: FreeSTEP does not store the eye condition; the first acquisition is with eyes closed"
+msgid "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first (classic protocol); check when the first acquisition was with eyes closed"
 msgstr ""
 
 #: freestep/gui/app.py
