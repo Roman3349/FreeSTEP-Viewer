@@ -3,503 +3,29 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 14:36+0000\n"
+"POT-Creation-Date: 2026-11-08 23:04+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: freestep/gui/app.py
-msgid "MATLAB: data and stabilometric parameters (.mat)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "MATLAB: recorded data only (_raw.mat)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "NumPy: frames and COP (.npz)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "COP per frame (_cop.csv)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Stabilometric parameters (_stabilometry.csv)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Batch export"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Browse…"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Directory"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Summary table of all acquisitions ({name})"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "yes"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "no"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Static"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Static with photo"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Dynamic"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Dynamic with video"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Posturography"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Videography"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Podoscanner"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Treadmill with video"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Unknown ({code})"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Barefoot"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Shoes"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Shoes with orthosis"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Eyes open"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Eyes closed"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Acquisition {number}"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Acquisition {number} ({duration} s)"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Romberg quotient: {parameter}"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Position and spread"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean position ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean position AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Range ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Range AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Standard deviation ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Standard deviation AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean distance"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "RMS distance"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Path and velocity"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Path length"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Path length ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Path length AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean velocity"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean velocity ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean velocity AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Area"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "95% confidence ellipse"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Ellipse semi-major axis"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Ellipse semi-minor axis"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Ellipse angle"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Convex hull"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Sway area per second"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Frequency (0.15–5 Hz)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean frequency ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean frequency AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Median frequency ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Median frequency AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "95% power frequency ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "95% power frequency AP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Total power ML"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Total power AP"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Load distribution"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Left foot"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Right foot"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Asymmetry (right − left)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Left share variability (SD)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Forefoot"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Rearfoot"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Left forefoot (of left foot)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Right forefoot (of right foot)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Left forefoot (of total)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Left rearfoot (of total)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Right forefoot (of total)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Right rearfoot (of total)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: eyes open first, then eyes closed."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set)."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Quotient"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Parameter"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-#, python-brace-format
-msgid "Low-pass filter {cutoff} Hz."
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "COP not filtered."
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Linear trend removed."
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
-msgstr ""
 
 #: freestep/gui/app.py
 msgid "Subject / exam"
 msgstr ""
 
 #: freestep/gui/app.py
+#: freestep/gui/info.py
 #: freestep/gui/report.py
 msgid "Date"
 msgstr ""
 
 #: freestep/gui/app.py
+#: freestep/gui/info.py
 #: freestep/gui/report.py
 msgid "Type"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Acquisition (e.g. eyes open / eyes closed)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Frame"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Maximum"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Play / pause (Space)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid " fps"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "trail "
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Number of previous frames drawn as the COP trail"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Plate corner"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Plate centre (0, 0)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Mean position (0, 0)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Origin of the coordinates: plate corner (as stored), plate centre or the mean of every trajectory"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/widgets.py
-msgid "95% ellipse"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Confidence ellipse of the total COP, as in the Stabilometry tab"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Origin"
-msgstr ""
-
-#: freestep/gui/app.py
 msgid "No preview"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid " Hz"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "unfiltered"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cut-off of the zero-phase low-pass filter of the COP (4th order Butterworth)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Eyes closed first"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first (classic protocol); check when the first acquisition was with eyes closed"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Remove trend"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Low-pass filter"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. Click to seek."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Compare acquisitions"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; its mean is the mean velocity. Click to seek."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -514,18 +40,6 @@ msgstr ""
 #: freestep/gui/app.py
 #: freestep/gui/report.py
 msgid "Speed"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export CSV…"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "All parameters of all exams of the subject"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
 msgstr ""
 
 #: freestep/gui/app.py
@@ -638,408 +152,6 @@ msgid "&About"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Password"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "The archive is encrypted with a different password:"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Open FreeSTEP data"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Reading {name}…"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Not a FreeSTEP export"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cannot open export"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cannot open exam"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "ID {id}"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-#, python-brace-format
-msgid "Exam {id}"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} (missing)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Decrypting and decoding Postura.dat…"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cannot decode exam"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "No preview in this exam"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} — {name}: {n} acquisition, {platform}"
-msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
-msgstr[0] ""
-msgstr[1] ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "ML (x)"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "AP (y)"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "COP speed"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Open a FreeSTEP export (.zip) to see the history of a subject."
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{name}: {n} exam"
-msgid_plural "{name}: {n} exams"
-msgstr[0] ""
-msgstr[1] ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Analysing {n} exam…"
-msgid_plural "Analysing {n} exams…"
-msgstr[0] ""
-msgstr[1] ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Analysing exam {id} ({n} of {count})…"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} skipped: {reason}"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cannot analyse the exams"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Romberg quotient"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export history"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "CSV (*.csv)"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Saved {path}"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "total"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "left"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "right"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Frames"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Duration"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Sampling rate"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "COP path length"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Sum per frame"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{min} … {max} (mean {mean})"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Subject"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Name"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "ID"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Born"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Sex"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Height"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Weight"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Shoe size"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "SSID"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Exam"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Time"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Footwear"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Height at exam"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Weight at exam"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Filter"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "raw data"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Note"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "File"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Recording"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Platform"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Format version"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Sensors"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cell"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Plate"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Max value"
-msgstr ""
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Acquisitions"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Unknown settings"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "all frames"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "x {x} cm (col {col}), y {y} cm (row {row}): {value}"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export COP"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export frames"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "NumPy (*.npz)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export to MATLAB"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "MATLAB (*.mat)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export raw data to MATLAB"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export stabilometric parameters"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Create PDF report"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "PDF (*.pdf)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Save image"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "PNG (*.png)"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Could not save {path}"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export images"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "ZIP (*.zip)"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Rendering images…"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Cancel"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Export cancelled"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Preparing…"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} ({n} of {count})"
-msgstr ""
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{n} file written to {path}."
-msgid_plural "{n} files written to {path}."
-msgstr[0] ""
-msgstr[1] ""
-
-#: freestep/gui/app.py
-msgid "The export was cancelled."
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Skipped exams:"
-msgstr ""
-
-#: freestep/gui/app.py
-msgid "Batch export failed"
-msgstr ""
-
-#: freestep/gui/app.py
 #, python-brace-format
 msgid "About {app}"
 msgstr ""
@@ -1048,13 +160,222 @@ msgstr ""
 msgid "Viewer for data exported from FreeSTEP pressure plates."
 msgstr ""
 
+#: freestep/gui/batch_dialog.py
+msgid "MATLAB: data and stabilometric parameters (.mat)"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "MATLAB: recorded data only (_raw.mat)"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "NumPy: frames and COP (.npz)"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "COP per frame (_cop.csv)"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "Stabilometric parameters (_stabilometry.csv)"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+#: freestep/gui/window_export.py
+msgid "Batch export"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+#, python-brace-format
+msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "Browse…"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "Directory"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+#, python-brace-format
+msgid "Summary table of all acquisitions ({name})"
+msgstr ""
+
+#: freestep/gui/batch_dialog.py
+msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Frames"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Duration"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Sampling rate"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "COP path length"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Sum per frame"
+msgstr ""
+
+#: freestep/gui/info.py
+#, python-brace-format
+msgid "{min} … {max} (mean {mean})"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Subject"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Name"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "ID"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Born"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Sex"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Height"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Weight"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Shoe size"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "SSID"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Exam"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Time"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Footwear"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Height at exam"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Weight at exam"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Filter"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "raw data"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Note"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "File"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Recording"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Platform"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Format version"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Sensors"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Cell"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Plate"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Max value"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Acquisitions"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Unknown settings"
+msgstr ""
+
 #: freestep/gui/report.py
 #, python-brace-format
 msgid "Page {number}"
 msgstr ""
 
 #: freestep/gui/report.py
+#: freestep/gui/window_history.py
+msgid "Romberg quotient"
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Parameter"
+msgstr ""
+
+#: freestep/gui/report.py
 msgid "Stabilometric report"
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/window_history.py
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id}"
 msgstr ""
 
 #: freestep/gui/report.py
@@ -1066,6 +387,27 @@ msgid "Summary"
 msgstr ""
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Low-pass filter {cutoff} Hz."
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "COP not filtered."
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Linear trend removed."
+msgstr ""
+
+#: freestep/gui/report.py
 msgid "Statokinesigram"
 msgstr ""
 
@@ -1074,11 +416,41 @@ msgid "COP of the whole plate around its mean position, same scale for all acqui
 msgstr ""
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Load distribution"
+msgstr ""
+
+#: freestep/gui/report.py
 msgid "Mean of every sensor over the frames where it is loaded; share of the total load in every quadrant, COP of the whole plate (black) and of the left and right foot."
 msgstr ""
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
+msgstr ""
+
+#: freestep/gui/report.py
 msgid "Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/window_playback.py
+msgid "total"
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/window_analysis.py
+msgid "ML (x)"
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/window_analysis.py
+msgid "AP (y)"
+msgstr ""
+
+#: freestep/gui/report.py
+#: freestep/gui/window_analysis.py
+msgid "COP speed"
 msgstr ""
 
 #: freestep/gui/report.py
@@ -1090,6 +462,11 @@ msgid "Path length and mean velocity: length of the COP trajectory and its mean 
 msgstr ""
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
+msgstr ""
+
+#: freestep/gui/report.py
 #, python-brace-format
 msgid "Generated by {app} on {date}."
 msgstr ""
@@ -1098,23 +475,655 @@ msgstr ""
 msgid "Methods"
 msgstr ""
 
-#: freestep/gui/widgets.py
+#: freestep/gui/texts.py
+msgid "yes"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "no"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Static"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Static with photo"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Dynamic"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Dynamic with video"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Posturography"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Videography"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Podoscanner"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Treadmill with video"
+msgstr ""
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Unknown ({code})"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Barefoot"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Shoes"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Shoes with orthosis"
+msgstr ""
+
+#: freestep/gui/texts.py
+#: freestep/gui/window_history.py
+msgid "Eyes open"
+msgstr ""
+
+#: freestep/gui/texts.py
+#: freestep/gui/window_history.py
+msgid "Eyes closed"
+msgstr ""
+
+#: freestep/gui/texts.py
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Acquisition {number}"
+msgstr ""
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Acquisition {number} ({duration} s)"
+msgstr ""
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Romberg quotient: {parameter}"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Position and spread"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean position ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean position AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Range ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Range AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Standard deviation ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Standard deviation AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean distance"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "RMS distance"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Path and velocity"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Path length"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Path length ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Path length AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean velocity"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean velocity ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean velocity AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Area"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "95% confidence ellipse"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Ellipse semi-major axis"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Ellipse semi-minor axis"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Ellipse angle"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Convex hull"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Sway area per second"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Frequency (0.15–5 Hz)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean frequency ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Mean frequency AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Median frequency ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Median frequency AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "95% power frequency ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "95% power frequency AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Total power ML"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Total power AP"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Left foot"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Right foot"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Asymmetry (right − left)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Left share variability (SD)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Forefoot"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Rearfoot"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Left forefoot (of left foot)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Right forefoot (of right foot)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Left forefoot (of total)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Left rearfoot (of total)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Right forefoot (of total)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Right rearfoot (of total)"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: eyes open first, then eyes closed."
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set)."
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Quotient"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
+msgstr ""
+
+#: freestep/gui/widgets/heatmap.py
 msgid "No exam loaded"
 msgstr ""
 
-#: freestep/gui/widgets.py
+#: freestep/gui/widgets/history.py
+msgid "No data"
+msgstr ""
+
+#: freestep/gui/widgets/plots.py
 msgid "No COP data"
 msgstr ""
 
-#: freestep/gui/widgets.py
+#: freestep/gui/widgets/plots.py
+#: freestep/gui/window_analysis.py
+msgid "95% ellipse"
+msgstr ""
+
+#: freestep/gui/widgets/plots.py
 msgid "time [s]"
 msgstr ""
 
-#: freestep/gui/widgets.py
+#: freestep/gui/widgets/plots.py
 #, python-brace-format
 msgid "time {value} s"
 msgstr ""
 
-#: freestep/gui/widgets.py
-msgid "No data"
+#: freestep/gui/window_analysis.py
+msgid "Plate corner"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Plate centre (0, 0)"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Mean position (0, 0)"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Origin of the coordinates: plate corner (as stored), plate centre or the mean of every trajectory"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Confidence ellipse of the total COP, as in the Stabilometry tab"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Origin"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid " Hz"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "unfiltered"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Cut-off of the zero-phase low-pass filter of the COP (4th order Butterworth)"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Eyes closed first"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first (classic protocol); check when the first acquisition was with eyes closed"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Remove trend"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Low-pass filter"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. Click to seek."
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Compare acquisitions"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"
+msgstr ""
+
+#: freestep/gui/window_analysis.py
+msgid "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; its mean is the mean velocity. Click to seek."
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export COP"
+msgstr ""
+
+#: freestep/gui/window_export.py
+#: freestep/gui/window_history.py
+msgid "CSV (*.csv)"
+msgstr ""
+
+#: freestep/gui/window_export.py
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Saved {path}"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export frames"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "NumPy (*.npz)"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export to MATLAB"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "MATLAB (*.mat)"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export raw data to MATLAB"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export stabilometric parameters"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Create PDF report"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "PDF (*.pdf)"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Save image"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "PNG (*.png)"
+msgstr ""
+
+#: freestep/gui/window_export.py
+#, python-brace-format
+msgid "Could not save {path}"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export images"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "ZIP (*.zip)"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Rendering images…"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Cancel"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Export cancelled"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Preparing…"
+msgstr ""
+
+#: freestep/gui/window_export.py
+#, python-brace-format
+msgid "Exam {id} ({n} of {count})"
+msgstr ""
+
+#: freestep/gui/window_export.py
+#, python-brace-format
+msgid "{n} file written to {path}."
+msgid_plural "{n} files written to {path}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/window_export.py
+msgid "The export was cancelled."
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Skipped exams:"
+msgstr ""
+
+#: freestep/gui/window_export.py
+msgid "Batch export failed"
+msgstr ""
+
+#: freestep/gui/window_history.py
+msgid "Export CSV…"
+msgstr ""
+
+#: freestep/gui/window_history.py
+msgid "All parameters of all exams of the subject"
+msgstr ""
+
+#: freestep/gui/window_history.py
+msgid "Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
+msgstr ""
+
+#: freestep/gui/window_history.py
+msgid "Open a FreeSTEP export (.zip) to see the history of a subject."
+msgstr ""
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "{name}: {n} exam"
+msgid_plural "{name}: {n} exams"
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Analysing {n} exam…"
+msgid_plural "Analysing {n} exams…"
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Analysing exam {id} ({n} of {count})…"
+msgstr ""
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Exam {id} skipped: {reason}"
+msgstr ""
+
+#: freestep/gui/window_history.py
+msgid "Cannot analyse the exams"
+msgstr ""
+
+#: freestep/gui/window_history.py
+msgid "Export history"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Password"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "The archive is encrypted with a different password:"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Open FreeSTEP data"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Reading {name}…"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Not a FreeSTEP export"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Cannot open export"
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Cannot open exam"
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "ID {id}"
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} (missing)"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Decrypting and decoding Postura.dat…"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "Cannot decode exam"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "No preview in this exam"
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {n} acquisition, {platform}"
+msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/window_playback.py
+msgid "Acquisition (e.g. eyes open / eyes closed)"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "Frame"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "Maximum"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "Mean"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "Play / pause (Space)"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid " fps"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "trail "
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "Number of previous frames drawn as the COP trail"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "left"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "right"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+msgid "all frames"
+msgstr ""
+
+#: freestep/gui/window_playback.py
+#, python-brace-format
+msgid "x {x} cm (col {col}), y {y} cm (row {row}): {value}"
 msgstr ""

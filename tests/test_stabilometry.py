@@ -10,6 +10,7 @@ import pytest
 from scipy.io import loadmat
 from test_units import _synthetic_postura
 
+from freestep.load import load_distribution, load_regions
 from freestep.postura import Postura
 from freestep.stabilometry import (
     POSTUROGRAPHY_EXAM_TYPE,
@@ -18,8 +19,6 @@ from freestep.stabilometry import (
     compute,
     detect_romberg,
     evaluate_romberg,
-    load_distribution,
-    load_regions,
     speed,
     unit,
 )

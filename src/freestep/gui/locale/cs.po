@@ -9,498 +9,24 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: freestep/gui/app.py
-msgid "MATLAB: data and stabilometric parameters (.mat)"
-msgstr "MATLAB: data a stabilometrické parametry (.mat)"
-
-#: freestep/gui/app.py
-msgid "MATLAB: recorded data only (_raw.mat)"
-msgstr "MATLAB: jen naměřená data (_raw.mat)"
-
-#: freestep/gui/app.py
-msgid "NumPy: frames and COP (.npz)"
-msgstr "NumPy: snímky a COP (.npz)"
-
-#: freestep/gui/app.py
-msgid "COP per frame (_cop.csv)"
-msgstr "COP po snímcích (_cop.csv)"
-
-#: freestep/gui/app.py
-msgid "Stabilometric parameters (_stabilometry.csv)"
-msgstr "Stabilometrické parametry (_stabilometry.csv)"
-
-#: freestep/gui/app.py
-msgid "Batch export"
-msgstr "Hromadný export"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
-msgstr "Exportuje všechna měření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_<datum měření>_<HH-MM>, např. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} obsahuje seznam exportovaných měření."
-
-#: freestep/gui/app.py
-msgid "Browse…"
-msgstr "Procházet…"
-
-#: freestep/gui/app.py
-msgid "Directory"
-msgstr "Složka"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Summary table of all acquisitions ({name})"
-msgstr "Souhrnná tabulka všech záznamů ({name})"
-
-#: freestep/gui/app.py
-msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
-msgstr "Parametry se počítají s filtrem, odstraněním trendu a pořadím Rombergova testu podle záložky Stabilometrie."
-
-#: freestep/gui/app.py
-msgid "yes"
-msgstr "ano"
-
-#: freestep/gui/app.py
-msgid "no"
-msgstr "ne"
-
-#: freestep/gui/app.py
-msgid "Static"
-msgstr "Statika"
-
-#: freestep/gui/app.py
-msgid "Static with photo"
-msgstr "Statika s fotografií"
-
-#: freestep/gui/app.py
-msgid "Dynamic"
-msgstr "Dynamika"
-
-#: freestep/gui/app.py
-msgid "Dynamic with video"
-msgstr "Dynamika s videem"
-
-#: freestep/gui/app.py
-msgid "Posturography"
-msgstr "Posturografie"
-
-#: freestep/gui/app.py
-msgid "Videography"
-msgstr "Videografie"
-
-#: freestep/gui/app.py
-msgid "Podoscanner"
-msgstr "Podoskener"
-
-#: freestep/gui/app.py
-msgid "Treadmill with video"
-msgstr "Běžecký pás s videem"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Unknown ({code})"
-msgstr "Neznámé ({code})"
-
-#: freestep/gui/app.py
-msgid "Barefoot"
-msgstr "Bez obuvi"
-
-#: freestep/gui/app.py
-msgid "Shoes"
-msgstr "V obuvi"
-
-#: freestep/gui/app.py
-msgid "Shoes with orthosis"
-msgstr "V obuvi s ortézou"
-
-#: freestep/gui/app.py
-msgid "Eyes open"
-msgstr "Oči otevřené"
-
-#: freestep/gui/app.py
-msgid "Eyes closed"
-msgstr "Oči zavřené"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Acquisition {number}"
-msgstr "Záznam {number}"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Acquisition {number} ({duration} s)"
-msgstr "Záznam {number} ({duration} s)"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Romberg quotient: {parameter}"
-msgstr "Rombergův kvocient: {parameter}"
-
-#: freestep/gui/app.py
-msgid "Position and spread"
-msgstr "Poloha a rozptyl"
-
-#: freestep/gui/app.py
-msgid "Mean position ML"
-msgstr "Průměrná poloha ML"
-
-#: freestep/gui/app.py
-msgid "Mean position AP"
-msgstr "Průměrná poloha AP"
-
-#: freestep/gui/app.py
-msgid "Range ML"
-msgstr "Rozsah ML"
-
-#: freestep/gui/app.py
-msgid "Range AP"
-msgstr "Rozsah AP"
-
-#: freestep/gui/app.py
-msgid "Standard deviation ML"
-msgstr "Směrodatná odchylka ML"
-
-#: freestep/gui/app.py
-msgid "Standard deviation AP"
-msgstr "Směrodatná odchylka AP"
-
-#: freestep/gui/app.py
-msgid "Mean distance"
-msgstr "Průměrná vzdálenost"
-
-#: freestep/gui/app.py
-msgid "RMS distance"
-msgstr "RMS vzdálenost"
-
-#: freestep/gui/app.py
-msgid "Path and velocity"
-msgstr "Dráha a rychlost"
-
-#: freestep/gui/app.py
-msgid "Path length"
-msgstr "Délka dráhy"
-
-#: freestep/gui/app.py
-msgid "Path length ML"
-msgstr "Délka dráhy ML"
-
-#: freestep/gui/app.py
-msgid "Path length AP"
-msgstr "Délka dráhy AP"
-
-#: freestep/gui/app.py
-msgid "Mean velocity"
-msgstr "Průměrná rychlost"
-
-#: freestep/gui/app.py
-msgid "Mean velocity ML"
-msgstr "Průměrná rychlost ML"
-
-#: freestep/gui/app.py
-msgid "Mean velocity AP"
-msgstr "Průměrná rychlost AP"
-
-#: freestep/gui/app.py
-msgid "Area"
-msgstr "Plocha"
-
-#: freestep/gui/app.py
-msgid "95% confidence ellipse"
-msgstr "95% konfidenční elipsa"
-
-#: freestep/gui/app.py
-msgid "Ellipse semi-major axis"
-msgstr "Hlavní poloosa elipsy"
-
-#: freestep/gui/app.py
-msgid "Ellipse semi-minor axis"
-msgstr "Vedlejší poloosa elipsy"
-
-#: freestep/gui/app.py
-msgid "Ellipse angle"
-msgstr "Úhel elipsy"
-
-#: freestep/gui/app.py
-msgid "Convex hull"
-msgstr "Konvexní obal"
-
-#: freestep/gui/app.py
-msgid "Sway area per second"
-msgstr "Opsaná plocha za sekundu"
-
-#: freestep/gui/app.py
-msgid "Frequency (0.15–5 Hz)"
-msgstr "Frekvence (0,15–5 Hz)"
-
-#: freestep/gui/app.py
-msgid "Mean frequency ML"
-msgstr "Střední frekvence ML"
-
-#: freestep/gui/app.py
-msgid "Mean frequency AP"
-msgstr "Střední frekvence AP"
-
-#: freestep/gui/app.py
-msgid "Median frequency ML"
-msgstr "Mediánová frekvence ML"
-
-#: freestep/gui/app.py
-msgid "Median frequency AP"
-msgstr "Mediánová frekvence AP"
-
-#: freestep/gui/app.py
-msgid "95% power frequency ML"
-msgstr "Frekvence 95 % výkonu ML"
-
-#: freestep/gui/app.py
-msgid "95% power frequency AP"
-msgstr "Frekvence 95 % výkonu AP"
-
-#: freestep/gui/app.py
-msgid "Total power ML"
-msgstr "Celkový výkon ML"
-
-#: freestep/gui/app.py
-msgid "Total power AP"
-msgstr "Celkový výkon AP"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Load distribution"
-msgstr "Rozložení zatížení"
-
-#: freestep/gui/app.py
-msgid "Left foot"
-msgstr "Levá noha"
-
-#: freestep/gui/app.py
-msgid "Right foot"
-msgstr "Pravá noha"
-
-#: freestep/gui/app.py
-msgid "Asymmetry (right − left)"
-msgstr "Asymetrie (pravá − levá)"
-
-#: freestep/gui/app.py
-msgid "Left share variability (SD)"
-msgstr "Kolísání podílu levé (SD)"
-
-#: freestep/gui/app.py
-msgid "Forefoot"
-msgstr "Přední část chodidel"
-
-#: freestep/gui/app.py
-msgid "Rearfoot"
-msgstr "Zadní část chodidel"
-
-#: freestep/gui/app.py
-msgid "Left forefoot (of left foot)"
-msgstr "Přední část levé (z levé)"
-
-#: freestep/gui/app.py
-msgid "Right forefoot (of right foot)"
-msgstr "Přední část pravé (z pravé)"
-
-#: freestep/gui/app.py
-msgid "Left forefoot (of total)"
-msgstr "Přední část levé (z celku)"
-
-#: freestep/gui/app.py
-msgid "Left rearfoot (of total)"
-msgstr "Zadní část levé (z celku)"
-
-#: freestep/gui/app.py
-msgid "Right forefoot (of total)"
-msgstr "Přední část pravé (z celku)"
-
-#: freestep/gui/app.py
-msgid "Right rearfoot (of total)"
-msgstr "Zadní část pravé (z celku)"
-
-#: freestep/gui/app.py
-msgid "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: eyes open first, then eyes closed."
-msgstr "FreeSTEP neukládá, zda měl proband oči otevřené; záznamy odpovídají klasickému Rombergovu protokolu: nejdříve oči otevřené, poté zavřené."
-
-#: freestep/gui/app.py
-msgid "FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set)."
-msgstr "FreeSTEP neukládá, zda měl proband oči otevřené; první záznam je podle nastavení se zavřenýma očima."
-
-#: freestep/gui/app.py
-msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
-msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
-
-#: freestep/gui/app.py
-msgid "Quotient"
-msgstr "Kvocient"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Parameter"
-msgstr "Parametr"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
-msgstr "Záznamy s méně než 32 zatíženými snímky se nevyhodnocují."
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-#, python-brace-format
-msgid "Low-pass filter {cutoff} Hz."
-msgstr "Dolní propust {cutoff} Hz."
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "COP not filtered."
-msgstr "COP není filtrovaný."
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Linear trend removed."
-msgstr "Lineární trend odstraněn."
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
-msgstr "Zatížení: levá a pravá noha rozděleny v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tlakové mapy)."
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
-msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 znamená větší výchylky se zavřenýma očima."
-
-#: freestep/gui/app.py
-msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
-msgstr "Nejde o Rombergův test (vyžaduje měření typu Posturografie se dvěma stejně dlouhými záznamy)."
-
-#: freestep/gui/app.py
 msgid "Subject / exam"
 msgstr "Proband / měření"
 
 #: freestep/gui/app.py
+#: freestep/gui/info.py
 #: freestep/gui/report.py
 msgid "Date"
 msgstr "Datum"
 
 #: freestep/gui/app.py
+#: freestep/gui/info.py
 #: freestep/gui/report.py
 msgid "Type"
 msgstr "Typ"
 
 #: freestep/gui/app.py
-msgid "Acquisition (e.g. eyes open / eyes closed)"
-msgstr "Záznam (např. oči otevřené / zavřené)"
-
-#: freestep/gui/app.py
-msgid "Frame"
-msgstr "Snímek"
-
-#: freestep/gui/app.py
-msgid "Maximum"
-msgstr "Maximum"
-
-#: freestep/gui/app.py
-msgid "Mean"
-msgstr "Průměr"
-
-#: freestep/gui/app.py
-msgid "Play / pause (Space)"
-msgstr "Přehrát / pozastavit (mezerník)"
-
-#: freestep/gui/app.py
-msgid " fps"
-msgstr " sn./s"
-
-#: freestep/gui/app.py
-msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"
-msgstr "Rychlost přehrávání ve snímcích za sekundu (nastaví se na vzorkovací frekvenci záznamu)"
-
-#: freestep/gui/app.py
-msgid "trail "
-msgstr "stopa "
-
-#: freestep/gui/app.py
-msgid "Number of previous frames drawn as the COP trail"
-msgstr "Počet předchozích snímků vykreslených jako stopa COP"
-
-#: freestep/gui/app.py
-msgid "Plate corner"
-msgstr "Roh plošiny"
-
-#: freestep/gui/app.py
-msgid "Plate centre (0, 0)"
-msgstr "Střed plošiny (0, 0)"
-
-#: freestep/gui/app.py
-msgid "Mean position (0, 0)"
-msgstr "Průměrná poloha (0, 0)"
-
-#: freestep/gui/app.py
-msgid "Origin of the coordinates: plate corner (as stored), plate centre or the mean of every trajectory"
-msgstr "Počátek souřadnic: roh plošiny (jak jsou uložené), střed plošiny nebo průměr každé trajektorie"
-
-#: freestep/gui/app.py
-#: freestep/gui/widgets.py
-msgid "95% ellipse"
-msgstr "95% elipsa"
-
-#: freestep/gui/app.py
-msgid "Confidence ellipse of the total COP, as in the Stabilometry tab"
-msgstr "Konfidenční elipsa celkového COP, jako v záložce Stabilometrie"
-
-#: freestep/gui/app.py
-msgid "Origin"
-msgstr "Počátek"
-
-#: freestep/gui/app.py
 msgid "No preview"
 msgstr "Bez náhledu"
-
-#: freestep/gui/app.py
-msgid " Hz"
-msgstr " Hz"
-
-#: freestep/gui/app.py
-msgid "unfiltered"
-msgstr "bez filtru"
-
-#: freestep/gui/app.py
-msgid "Cut-off of the zero-phase low-pass filter of the COP (4th order Butterworth)"
-msgstr "Mezní frekvence dolní propusti COP s nulovým fázovým posunem (Butterworth 4. řádu)"
-
-#: freestep/gui/app.py
-msgid "Eyes closed first"
-msgstr "Nejdřív zavřené oči"
-
-#: freestep/gui/app.py
-msgid "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first (classic protocol); check when the first acquisition was with eyes closed"
-msgstr "Rombergův test: FreeSTEP neukládá, zda měl proband oči otevřené, a měří nejdříve s otevřenýma očima (klasický protokol); zaškrtněte, pokud byl první záznam se zavřenýma očima"
-
-#: freestep/gui/app.py
-msgid "Remove trend"
-msgstr "Odstranit trend"
-
-#: freestep/gui/app.py
-msgid "Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters"
-msgstr "Odečte lineární trend (pomalý posun) COP místo pouhého průměru; ovlivňuje parametry výchylek"
-
-#: freestep/gui/app.py
-msgid "Low-pass filter"
-msgstr "Dolní propust"
-
-#: freestep/gui/app.py
-msgid "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. Click to seek."
-msgstr "COP celé plošiny bez průměrné polohy (nebo trendu), filtrovaný podle nastavení v záložce Stabilometrie. Kliknutím přejdete na daný čas."
-
-#: freestep/gui/app.py
-msgid "Compare acquisitions"
-msgstr "Porovnat záznamy"
-
-#: freestep/gui/app.py
-msgid "Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"
-msgstr "Vykreslit do stejného grafu i ostatní záznamy měření (např. oči otevřené a zavřené)"
-
-#: freestep/gui/app.py
-msgid "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; its mean is the mean velocity. Click to seek."
-msgstr "Okamžitá rychlost COP celé plošiny, filtrovaného podle nastavení v záložce Stabilometrie; její průměr je průměrná rychlost. Kliknutím přejdete na daný čas."
 
 #: freestep/gui/app.py
 msgid "COP"
@@ -515,18 +41,6 @@ msgstr "Stabilogram"
 #: freestep/gui/report.py
 msgid "Speed"
 msgstr "Rychlost"
-
-#: freestep/gui/app.py
-msgid "Export CSV…"
-msgstr "Exportovat CSV…"
-
-#: freestep/gui/app.py
-msgid "All parameters of all exams of the subject"
-msgstr "Všechny parametry všech měření probanda"
-
-#: freestep/gui/app.py
-msgid "Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
-msgstr "Měření probanda od nejstaršího; kliknutím měření zobrazíte. Platí nastavení ze záložky Stabilometrie."
 
 #: freestep/gui/app.py
 msgid "Stabilometry"
@@ -638,412 +152,6 @@ msgid "&About"
 msgstr "&O aplikaci"
 
 #: freestep/gui/app.py
-msgid "Password"
-msgstr "Heslo"
-
-#: freestep/gui/app.py
-msgid "The archive is encrypted with a different password:"
-msgstr "Archiv je zašifrovaný jiným heslem:"
-
-#: freestep/gui/app.py
-msgid "Open FreeSTEP data"
-msgstr "Otevřít data FreeSTEP"
-
-#: freestep/gui/app.py
-msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
-msgstr "Data FreeSTEP (*.zip *.fre);;Export (*.zip);;Měření (*.fre);;Vše (*)"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Reading {name}…"
-msgstr "Načítám {name}…"
-
-#: freestep/gui/app.py
-msgid "Not a FreeSTEP export"
-msgstr "Nejde o export FreeSTEP"
-
-#: freestep/gui/app.py
-msgid "Cannot open export"
-msgstr "Export nelze otevřít"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
-msgstr "{name}: centrum {centre}, probandů: {patients}, měření: {exams}"
-
-#: freestep/gui/app.py
-msgid "Cannot open exam"
-msgstr "Měření nelze otevřít"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "ID {id}"
-msgstr "ID {id}"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-#, python-brace-format
-msgid "Exam {id}"
-msgstr "Měření {id}"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} (missing)"
-msgstr "Měření {id} (chybí)"
-
-#: freestep/gui/app.py
-msgid "Decrypting and decoding Postura.dat…"
-msgstr "Dešifruji a dekóduji Postura.dat…"
-
-#: freestep/gui/app.py
-msgid "Cannot decode exam"
-msgstr "Měření nelze dekódovat"
-
-#: freestep/gui/app.py
-msgid "No preview in this exam"
-msgstr "Měření nemá náhled"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} — {name}: {n} acquisition, {platform}"
-msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
-msgstr[0] "Měření {id} — {name}: {n} záznam, {platform}"
-msgstr[1] "Měření {id} — {name}: {n} záznamy, {platform}"
-msgstr[2] "Měření {id} — {name}: {n} záznamů, {platform}"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "ML (x)"
-msgstr "ML (x)"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "AP (y)"
-msgstr "AP (y)"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "COP speed"
-msgstr "Rychlost COP"
-
-#: freestep/gui/app.py
-msgid "Open a FreeSTEP export (.zip) to see the history of a subject."
-msgstr "Pro zobrazení vývoje probanda otevřete export FreeSTEP (.zip)."
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{name}: {n} exam"
-msgid_plural "{name}: {n} exams"
-msgstr[0] "{name}: {n} měření"
-msgstr[1] "{name}: {n} měření"
-msgstr[2] "{name}: {n} měření"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Analysing {n} exam…"
-msgid_plural "Analysing {n} exams…"
-msgstr[0] "Vyhodnocuji {n} měření…"
-msgstr[1] "Vyhodnocuji {n} měření…"
-msgstr[2] "Vyhodnocuji {n} měření…"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Analysing exam {id} ({n} of {count})…"
-msgstr "Vyhodnocuji měření {id} ({n} z {count})…"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} skipped: {reason}"
-msgstr "Měření {id} přeskočeno: {reason}"
-
-#: freestep/gui/app.py
-msgid "Cannot analyse the exams"
-msgstr "Měření nelze vyhodnotit"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Romberg quotient"
-msgstr "Rombergův kvocient"
-
-#: freestep/gui/app.py
-msgid "Export history"
-msgstr "Export vývoje"
-
-#: freestep/gui/app.py
-msgid "CSV (*.csv)"
-msgstr "CSV (*.csv)"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Saved {path}"
-msgstr "Uloženo: {path}"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "total"
-msgstr "celkem"
-
-#: freestep/gui/app.py
-msgid "left"
-msgstr "levá"
-
-#: freestep/gui/app.py
-msgid "right"
-msgstr "pravá"
-
-#: freestep/gui/app.py
-msgid "Frames"
-msgstr "Snímky"
-
-#: freestep/gui/app.py
-msgid "Duration"
-msgstr "Délka"
-
-#: freestep/gui/app.py
-msgid "Sampling rate"
-msgstr "Vzorkovací frekvence"
-
-#: freestep/gui/app.py
-msgid "COP path length"
-msgstr "Délka dráhy COP"
-
-#: freestep/gui/app.py
-msgid "Sum per frame"
-msgstr "Součet na snímek"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{min} … {max} (mean {mean})"
-msgstr "{min} … {max} (průměr {mean})"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Subject"
-msgstr "Proband"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Name"
-msgstr "Jméno"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "ID"
-msgstr "ID"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Born"
-msgstr "Narozen(a)"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Sex"
-msgstr "Pohlaví"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Height"
-msgstr "Výška"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Weight"
-msgstr "Hmotnost"
-
-#: freestep/gui/app.py
-msgid "Shoe size"
-msgstr "Velikost obuvi"
-
-#: freestep/gui/app.py
-msgid "SSID"
-msgstr "SSID"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Exam"
-msgstr "Měření"
-
-#: freestep/gui/app.py
-msgid "Time"
-msgstr "Čas"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Footwear"
-msgstr "Obuv"
-
-#: freestep/gui/app.py
-msgid "Height at exam"
-msgstr "Výška při měření"
-
-#: freestep/gui/app.py
-msgid "Weight at exam"
-msgstr "Hmotnost při měření"
-
-#: freestep/gui/app.py
-msgid "Filter"
-msgstr "Filtr"
-
-#: freestep/gui/app.py
-msgid "raw data"
-msgstr "surová data"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Note"
-msgstr "Poznámka"
-
-#: freestep/gui/app.py
-msgid "File"
-msgstr "Soubor"
-
-#: freestep/gui/app.py
-msgid "Recording"
-msgstr "Data měření"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Platform"
-msgstr "Plošina"
-
-#: freestep/gui/app.py
-msgid "Format version"
-msgstr "Verze formátu"
-
-#: freestep/gui/app.py
-msgid "Sensors"
-msgstr "Senzory"
-
-#: freestep/gui/app.py
-msgid "Cell"
-msgstr "Buňka"
-
-#: freestep/gui/app.py
-msgid "Plate"
-msgstr "Plocha"
-
-#: freestep/gui/app.py
-msgid "Max value"
-msgstr "Max. hodnota"
-
-#: freestep/gui/app.py
-#: freestep/gui/report.py
-msgid "Acquisitions"
-msgstr "Záznamy"
-
-#: freestep/gui/app.py
-msgid "Unknown settings"
-msgstr "Neznámá nastavení"
-
-#: freestep/gui/app.py
-msgid "all frames"
-msgstr "všechny snímky"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "x {x} cm (col {col}), y {y} cm (row {row}): {value}"
-msgstr "x {x} cm (sloupec {col}), y {y} cm (řádek {row}): {value}"
-
-#: freestep/gui/app.py
-msgid "Export COP"
-msgstr "Export COP"
-
-#: freestep/gui/app.py
-msgid "Export frames"
-msgstr "Export snímků"
-
-#: freestep/gui/app.py
-msgid "NumPy (*.npz)"
-msgstr "NumPy (*.npz)"
-
-#: freestep/gui/app.py
-msgid "Export to MATLAB"
-msgstr "Export do MATLABu"
-
-#: freestep/gui/app.py
-msgid "MATLAB (*.mat)"
-msgstr "MATLAB (*.mat)"
-
-#: freestep/gui/app.py
-msgid "Export raw data to MATLAB"
-msgstr "Export surových dat do MATLABu"
-
-#: freestep/gui/app.py
-msgid "Export stabilometric parameters"
-msgstr "Export stabilometrických parametrů"
-
-#: freestep/gui/app.py
-msgid "Create PDF report"
-msgstr "Vytvořit PDF protokol"
-
-#: freestep/gui/app.py
-msgid "PDF (*.pdf)"
-msgstr "PDF (*.pdf)"
-
-#: freestep/gui/app.py
-msgid "Save image"
-msgstr "Uložit obrázek"
-
-#: freestep/gui/app.py
-msgid "PNG (*.png)"
-msgstr "PNG (*.png)"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Could not save {path}"
-msgstr "Nelze uložit: {path}"
-
-#: freestep/gui/app.py
-msgid "Export images"
-msgstr "Export obrázků"
-
-#: freestep/gui/app.py
-msgid "ZIP (*.zip)"
-msgstr "ZIP (*.zip)"
-
-#: freestep/gui/app.py
-msgid "Rendering images…"
-msgstr "Vykreslování obrázků…"
-
-#: freestep/gui/app.py
-msgid "Cancel"
-msgstr "Zrušit"
-
-#: freestep/gui/app.py
-msgid "Export cancelled"
-msgstr "Export zrušen"
-
-#: freestep/gui/app.py
-msgid "Preparing…"
-msgstr "Příprava…"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "Exam {id} ({n} of {count})"
-msgstr "Měření {id} ({n} z {count})"
-
-#: freestep/gui/app.py
-#, python-brace-format
-msgid "{n} file written to {path}."
-msgid_plural "{n} files written to {path}."
-msgstr[0] "Zapsán {n} soubor do {path}."
-msgstr[1] "Zapsány {n} soubory do {path}."
-msgstr[2] "Zapsáno {n} souborů do {path}."
-
-#: freestep/gui/app.py
-msgid "The export was cancelled."
-msgstr "Export byl zrušen."
-
-#: freestep/gui/app.py
-msgid "Skipped exams:"
-msgstr "Přeskočená měření:"
-
-#: freestep/gui/app.py
-msgid "Batch export failed"
-msgstr "Hromadný export selhal"
-
-#: freestep/gui/app.py
 #, python-brace-format
 msgid "About {app}"
 msgstr "O aplikaci {app}"
@@ -1052,14 +160,223 @@ msgstr "O aplikaci {app}"
 msgid "Viewer for data exported from FreeSTEP pressure plates."
 msgstr "Prohlížeč dat exportovaných z tlakových plošin FreeSTEP."
 
+#: freestep/gui/batch_dialog.py
+msgid "MATLAB: data and stabilometric parameters (.mat)"
+msgstr "MATLAB: data a stabilometrické parametry (.mat)"
+
+#: freestep/gui/batch_dialog.py
+msgid "MATLAB: recorded data only (_raw.mat)"
+msgstr "MATLAB: jen naměřená data (_raw.mat)"
+
+#: freestep/gui/batch_dialog.py
+msgid "NumPy: frames and COP (.npz)"
+msgstr "NumPy: snímky a COP (.npz)"
+
+#: freestep/gui/batch_dialog.py
+msgid "COP per frame (_cop.csv)"
+msgstr "COP po snímcích (_cop.csv)"
+
+#: freestep/gui/batch_dialog.py
+msgid "Stabilometric parameters (_stabilometry.csv)"
+msgstr "Stabilometrické parametry (_stabilometry.csv)"
+
+#: freestep/gui/batch_dialog.py
+#: freestep/gui/window_export.py
+msgid "Batch export"
+msgstr "Hromadný export"
+
+#: freestep/gui/batch_dialog.py
+#, python-brace-format
+msgid "Exports every exam of the open export. Files are named <birth date>_<name>_<exam date>_<HH-MM>, e.g. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} lists the exported exams."
+msgstr "Exportuje všechna měření otevřeného exportu. Soubory se jmenují <datum narození>_<jméno>_<datum měření>_<HH-MM>, např. 1990-01-31_Jan_Novak_2025-03-10_09-37.mat; {index} obsahuje seznam exportovaných měření."
+
+#: freestep/gui/batch_dialog.py
+msgid "Browse…"
+msgstr "Procházet…"
+
+#: freestep/gui/batch_dialog.py
+msgid "Directory"
+msgstr "Složka"
+
+#: freestep/gui/batch_dialog.py
+#, python-brace-format
+msgid "Summary table of all acquisitions ({name})"
+msgstr "Souhrnná tabulka všech záznamů ({name})"
+
+#: freestep/gui/batch_dialog.py
+msgid "The parameters use the filter, trend and Romberg settings of the Stabilometry tab."
+msgstr "Parametry se počítají s filtrem, odstraněním trendu a pořadím Rombergova testu podle záložky Stabilometrie."
+
+#: freestep/gui/info.py
+msgid "Frames"
+msgstr "Snímky"
+
+#: freestep/gui/info.py
+msgid "Duration"
+msgstr "Délka"
+
+#: freestep/gui/info.py
+msgid "Sampling rate"
+msgstr "Vzorkovací frekvence"
+
+#: freestep/gui/info.py
+msgid "COP path length"
+msgstr "Délka dráhy COP"
+
+#: freestep/gui/info.py
+msgid "Sum per frame"
+msgstr "Součet na snímek"
+
+#: freestep/gui/info.py
+#, python-brace-format
+msgid "{min} … {max} (mean {mean})"
+msgstr "{min} … {max} (průměr {mean})"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Subject"
+msgstr "Proband"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Name"
+msgstr "Jméno"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "ID"
+msgstr "ID"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Born"
+msgstr "Narozen(a)"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Sex"
+msgstr "Pohlaví"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Height"
+msgstr "Výška"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Weight"
+msgstr "Hmotnost"
+
+#: freestep/gui/info.py
+msgid "Shoe size"
+msgstr "Velikost obuvi"
+
+#: freestep/gui/info.py
+msgid "SSID"
+msgstr "SSID"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Exam"
+msgstr "Měření"
+
+#: freestep/gui/info.py
+msgid "Time"
+msgstr "Čas"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Footwear"
+msgstr "Obuv"
+
+#: freestep/gui/info.py
+msgid "Height at exam"
+msgstr "Výška při měření"
+
+#: freestep/gui/info.py
+msgid "Weight at exam"
+msgstr "Hmotnost při měření"
+
+#: freestep/gui/info.py
+msgid "Filter"
+msgstr "Filtr"
+
+#: freestep/gui/info.py
+msgid "raw data"
+msgstr "surová data"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Note"
+msgstr "Poznámka"
+
+#: freestep/gui/info.py
+msgid "File"
+msgstr "Soubor"
+
+#: freestep/gui/info.py
+msgid "Recording"
+msgstr "Data měření"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Platform"
+msgstr "Plošina"
+
+#: freestep/gui/info.py
+msgid "Format version"
+msgstr "Verze formátu"
+
+#: freestep/gui/info.py
+msgid "Sensors"
+msgstr "Senzory"
+
+#: freestep/gui/info.py
+msgid "Cell"
+msgstr "Buňka"
+
+#: freestep/gui/info.py
+msgid "Plate"
+msgstr "Plocha"
+
+#: freestep/gui/info.py
+msgid "Max value"
+msgstr "Max. hodnota"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Acquisitions"
+msgstr "Záznamy"
+
+#: freestep/gui/info.py
+msgid "Unknown settings"
+msgstr "Neznámá nastavení"
+
 #: freestep/gui/report.py
 #, python-brace-format
 msgid "Page {number}"
 msgstr "Strana {number}"
 
 #: freestep/gui/report.py
+#: freestep/gui/window_history.py
+msgid "Romberg quotient"
+msgstr "Rombergův kvocient"
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Parameter"
+msgstr "Parametr"
+
+#: freestep/gui/report.py
 msgid "Stabilometric report"
 msgstr "Stabilometrický protokol"
+
+#: freestep/gui/report.py
+#: freestep/gui/window_history.py
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id}"
+msgstr "Měření {id}"
 
 #: freestep/gui/report.py
 msgid "Age at exam"
@@ -1070,6 +387,27 @@ msgid "Summary"
 msgstr "Souhrn"
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
+msgstr "Rombergův kvocient = oči zavřené / oči otevřené; hodnota nad 1 znamená větší výchylky se zavřenýma očima."
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Low-pass filter {cutoff} Hz."
+msgstr "Dolní propust {cutoff} Hz."
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "COP not filtered."
+msgstr "COP není filtrovaný."
+
+#: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Linear trend removed."
+msgstr "Lineární trend odstraněn."
+
+#: freestep/gui/report.py
 msgid "Statokinesigram"
 msgstr "Statokineziogram"
 
@@ -1078,12 +416,42 @@ msgid "COP of the whole plate around its mean position, same scale for all acqui
 msgstr "COP celé plošiny kolem jeho průměrné polohy, stejné měřítko pro všechny záznamy."
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Load distribution"
+msgstr "Rozložení zatížení"
+
+#: freestep/gui/report.py
 msgid "Mean of every sensor over the frames where it is loaded; share of the total load in every quadrant, COP of the whole plate (black) and of the left and right foot."
 msgstr "Průměr každého senzoru přes snímky, ve kterých je zatížen; podíl celkového zatížení v každém kvadrantu, COP celé plošiny (černě) a levého a pravého chodidla."
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
+msgstr "Zatížení: levá a pravá noha rozděleny v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tlakové mapy)."
+
+#: freestep/gui/report.py
 msgid "Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."
 msgstr "Výchylka COP celé plošiny od průměrné polohy (nebo trendu) a jeho okamžitá rychlost."
+
+#: freestep/gui/report.py
+#: freestep/gui/window_playback.py
+msgid "total"
+msgstr "celkem"
+
+#: freestep/gui/report.py
+#: freestep/gui/window_analysis.py
+msgid "ML (x)"
+msgstr "ML (x)"
+
+#: freestep/gui/report.py
+#: freestep/gui/window_analysis.py
+msgid "AP (y)"
+msgstr "AP (y)"
+
+#: freestep/gui/report.py
+#: freestep/gui/window_analysis.py
+msgid "COP speed"
+msgstr "Rychlost COP"
 
 #: freestep/gui/report.py
 msgid "Stabilometric parameters"
@@ -1094,6 +462,11 @@ msgid "Path length and mean velocity: length of the COP trajectory and its mean 
 msgstr "Délka dráhy a průměrná rychlost: délka trajektorie COP a jeho průměrná rychlost. 95% konfidenční elipsa: plocha obsahující 95 % poloh COP (hlavní komponenty). Frekvence z výkonového spektra (Welch) v pásmu 0,15–5 Hz."
 
 #: freestep/gui/report.py
+#: freestep/gui/texts.py
+msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
+msgstr "Záznamy s méně než 32 zatíženými snímky se nevyhodnocují."
+
+#: freestep/gui/report.py
 #, python-brace-format
 msgid "Generated by {app} on {date}."
 msgstr "Vytvořeno aplikací {app} {date}."
@@ -1102,23 +475,659 @@ msgstr "Vytvořeno aplikací {app} {date}."
 msgid "Methods"
 msgstr "Metodika"
 
-#: freestep/gui/widgets.py
+#: freestep/gui/texts.py
+msgid "yes"
+msgstr "ano"
+
+#: freestep/gui/texts.py
+msgid "no"
+msgstr "ne"
+
+#: freestep/gui/texts.py
+msgid "Static"
+msgstr "Statika"
+
+#: freestep/gui/texts.py
+msgid "Static with photo"
+msgstr "Statika s fotografií"
+
+#: freestep/gui/texts.py
+msgid "Dynamic"
+msgstr "Dynamika"
+
+#: freestep/gui/texts.py
+msgid "Dynamic with video"
+msgstr "Dynamika s videem"
+
+#: freestep/gui/texts.py
+msgid "Posturography"
+msgstr "Posturografie"
+
+#: freestep/gui/texts.py
+msgid "Videography"
+msgstr "Videografie"
+
+#: freestep/gui/texts.py
+msgid "Podoscanner"
+msgstr "Podoskener"
+
+#: freestep/gui/texts.py
+msgid "Treadmill with video"
+msgstr "Běžecký pás s videem"
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Unknown ({code})"
+msgstr "Neznámé ({code})"
+
+#: freestep/gui/texts.py
+msgid "Barefoot"
+msgstr "Bez obuvi"
+
+#: freestep/gui/texts.py
+msgid "Shoes"
+msgstr "V obuvi"
+
+#: freestep/gui/texts.py
+msgid "Shoes with orthosis"
+msgstr "V obuvi s ortézou"
+
+#: freestep/gui/texts.py
+#: freestep/gui/window_history.py
+msgid "Eyes open"
+msgstr "Oči otevřené"
+
+#: freestep/gui/texts.py
+#: freestep/gui/window_history.py
+msgid "Eyes closed"
+msgstr "Oči zavřené"
+
+#: freestep/gui/texts.py
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Acquisition {number}"
+msgstr "Záznam {number}"
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Acquisition {number} ({duration} s)"
+msgstr "Záznam {number} ({duration} s)"
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Romberg quotient: {parameter}"
+msgstr "Rombergův kvocient: {parameter}"
+
+#: freestep/gui/texts.py
+msgid "Position and spread"
+msgstr "Poloha a rozptyl"
+
+#: freestep/gui/texts.py
+msgid "Mean position ML"
+msgstr "Průměrná poloha ML"
+
+#: freestep/gui/texts.py
+msgid "Mean position AP"
+msgstr "Průměrná poloha AP"
+
+#: freestep/gui/texts.py
+msgid "Range ML"
+msgstr "Rozsah ML"
+
+#: freestep/gui/texts.py
+msgid "Range AP"
+msgstr "Rozsah AP"
+
+#: freestep/gui/texts.py
+msgid "Standard deviation ML"
+msgstr "Směrodatná odchylka ML"
+
+#: freestep/gui/texts.py
+msgid "Standard deviation AP"
+msgstr "Směrodatná odchylka AP"
+
+#: freestep/gui/texts.py
+msgid "Mean distance"
+msgstr "Průměrná vzdálenost"
+
+#: freestep/gui/texts.py
+msgid "RMS distance"
+msgstr "RMS vzdálenost"
+
+#: freestep/gui/texts.py
+msgid "Path and velocity"
+msgstr "Dráha a rychlost"
+
+#: freestep/gui/texts.py
+msgid "Path length"
+msgstr "Délka dráhy"
+
+#: freestep/gui/texts.py
+msgid "Path length ML"
+msgstr "Délka dráhy ML"
+
+#: freestep/gui/texts.py
+msgid "Path length AP"
+msgstr "Délka dráhy AP"
+
+#: freestep/gui/texts.py
+msgid "Mean velocity"
+msgstr "Průměrná rychlost"
+
+#: freestep/gui/texts.py
+msgid "Mean velocity ML"
+msgstr "Průměrná rychlost ML"
+
+#: freestep/gui/texts.py
+msgid "Mean velocity AP"
+msgstr "Průměrná rychlost AP"
+
+#: freestep/gui/texts.py
+msgid "Area"
+msgstr "Plocha"
+
+#: freestep/gui/texts.py
+msgid "95% confidence ellipse"
+msgstr "95% konfidenční elipsa"
+
+#: freestep/gui/texts.py
+msgid "Ellipse semi-major axis"
+msgstr "Hlavní poloosa elipsy"
+
+#: freestep/gui/texts.py
+msgid "Ellipse semi-minor axis"
+msgstr "Vedlejší poloosa elipsy"
+
+#: freestep/gui/texts.py
+msgid "Ellipse angle"
+msgstr "Úhel elipsy"
+
+#: freestep/gui/texts.py
+msgid "Convex hull"
+msgstr "Konvexní obal"
+
+#: freestep/gui/texts.py
+msgid "Sway area per second"
+msgstr "Opsaná plocha za sekundu"
+
+#: freestep/gui/texts.py
+msgid "Frequency (0.15–5 Hz)"
+msgstr "Frekvence (0,15–5 Hz)"
+
+#: freestep/gui/texts.py
+msgid "Mean frequency ML"
+msgstr "Střední frekvence ML"
+
+#: freestep/gui/texts.py
+msgid "Mean frequency AP"
+msgstr "Střední frekvence AP"
+
+#: freestep/gui/texts.py
+msgid "Median frequency ML"
+msgstr "Mediánová frekvence ML"
+
+#: freestep/gui/texts.py
+msgid "Median frequency AP"
+msgstr "Mediánová frekvence AP"
+
+#: freestep/gui/texts.py
+msgid "95% power frequency ML"
+msgstr "Frekvence 95 % výkonu ML"
+
+#: freestep/gui/texts.py
+msgid "95% power frequency AP"
+msgstr "Frekvence 95 % výkonu AP"
+
+#: freestep/gui/texts.py
+msgid "Total power ML"
+msgstr "Celkový výkon ML"
+
+#: freestep/gui/texts.py
+msgid "Total power AP"
+msgstr "Celkový výkon AP"
+
+#: freestep/gui/texts.py
+msgid "Left foot"
+msgstr "Levá noha"
+
+#: freestep/gui/texts.py
+msgid "Right foot"
+msgstr "Pravá noha"
+
+#: freestep/gui/texts.py
+msgid "Asymmetry (right − left)"
+msgstr "Asymetrie (pravá − levá)"
+
+#: freestep/gui/texts.py
+msgid "Left share variability (SD)"
+msgstr "Kolísání podílu levé (SD)"
+
+#: freestep/gui/texts.py
+msgid "Forefoot"
+msgstr "Přední část chodidel"
+
+#: freestep/gui/texts.py
+msgid "Rearfoot"
+msgstr "Zadní část chodidel"
+
+#: freestep/gui/texts.py
+msgid "Left forefoot (of left foot)"
+msgstr "Přední část levé (z levé)"
+
+#: freestep/gui/texts.py
+msgid "Right forefoot (of right foot)"
+msgstr "Přední část pravé (z pravé)"
+
+#: freestep/gui/texts.py
+msgid "Left forefoot (of total)"
+msgstr "Přední část levé (z celku)"
+
+#: freestep/gui/texts.py
+msgid "Left rearfoot (of total)"
+msgstr "Zadní část levé (z celku)"
+
+#: freestep/gui/texts.py
+msgid "Right forefoot (of total)"
+msgstr "Přední část pravé (z celku)"
+
+#: freestep/gui/texts.py
+msgid "Right rearfoot (of total)"
+msgstr "Zadní část pravé (z celku)"
+
+#: freestep/gui/texts.py
+msgid "FreeSTEP does not store the eye condition; the acquisitions follow the classic Romberg protocol: eyes open first, then eyes closed."
+msgstr "FreeSTEP neukládá, zda měl proband oči otevřené; záznamy odpovídají klasickému Rombergovu protokolu: nejdříve oči otevřené, poté zavřené."
+
+#: freestep/gui/texts.py
+msgid "FreeSTEP does not store the eye condition; the first acquisition is taken as eyes closed (as set)."
+msgstr "FreeSTEP neukládá, zda měl proband oči otevřené; první záznam je podle nastavení se zavřenýma očima."
+
+#: freestep/gui/texts.py
+msgid "ML = medio-lateral direction (left–right, x axis of the plate), AP = antero-posterior direction (forward–backward, y axis of the plate)."
+msgstr "ML = medio-laterální směr (vlevo–vpravo, osa x plošiny), AP = antero-posteriorní směr (vpřed–vzad, osa y plošiny)."
+
+#: freestep/gui/texts.py
+msgid "Quotient"
+msgstr "Kvocient"
+
+#: freestep/gui/texts.py
+msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
+msgstr "Nejde o Rombergův test (vyžaduje měření typu Posturografie se dvěma stejně dlouhými záznamy)."
+
+#: freestep/gui/widgets/heatmap.py
 msgid "No exam loaded"
 msgstr "Není načteno žádné měření"
 
-#: freestep/gui/widgets.py
+#: freestep/gui/widgets/history.py
+msgid "No data"
+msgstr "Žádná data"
+
+#: freestep/gui/widgets/plots.py
 msgid "No COP data"
 msgstr "Žádná data COP"
 
-#: freestep/gui/widgets.py
+#: freestep/gui/widgets/plots.py
+#: freestep/gui/window_analysis.py
+msgid "95% ellipse"
+msgstr "95% elipsa"
+
+#: freestep/gui/widgets/plots.py
 msgid "time [s]"
 msgstr "čas [s]"
 
-#: freestep/gui/widgets.py
+#: freestep/gui/widgets/plots.py
 #, python-brace-format
 msgid "time {value} s"
 msgstr "čas {value} s"
 
-#: freestep/gui/widgets.py
-msgid "No data"
-msgstr "Žádná data"
+#: freestep/gui/window_analysis.py
+msgid "Plate corner"
+msgstr "Roh plošiny"
+
+#: freestep/gui/window_analysis.py
+msgid "Plate centre (0, 0)"
+msgstr "Střed plošiny (0, 0)"
+
+#: freestep/gui/window_analysis.py
+msgid "Mean position (0, 0)"
+msgstr "Průměrná poloha (0, 0)"
+
+#: freestep/gui/window_analysis.py
+msgid "Origin of the coordinates: plate corner (as stored), plate centre or the mean of every trajectory"
+msgstr "Počátek souřadnic: roh plošiny (jak jsou uložené), střed plošiny nebo průměr každé trajektorie"
+
+#: freestep/gui/window_analysis.py
+msgid "Confidence ellipse of the total COP, as in the Stabilometry tab"
+msgstr "Konfidenční elipsa celkového COP, jako v záložce Stabilometrie"
+
+#: freestep/gui/window_analysis.py
+msgid "Origin"
+msgstr "Počátek"
+
+#: freestep/gui/window_analysis.py
+msgid " Hz"
+msgstr " Hz"
+
+#: freestep/gui/window_analysis.py
+msgid "unfiltered"
+msgstr "bez filtru"
+
+#: freestep/gui/window_analysis.py
+msgid "Cut-off of the zero-phase low-pass filter of the COP (4th order Butterworth)"
+msgstr "Mezní frekvence dolní propusti COP s nulovým fázovým posunem (Butterworth 4. řádu)"
+
+#: freestep/gui/window_analysis.py
+msgid "Eyes closed first"
+msgstr "Nejdřív zavřené oči"
+
+#: freestep/gui/window_analysis.py
+msgid "Romberg test: FreeSTEP does not store the eye condition and measures eyes open first (classic protocol); check when the first acquisition was with eyes closed"
+msgstr "Rombergův test: FreeSTEP neukládá, zda měl proband oči otevřené, a měří nejdříve s otevřenýma očima (klasický protokol); zaškrtněte, pokud byl první záznam se zavřenýma očima"
+
+#: freestep/gui/window_analysis.py
+msgid "Remove trend"
+msgstr "Odstranit trend"
+
+#: freestep/gui/window_analysis.py
+msgid "Remove the linear trend (slow drift) of the COP instead of only its mean; affects the sway parameters"
+msgstr "Odečte lineární trend (pomalý posun) COP místo pouhého průměru; ovlivňuje parametry výchylek"
+
+#: freestep/gui/window_analysis.py
+msgid "Low-pass filter"
+msgstr "Dolní propust"
+
+#: freestep/gui/window_analysis.py
+msgid "COP of the whole plate minus its mean (or trend), filtered as set in the Stabilometry tab. Click to seek."
+msgstr "COP celé plošiny bez průměrné polohy (nebo trendu), filtrovaný podle nastavení v záložce Stabilometrie. Kliknutím přejdete na daný čas."
+
+#: freestep/gui/window_analysis.py
+msgid "Compare acquisitions"
+msgstr "Porovnat záznamy"
+
+#: freestep/gui/window_analysis.py
+msgid "Draw the other acquisitions of the exam (e.g. eyes open and closed) in the same plot"
+msgstr "Vykreslit do stejného grafu i ostatní záznamy měření (např. oči otevřené a zavřené)"
+
+#: freestep/gui/window_analysis.py
+msgid "Instantaneous speed of the COP of the whole plate, filtered as set in the Stabilometry tab; its mean is the mean velocity. Click to seek."
+msgstr "Okamžitá rychlost COP celé plošiny, filtrovaného podle nastavení v záložce Stabilometrie; její průměr je průměrná rychlost. Kliknutím přejdete na daný čas."
+
+#: freestep/gui/window_export.py
+msgid "Export COP"
+msgstr "Export COP"
+
+#: freestep/gui/window_export.py
+#: freestep/gui/window_history.py
+msgid "CSV (*.csv)"
+msgstr "CSV (*.csv)"
+
+#: freestep/gui/window_export.py
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Saved {path}"
+msgstr "Uloženo: {path}"
+
+#: freestep/gui/window_export.py
+msgid "Export frames"
+msgstr "Export snímků"
+
+#: freestep/gui/window_export.py
+msgid "NumPy (*.npz)"
+msgstr "NumPy (*.npz)"
+
+#: freestep/gui/window_export.py
+msgid "Export to MATLAB"
+msgstr "Export do MATLABu"
+
+#: freestep/gui/window_export.py
+msgid "MATLAB (*.mat)"
+msgstr "MATLAB (*.mat)"
+
+#: freestep/gui/window_export.py
+msgid "Export raw data to MATLAB"
+msgstr "Export surových dat do MATLABu"
+
+#: freestep/gui/window_export.py
+msgid "Export stabilometric parameters"
+msgstr "Export stabilometrických parametrů"
+
+#: freestep/gui/window_export.py
+msgid "Create PDF report"
+msgstr "Vytvořit PDF protokol"
+
+#: freestep/gui/window_export.py
+msgid "PDF (*.pdf)"
+msgstr "PDF (*.pdf)"
+
+#: freestep/gui/window_export.py
+msgid "Save image"
+msgstr "Uložit obrázek"
+
+#: freestep/gui/window_export.py
+msgid "PNG (*.png)"
+msgstr "PNG (*.png)"
+
+#: freestep/gui/window_export.py
+#, python-brace-format
+msgid "Could not save {path}"
+msgstr "Nelze uložit: {path}"
+
+#: freestep/gui/window_export.py
+msgid "Export images"
+msgstr "Export obrázků"
+
+#: freestep/gui/window_export.py
+msgid "ZIP (*.zip)"
+msgstr "ZIP (*.zip)"
+
+#: freestep/gui/window_export.py
+msgid "Rendering images…"
+msgstr "Vykreslování obrázků…"
+
+#: freestep/gui/window_export.py
+msgid "Cancel"
+msgstr "Zrušit"
+
+#: freestep/gui/window_export.py
+msgid "Export cancelled"
+msgstr "Export zrušen"
+
+#: freestep/gui/window_export.py
+msgid "Preparing…"
+msgstr "Příprava…"
+
+#: freestep/gui/window_export.py
+#, python-brace-format
+msgid "Exam {id} ({n} of {count})"
+msgstr "Měření {id} ({n} z {count})"
+
+#: freestep/gui/window_export.py
+#, python-brace-format
+msgid "{n} file written to {path}."
+msgid_plural "{n} files written to {path}."
+msgstr[0] "Zapsán {n} soubor do {path}."
+msgstr[1] "Zapsány {n} soubory do {path}."
+msgstr[2] "Zapsáno {n} souborů do {path}."
+
+#: freestep/gui/window_export.py
+msgid "The export was cancelled."
+msgstr "Export byl zrušen."
+
+#: freestep/gui/window_export.py
+msgid "Skipped exams:"
+msgstr "Přeskočená měření:"
+
+#: freestep/gui/window_export.py
+msgid "Batch export failed"
+msgstr "Hromadný export selhal"
+
+#: freestep/gui/window_history.py
+msgid "Export CSV…"
+msgstr "Exportovat CSV…"
+
+#: freestep/gui/window_history.py
+msgid "All parameters of all exams of the subject"
+msgstr "Všechny parametry všech měření probanda"
+
+#: freestep/gui/window_history.py
+msgid "Exams of the subject, oldest first; click an exam to show it. Settings of the Stabilometry tab apply."
+msgstr "Měření probanda od nejstaršího; kliknutím měření zobrazíte. Platí nastavení ze záložky Stabilometrie."
+
+#: freestep/gui/window_history.py
+msgid "Open a FreeSTEP export (.zip) to see the history of a subject."
+msgstr "Pro zobrazení vývoje probanda otevřete export FreeSTEP (.zip)."
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "{name}: {n} exam"
+msgid_plural "{name}: {n} exams"
+msgstr[0] "{name}: {n} měření"
+msgstr[1] "{name}: {n} měření"
+msgstr[2] "{name}: {n} měření"
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Analysing {n} exam…"
+msgid_plural "Analysing {n} exams…"
+msgstr[0] "Vyhodnocuji {n} měření…"
+msgstr[1] "Vyhodnocuji {n} měření…"
+msgstr[2] "Vyhodnocuji {n} měření…"
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Analysing exam {id} ({n} of {count})…"
+msgstr "Vyhodnocuji měření {id} ({n} z {count})…"
+
+#: freestep/gui/window_history.py
+#, python-brace-format
+msgid "Exam {id} skipped: {reason}"
+msgstr "Měření {id} přeskočeno: {reason}"
+
+#: freestep/gui/window_history.py
+msgid "Cannot analyse the exams"
+msgstr "Měření nelze vyhodnotit"
+
+#: freestep/gui/window_history.py
+msgid "Export history"
+msgstr "Export vývoje"
+
+#: freestep/gui/window_open.py
+msgid "Password"
+msgstr "Heslo"
+
+#: freestep/gui/window_open.py
+msgid "The archive is encrypted with a different password:"
+msgstr "Archiv je zašifrovaný jiným heslem:"
+
+#: freestep/gui/window_open.py
+msgid "Open FreeSTEP data"
+msgstr "Otevřít data FreeSTEP"
+
+#: freestep/gui/window_open.py
+msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
+msgstr "Data FreeSTEP (*.zip *.fre);;Export (*.zip);;Měření (*.fre);;Vše (*)"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Reading {name}…"
+msgstr "Načítám {name}…"
+
+#: freestep/gui/window_open.py
+msgid "Not a FreeSTEP export"
+msgstr "Nejde o export FreeSTEP"
+
+#: freestep/gui/window_open.py
+msgid "Cannot open export"
+msgstr "Export nelze otevřít"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
+msgstr "{name}: centrum {centre}, probandů: {patients}, měření: {exams}"
+
+#: freestep/gui/window_open.py
+msgid "Cannot open exam"
+msgstr "Měření nelze otevřít"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "ID {id}"
+msgstr "ID {id}"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} (missing)"
+msgstr "Měření {id} (chybí)"
+
+#: freestep/gui/window_open.py
+msgid "Decrypting and decoding Postura.dat…"
+msgstr "Dešifruji a dekóduji Postura.dat…"
+
+#: freestep/gui/window_open.py
+msgid "Cannot decode exam"
+msgstr "Měření nelze dekódovat"
+
+#: freestep/gui/window_open.py
+msgid "No preview in this exam"
+msgstr "Měření nemá náhled"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {n} acquisition, {platform}"
+msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
+msgstr[0] "Měření {id} — {name}: {n} záznam, {platform}"
+msgstr[1] "Měření {id} — {name}: {n} záznamy, {platform}"
+msgstr[2] "Měření {id} — {name}: {n} záznamů, {platform}"
+
+#: freestep/gui/window_playback.py
+msgid "Acquisition (e.g. eyes open / eyes closed)"
+msgstr "Záznam (např. oči otevřené / zavřené)"
+
+#: freestep/gui/window_playback.py
+msgid "Frame"
+msgstr "Snímek"
+
+#: freestep/gui/window_playback.py
+msgid "Maximum"
+msgstr "Maximum"
+
+#: freestep/gui/window_playback.py
+msgid "Mean"
+msgstr "Průměr"
+
+#: freestep/gui/window_playback.py
+msgid "Play / pause (Space)"
+msgstr "Přehrát / pozastavit (mezerník)"
+
+#: freestep/gui/window_playback.py
+msgid " fps"
+msgstr " sn./s"
+
+#: freestep/gui/window_playback.py
+msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"
+msgstr "Rychlost přehrávání ve snímcích za sekundu (nastaví se na vzorkovací frekvenci záznamu)"
+
+#: freestep/gui/window_playback.py
+msgid "trail "
+msgstr "stopa "
+
+#: freestep/gui/window_playback.py
+msgid "Number of previous frames drawn as the COP trail"
+msgstr "Počet předchozích snímků vykreslených jako stopa COP"
+
+#: freestep/gui/window_playback.py
+msgid "left"
+msgstr "levá"
+
+#: freestep/gui/window_playback.py
+msgid "right"
+msgstr "pravá"
+
+#: freestep/gui/window_playback.py
+msgid "all frames"
+msgstr "všechny snímky"
+
+#: freestep/gui/window_playback.py
+#, python-brace-format
+msgid "x {x} cm (col {col}), y {y} cm (row {row}): {value}"
+msgstr "x {x} cm (sloupec {col}), y {y} cm (řádek {row}): {value}"

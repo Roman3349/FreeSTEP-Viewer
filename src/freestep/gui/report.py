@@ -31,21 +31,21 @@ from PySide6.QtGui import (
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QWidget
 
+from ..load import load_regions
 from ..models import Exam, Patient
 from ..postura import Postura
-from ..stabilometry import Romberg, Stabilometry, load_regions, speed, sway, unit
-from .app import (
-    APP_NAME,
-    ICON_PATH,
-    _directions_note,
-    _exam_type_label,
-    _footwear_label,
-    _number,
-    _parameter_groups,
+from ..stabilometry import Romberg, Stabilometry, speed, sway, unit
+from .i18n import tr
+from .meta import APP_NAME, ICON_PATH
+from .texts import (
     acquisition_style,
+    directions_note,
+    exam_type_label,
+    footwear_label,
+    format_number,
+    parameter_groups,
     romberg_order_note,
 )
-from .i18n import tr
 from .widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, ORIGIN_MEAN, CopPlot, HeatmapView, StabilogramPlot
 
 #: Resolution of the PDF in dots per inch; 1 dot = 1 px of the widgets.
@@ -257,9 +257,9 @@ def _parameter_table(parameters: list[tuple[str, str]], data: ReportData) -> str
         f"<th width='7%'></th>{head}</tr>"
     ]
     for number, (name, label) in enumerate(parameters):
-        cells = [_number(None if r is None else getattr(r, name)) for r in data.results]
+        cells = [format_number(None if r is None else getattr(r, name)) for r in data.results]
         if romberg is not None:
-            cells.append(_number(romberg.quotients[name]) if name in romberg.quotients else "")
+            cells.append(format_number(romberg.quotients[name]) if name in romberg.quotients else "")
         values = "".join(f"<td align='right'>{c}</td>" for c in cells)
         stripe = f" style='background-color:{_STRIPE}'" if number % 2 else ""
         rows.append(
@@ -361,8 +361,8 @@ def _paint_header(pages: _Pages, data: ReportData) -> None:
         [
             (tr("ID"), exam.id),
             (tr("Date"), data.when),
-            (tr("Type"), _exam_type_label(exam)),
-            (tr("Footwear"), _footwear_label(exam)),
+            (tr("Type"), exam_type_label(exam)),
+            (tr("Footwear"), footwear_label(exam)),
             (tr("Acquisitions"), f"{len(post.acquisitions)} ({durations})"),
             (tr("Platform"), post.header.platform),
         ]
@@ -377,7 +377,7 @@ def _paint_header(pages: _Pages, data: ReportData) -> None:
 
 def _paint_summary(pages: _Pages, data: ReportData) -> None:
     """Main parameters per acquisition and how to read them."""
-    labels = {name: label for _, group in _parameter_groups() for name, label in group}
+    labels = {name: label for _, group in parameter_groups() for name, label in group}
     pages.text(_section(tr("Summary")), keep_with=120)
     pages.text(_parameter_table([(n, labels[n]) for n in SUMMARY_PARAMETERS], data))
     notes = []
@@ -431,7 +431,7 @@ def _paint_load(pages: _Pages, data: ReportData) -> None:
             ]
         )
     )
-    title, parameters = _parameter_groups()[-1]  # load distribution
+    title, parameters = parameter_groups()[-1]  # load distribution
     pages.text(f"<h3>{html.escape(title)}</h3>{_parameter_table(parameters, data)}")
     pages.text(
         _notes(
@@ -469,7 +469,7 @@ def _paint_time_course(pages: _Pages, data: ReportData) -> None:
         _notes(
             [
                 tr("Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."),
-                _directions_note(),
+                directions_note(),
             ]
         )
     )
@@ -555,7 +555,7 @@ def _paint_parameters(pages: _Pages, data: ReportData) -> None:
     """The stabilometric parameters, one table per group, and notes on the methods."""
     pages.new_page()
     pages.text(_section(tr("Stabilometric parameters")))
-    for title, parameters in _parameter_groups()[:-1]:  # the load distribution is on its own page
+    for title, parameters in parameter_groups()[:-1]:  # the load distribution is on its own page
         pages.text(f"<h3>{html.escape(title)}</h3>{_parameter_table(parameters, data)}")
     notes = [
         _filter_note(data),
@@ -564,7 +564,7 @@ def _paint_parameters(pages: _Pages, data: ReportData) -> None:
             "95% confidence ellipse: area containing 95% of the COP positions (principal components). "
             "Frequencies from the power spectrum (Welch) in 0.15–5 Hz."
         ),
-        _directions_note(),
+        directions_note(),
     ]
     if any(r is None for r in data.results):
         notes.append(tr("Acquisitions with fewer than 32 loaded frames are not analysed."))

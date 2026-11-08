@@ -460,7 +460,7 @@ def build_files() -> dict[Path, str]:
         ``{path: content}`` for ``freestep.pot`` and each ``*.po`` in :data:`LOCALE_DIR`.
     """
     package_root = LOCALE_DIR.parent.parent.parent  # the "src" directory
-    template = extract(LOCALE_DIR.parent.glob("*.py"), package_root)
+    template = extract(sorted(LOCALE_DIR.parent.rglob("*.py")), package_root)
     previous = read_po(TEMPLATE) if TEMPLATE.exists() else None
     template.header = _template_header(previous, template)
     template.header_comments = [
