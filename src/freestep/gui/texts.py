@@ -8,7 +8,7 @@ import numpy as np
 from PySide6.QtGui import QColor
 
 from ..history import ROMBERG_PREFIX
-from ..models import Exam
+from ..models import Exam, Sex
 from ..postura import Acquisition, Postura
 from ..stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
 from .i18n import tr
@@ -51,6 +51,13 @@ def footwear_label(exam: Exam) -> str | None:
         return None
     names = {0: tr("Barefoot"), 1: tr("Shoes"), 2: tr("Shoes with orthosis")}
     return names.get(exam.footwear) or tr("Unknown ({code})", code=exam.footwear)
+
+
+def sex_label(sex: Sex | None) -> str | None:
+    """Translated sex of a subject, ``None`` when not known."""
+    if sex is None:
+        return None
+    return {Sex.MALE: tr("Male"), Sex.FEMALE: tr("Female")}[sex]
 
 
 def acquisition_style(index: int, romberg: Romberg | None) -> tuple[str, QColor]:

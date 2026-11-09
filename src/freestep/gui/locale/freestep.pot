@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 00:42+0000\n"
+"POT-Creation-Date: 2026-11-09 00:31+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -544,6 +544,14 @@ msgstr ""
 
 #: freestep/gui/texts.py
 msgid "Shoes with orthosis"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Male"
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "Female"
 msgstr ""
 
 #: freestep/gui/texts.py

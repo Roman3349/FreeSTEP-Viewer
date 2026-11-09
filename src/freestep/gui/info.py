@@ -6,7 +6,7 @@ import html
 
 from .exam import LoadedExam, decode_images, image_size
 from .i18n import tr
-from .texts import acquisition_label, exam_type_label, footwear_label, format_value
+from .texts import acquisition_label, exam_type_label, footwear_label, format_value, sex_label
 
 
 def info_html(loaded: LoadedExam) -> str:
@@ -67,7 +67,7 @@ def info_html(loaded: LoadedExam) -> str:
                     (tr("Name"), p.name),
                     (tr("ID"), p.id),
                     (tr("Born"), p.birth_date),
-                    (tr("Sex"), p.sex),
+                    (tr("Sex"), sex_label(p.sex)),
                     (tr("Height"), f"{p.height_cm:g} cm" if p.height_cm else None),
                     (tr("Weight"), f"{p.weight_kg:g} kg" if p.weight_kg else None),
                     (tr("Shoe size"), f"{p.shoe_size_eu:g} EU" if p.shoe_size_eu else None),

@@ -17,6 +17,7 @@ from freestep.gui import i18n, po
 from freestep.gui.colormap import colorize
 from freestep.ini import parse_ini
 from freestep.mdb import decode_jet4_text
+from freestep.models import Sex, to_sex
 from freestep.postura import Postura
 from freestep.writers import write_mat
 
@@ -93,6 +94,24 @@ def _synthetic_fre(members: dict[str, bytes]) -> bytes:
         for name, data in members.items():
             archive.writestr(name, data)
     return buffer.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("value", "sex"),
+    [
+        ("Femminile", Sex.FEMALE),
+        ("Female", Sex.FEMALE),
+        ("f", Sex.FEMALE),
+        (" Maschile ", Sex.MALE),
+        ("M", Sex.MALE),
+        ("", None),
+        (None, None),
+        ("?", None),
+    ],
+)
+def test_sex(value: object, sex: Sex | None) -> None:
+    """Italian and English values of Sesso and their abbreviations are recognised."""
+    assert to_sex(value) is sex
 
 
 def test_postura_static() -> None:

@@ -45,6 +45,7 @@ from .texts import (
     format_number,
     parameter_groups,
     romberg_order_note,
+    sex_label,
 )
 from .widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, ORIGIN_MEAN, CopPlot, HeatmapView, StabilogramPlot
 
@@ -351,7 +352,7 @@ def _paint_header(pages: _Pages, data: ReportData) -> None:
             (tr("Name"), patient.name),
             (tr("Born"), patient.birth_date),
             (tr("Age at exam"), _age(patient, exam)),
-            (tr("Sex"), patient.sex),
+            (tr("Sex"), sex_label(patient.sex)),
             (tr("Height"), f"{height:g} cm" if height else None),
             (tr("Weight"), f"{weight:g} kg" if weight else None),
         ]

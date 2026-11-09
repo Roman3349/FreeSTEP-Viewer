@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from test_units import _synthetic_postura
 
-from freestep.models import Exam, Patient
+from freestep.models import Exam, Patient, Sex
 from freestep.postura import Postura
 from freestep.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze_all, evaluate_romberg
 
@@ -39,7 +39,7 @@ def _data(acquisitions: list[int]) -> ReportData:
         height_in=None,
         weight_lb=None,
         units="",
-        sex="M",
+        sex=Sex.MALE,
         ssid="",
         note="",
     )

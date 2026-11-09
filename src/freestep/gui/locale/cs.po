@@ -547,6 +547,14 @@ msgid "Shoes with orthosis"
 msgstr "V obuvi s ortézou"
 
 #: freestep/gui/texts.py
+msgid "Male"
+msgstr "Muž"
+
+#: freestep/gui/texts.py
+msgid "Female"
+msgstr "Žena"
+
+#: freestep/gui/texts.py
 #: freestep/gui/window_history.py
 msgid "Eyes open"
 msgstr "Oči otevřené"

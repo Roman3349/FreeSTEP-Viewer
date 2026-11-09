@@ -3,7 +3,7 @@
 from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
 from .ini import parse_ini
 from .mdb import AccessDatabase
-from .models import Exam, ExportIndex, FilterSettings, Patient
+from .models import Exam, ExportIndex, FilterSettings, Patient, Sex
 from .postura import Postura, PosturaHeader
 
 __all__ = [
@@ -17,5 +17,6 @@ __all__ = [
     "Patient",
     "Postura",
     "PosturaHeader",
+    "Sex",
     "parse_ini",
 ]
