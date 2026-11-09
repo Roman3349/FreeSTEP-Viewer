@@ -105,7 +105,7 @@ class ExportMixin(WindowBase):
             loaded.exam,
             post,
             self._stabilometry,
-            self._romberg,
+            self._assessment,
             self._lowpass_hz or None,
             self._detrend,
         )
@@ -170,7 +170,9 @@ class ExportMixin(WindowBase):
                         QApplication.processEvents()
                         if progress.wasCanceled():
                             break
-                    show_on_heatmap(view, loaded, acq, frame, mode, trail=self.trail.value())
+                    show_on_heatmap(
+                        view, loaded, acq, frame, mode, trail=self.trail.value(), stance=self._stance(acq.index)
+                    )
                     image = view.image()
                     if image is not None:
                         archive.writestr(name, png_bytes(image))

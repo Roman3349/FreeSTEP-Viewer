@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QImage
 from PySide6.QtWidgets import QApplication, QFileDialog, QInputDialog, QLineEdit, QMessageBox, QTreeWidgetItem
 
+from ..analysis.protocols import Assessment
 from ..analysis.stabilometry import MIN_FRAMES
 from ..archive import FreeStepExport, FreFile
 from ..models import Exam, Patient
@@ -395,7 +396,7 @@ class OpenMixin(WindowBase):
         self.cop_plot.set_ellipse(None)
         self.stabilogram.clear()
         self.speed_curve.clear()
-        self._stabilometry, self._romberg = [], None
+        self._stabilometry, self._romberg, self._assessment = [], None, Assessment([])
         self.stabilometry_view.setHtml(
             f"<p>{html.escape(tr('{type}: the exam has no pressure data to analyse.', type=exam_type))}</p>"
         )

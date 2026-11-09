@@ -11,16 +11,8 @@ from scipy.io import loadmat
 from test_units import _synthetic_postura
 
 from freestep.analysis.load import load_distribution, load_regions
-from freestep.analysis.stabilometry import (
-    POSTUROGRAPHY_EXAM_TYPE,
-    analyze,
-    analyze_all,
-    compute,
-    detect_romberg,
-    evaluate_romberg,
-    speed,
-    unit,
-)
+from freestep.analysis.protocols import evaluate_romberg
+from freestep.analysis.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze, analyze_all, compute, speed, unit
 from freestep.formats import parse_postura
 from freestep.recording import Recording
 from freestep.writers import write_mat, write_stabilometry_csv
@@ -132,10 +124,18 @@ def test_too_short_is_rejected() -> None:
         compute(_circle(1.0, 1.0, seconds=1.0), FS)
 
 
-def _postura(labels: tuple[str, str] = ("", ""), frames: int = 64) -> Recording:
-    """Synthetic recording with two acquisitions; the first has unloaded frames at the start and inside."""
+def _postura(labels: tuple[str, str] = ("", ""), frames: int = 64, *, both_feet: bool = False) -> Recording:
+    """Synthetic recording with two acquisitions; the first has unloaded frames at the start and inside.
+
+    With ``both_feet`` every frame also loads a cell on the right (row 1, column 4).
+    """
     data = bytearray(_synthetic_postura(3, [frames, frames]))
     header, frame_size = 74, 4 * 6 * 2 + 30
+    if both_feet:
+        second = header + 6 + frames * frame_size + 48 + 100 + 6
+        for start in (header + 6, second):
+            for index in range(frames):
+                struct.pack_into("<H", data, start + index * frame_size + 2 * (1 * 6 + 4), 20)
     for index in (0, 1, 10):  # clear the load (cell 1, 2) of three frames of the first acquisition
         struct.pack_into("<H", data, header + 6 + index * frame_size + 2 * (1 * 6 + 2), 0)
     label_offsets = [header + 6 + frames * frame_size + 48, 0]
@@ -159,36 +159,9 @@ def test_unloaded_frames_are_trimmed_and_interpolated() -> None:
     assert math.isnan(result.mean_frequency_ml_hz)
 
 
-@pytest.mark.parametrize(
-    ("labels", "closed_first", "expected"),
-    [
-        (("", ""), False, (0, 1, False)),
-        (("", ""), True, (1, 0, False)),
-        (("Occhi chiusi", "Occhi aperti"), False, (1, 0, True)),
-        (("EO", "EC"), True, (0, 1, True)),
-    ],
-)
-def test_romberg_detection(labels: tuple[str, str], closed_first: bool, expected: tuple[int, int, bool]) -> None:
-    """The eye condition comes from the labels, otherwise from the given order."""
-    post = _postura(labels)
-    assert detect_romberg(post, POSTUROGRAPHY_EXAM_TYPE, closed_first) == expected
-    assert detect_romberg(post, 0) is None  # not a posturography exam
-
-
-def test_romberg_quotients() -> None:
-    """The quotients compare eyes closed with eyes open."""
-    post = _postura()
-    small, large = compute(_circle(2.0, 0.5), FS), compute(_circle(4.0, 0.5), FS)
-    romberg = evaluate_romberg(post, [small, large], POSTUROGRAPHY_EXAM_TYPE)
-    assert romberg is not None
-    assert romberg.quotients["path_length_mm"] == pytest.approx(2, rel=1e-2)
-    assert romberg.quotients["ellipse_area_mm2"] == pytest.approx(4, rel=1e-2)
-    assert evaluate_romberg(post, [small, None]) is None
-
-
 def test_write_mat(tmp_path: Path) -> None:
     """The MATLAB file holds the frames (rows × columns × frames), COP, parameters and the Romberg result."""
-    post = _postura()
+    post = _postura(both_feet=True)
     results = analyze_all(post)
     romberg = evaluate_romberg(post, results, POSTUROGRAPHY_EXAM_TYPE)
     path = tmp_path / "exam.mat"
@@ -201,7 +174,7 @@ def test_write_mat(tmp_path: Path) -> None:
     assert first.pressure[1, 2, 5] == post.acquisitions[0].pressure[5, 1, 2]
     assert first.time_s.shape == (64,)
     assert first.cop_total.shape == (64, 2)
-    assert first.stabilometry.frames == 62
+    assert first.stabilometry.frames == 64  # the right foot is loaded in every frame
     assert mat["romberg"].eyes_open == 1 and mat["romberg"].eyes_closed == 2
 
 

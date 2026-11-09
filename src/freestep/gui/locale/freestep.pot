@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 03:55+0000\n"
+"POT-Creation-Date: 2026-11-09 03:56+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -14,13 +14,13 @@ msgstr ""
 
 #: freestep/gui/app.py
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Date"
 msgstr ""
 
 #: freestep/gui/app.py
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Type"
 msgstr ""
 
@@ -285,37 +285,37 @@ msgid "Unknown settings"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Subject"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Name"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "ID"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Born"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Sex"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Height"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Weight"
 msgstr ""
 
@@ -328,7 +328,7 @@ msgid "SSID"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Exam"
 msgstr ""
 
@@ -337,7 +337,7 @@ msgid "Time"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Footwear"
 msgstr ""
 
@@ -358,7 +358,7 @@ msgid "raw data"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Note"
 msgstr ""
 
@@ -366,9 +366,13 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 #, python-brace-format
 msgid "Page {number}"
+msgstr ""
+
+#: freestep/gui/reports/pages.py
+msgid "Age at exam"
 msgstr ""
 
 #: freestep/gui/reports/stabilometric.py
@@ -382,6 +386,41 @@ msgid "Parameter"
 msgstr ""
 
 #: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Left foot"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Right foot"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Romberg test on one foot"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "eyes open"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "eyes closed"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Symmetry"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Single-leg stance"
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
 msgid "Stabilometric report"
 msgstr ""
 
@@ -390,10 +429,6 @@ msgstr ""
 #: freestep/gui/window_open.py
 #, python-brace-format
 msgid "Exam {id}"
-msgstr ""
-
-#: freestep/gui/reports/stabilometric.py
-msgid "Age at exam"
 msgstr ""
 
 #: freestep/gui/reports/stabilometric.py
@@ -439,6 +474,10 @@ msgid "Mean of every sensor over the frames where it is loaded; share of the tot
 msgstr ""
 
 #: freestep/gui/reports/stabilometric.py
+msgid "Single-leg stance: share of the load of the standing foot on its front and rear half."
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
 msgstr ""
@@ -473,6 +512,16 @@ msgstr ""
 
 #: freestep/gui/reports/stabilometric.py
 msgid "Path length and mean velocity: length of the COP trajectory and its mean speed. 95% confidence ellipse: area containing 95% of the COP positions (principal components). Frequencies from the power spectrum (Welch) in 0.15–5 Hz."
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "L/S = path length / area of the 95% confidence ellipse."
+msgstr ""
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Symmetry = (left − right) / mean of both; positive when the left foot sways more."
 msgstr ""
 
 #: freestep/gui/reports/stabilometric.py
@@ -555,17 +604,10 @@ msgid "Female"
 msgstr ""
 
 #: freestep/gui/texts.py
-#: freestep/gui/window_history.py
-msgid "Eyes open"
+msgid "Both feet"
 msgstr ""
 
 #: freestep/gui/texts.py
-#: freestep/gui/window_history.py
-msgid "Eyes closed"
-msgstr ""
-
-#: freestep/gui/texts.py
-#: freestep/gui/window_history.py
 #, python-brace-format
 msgid "Acquisition {number}"
 msgstr ""
@@ -678,6 +720,10 @@ msgid "Sway area per second"
 msgstr ""
 
 #: freestep/gui/texts.py
+msgid "Length per area (L/S)"
+msgstr ""
+
+#: freestep/gui/texts.py
 msgid "Frequency (0.15–5 Hz)"
 msgstr ""
 
@@ -711,14 +757,6 @@ msgstr ""
 
 #: freestep/gui/texts.py
 msgid "Total power AP"
-msgstr ""
-
-#: freestep/gui/texts.py
-msgid "Left foot"
-msgstr ""
-
-#: freestep/gui/texts.py
-msgid "Right foot"
 msgstr ""
 
 #: freestep/gui/texts.py
@@ -778,7 +816,16 @@ msgid "Quotient"
 msgstr ""
 
 #: freestep/gui/texts.py
-msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
+msgid "Romberg quotient on one foot"
+msgstr ""
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Single-leg stance is recognised by at least {share} % of the load on one foot."
+msgstr ""
+
+#: freestep/gui/texts.py
+msgid "No Romberg test (needs a posturography exam with acquisitions with eyes open and closed)."
 msgstr ""
 
 #: freestep/gui/widgets/heatmap.py

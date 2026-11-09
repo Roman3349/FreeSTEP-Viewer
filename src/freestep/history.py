@@ -6,14 +6,8 @@ import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
-from .analysis.stabilometry import (
-    DEFAULT_LOWPASS_HZ,
-    ROMBERG_PARAMETERS,
-    Romberg,
-    Stabilometry,
-    analyze_all,
-    evaluate_romberg,
-)
+from .analysis.protocols import ROMBERG_PARAMETERS, Romberg, assess, condition_key
+from .analysis.stabilometry import DEFAULT_LOWPASS_HZ, Stabilometry, analyze_all
 from .archive import FreeStepExport
 from .models import Exam
 from .recording import Recording
@@ -32,8 +26,8 @@ class ExamAnalysis:
         exam: The exam.
         results: Parameters of every acquisition (``None`` where the analysis failed).
         romberg: Romberg evaluation, if the exam is a Romberg test.
-        conditions: Per acquisition: ``"eyes_open"`` / ``"eyes_closed"`` for a
-            Romberg test, otherwise ``"acquisition_<n>"`` (1-based).
+        conditions: Per acquisition: the condition (see :func:`freestep.analysis.protocols.condition_key`,
+            e.g. ``"eyes_open"``, ``"left_foot"``), ``"acquisition_<n>"`` (1-based) when not known.
     """
 
     exam: Exam
@@ -57,14 +51,15 @@ def analyze_exam(
         exam: The exam (its type decides about the Romberg test).
         lowpass_hz: Low-pass filter (see :func:`freestep.analysis.stabilometry.analyze`).
         detrend: Remove the linear trend (see :func:`freestep.analysis.stabilometry.analyze`).
-        eyes_closed_first: Romberg order without labels (see :func:`freestep.analysis.stabilometry.detect_romberg`).
+        eyes_closed_first: Romberg order without labels (see :func:`freestep.analysis.protocols.classify`).
     """
     results = analyze_all(post, lowpass_hz, detrend=detrend)
-    romberg = evaluate_romberg(post, results, exam.exam_type, eyes_closed_first)
-    conditions = [f"acquisition_{acq.index + 1}" for acq in post.acquisitions]
-    if romberg is not None:
-        conditions[romberg.eyes_open], conditions[romberg.eyes_closed] = "eyes_open", "eyes_closed"
-    return ExamAnalysis(exam=exam, results=results, romberg=romberg, conditions=conditions)
+    assessment = assess(post, results, exam.exam_type, eyes_closed_first)
+    conditions = [
+        condition_key(c) or f"acquisition_{acq.index + 1}"
+        for acq, c in zip(post.acquisitions, assessment.conditions, strict=True)
+    ]
+    return ExamAnalysis(exam=exam, results=results, romberg=assessment.romberg, conditions=conditions)
 
 
 def patient_exams(export: FreeStepExport, patient_id: int) -> list[Exam]:

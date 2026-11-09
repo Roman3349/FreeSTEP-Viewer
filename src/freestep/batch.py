@@ -16,12 +16,8 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .analysis.stabilometry import (
-    DEFAULT_LOWPASS_HZ,
-    ROMBERG_PARAMETERS,
-    Romberg,
-    Stabilometry,
-)
+from .analysis.protocols import ROMBERG_PARAMETERS, Romberg
+from .analysis.stabilometry import DEFAULT_LOWPASS_HZ, Stabilometry
 from .archive import FreeStepExport
 from .history import analyze_exam
 from .models import Exam, Patient
@@ -121,19 +117,21 @@ def summary_rows(
     post: Recording,
     results: list[Stabilometry | None],
     romberg: Romberg | None,
+    *,
+    conditions: list[str] | None = None,
 ) -> list[dict[str, object]]:
     """Return the rows of the summary table for one exam (one row per acquisition).
 
     Columns: patient and exam identification, ``acquisition`` (1-based),
-    ``condition`` (``eyes_open`` / ``eyes_closed`` for a Romberg test), all
+    ``condition`` (see :func:`freestep.analysis.protocols.condition_key`; empty when not known), all
     stabilometric parameters and the Romberg quotients (``romberg_<parameter>``,
-    the same in both rows of an exam).
+    the same in all rows of an exam).
     """
     rows: list[dict[str, object]] = []
     for acq, result in zip(post.acquisitions, results, strict=True):
-        condition = ""
-        if romberg is not None:
-            condition = "eyes_open" if acq.index == romberg.eyes_open else "eyes_closed"
+        condition = conditions[acq.index] if conditions else ""
+        if condition.startswith("acquisition_"):
+            condition = ""
         row: dict[str, object] = {
             "patient_id": patient.id if patient is not None else "",
             "name": patient.name if patient is not None else "",
@@ -201,7 +199,7 @@ def batch_export(
             is written always.
         lowpass_hz: Low-pass filter of the analysis (see :func:`freestep.analysis.stabilometry.analyze`).
         detrend: Remove the linear trend of the COP (see :func:`freestep.analysis.stabilometry.analyze`).
-        eyes_closed_first: Romberg order without labels (see :func:`freestep.analysis.stabilometry.detect_romberg`).
+        eyes_closed_first: Romberg order without labels (see :func:`freestep.analysis.protocols.classify`).
         progress: Called before each exam with ``(index, count, exam)``; returning
             ``False`` cancels the export (the files written so far are kept).
 
@@ -241,14 +239,15 @@ def batch_export(
                 post = fre.recording
                 results: list[Stabilometry | None] = []
                 romberg: Romberg | None = None
+                conditions: list[str] = []
                 if analyse:
                     analysis = analyze_exam(
                         post, exam, lowpass_hz=lowpass_hz, detrend=detrend, eyes_closed_first=eyes_closed_first
                     )
-                    results, romberg = analysis.results, analysis.romberg
+                    results, romberg, conditions = analysis.results, analysis.romberg, analysis.conditions
                 files = export_exam(post, out, stem, formats, results=results, romberg=romberg)
                 if summary:
-                    rows += summary_rows(patient, exam, post, results, romberg)
+                    rows += summary_rows(patient, exam, post, results, romberg, conditions=conditions)
         except (OSError, ValueError, RuntimeError) as exc:
             result.skipped.append((exam, str(exc)))
             entry["status"] = str(exc)

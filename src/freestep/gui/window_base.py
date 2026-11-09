@@ -34,7 +34,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..analysis.stabilometry import Romberg, Stabilometry
+from ..analysis.protocols import Assessment, Romberg, Stance
+from ..analysis.stabilometry import Stabilometry
 from ..archive import FreeStepExport, FreFile
 from ..history import ExamAnalysis
 from ..models import Exam, Patient
@@ -81,6 +82,7 @@ class WindowBase(QMainWindow):
     # Analysis results
     _stabilometry: list[Stabilometry | None]
     _romberg: Romberg | None
+    _assessment: Assessment
     _history_cache: dict[tuple[object, ...], ExamAnalysis]
     _history_patient: int | None
     _history_analyses: list[ExamAnalysis]
@@ -171,6 +173,9 @@ class WindowBase(QMainWindow):
         raise NotImplementedError
 
     def _playback_speed(self) -> float:
+        raise NotImplementedError
+
+    def _stance(self, index: int) -> Stance | None:
         raise NotImplementedError
 
     def _follow_video(self, *, playing: bool = False, speed: float = 1.0) -> None:

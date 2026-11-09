@@ -14,13 +14,13 @@ msgstr "Proband / měření"
 
 #: freestep/gui/app.py
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Date"
 msgstr "Datum"
 
 #: freestep/gui/app.py
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Type"
 msgstr "Typ"
 
@@ -285,37 +285,37 @@ msgid "Unknown settings"
 msgstr "Neznámá nastavení"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Subject"
 msgstr "Proband"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Name"
 msgstr "Jméno"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "ID"
 msgstr "ID"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Born"
 msgstr "Narozen(a)"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Sex"
 msgstr "Pohlaví"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Height"
 msgstr "Výška"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Weight"
 msgstr "Hmotnost"
 
@@ -328,7 +328,7 @@ msgid "SSID"
 msgstr "SSID"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Exam"
 msgstr "Měření"
 
@@ -337,7 +337,7 @@ msgid "Time"
 msgstr "Čas"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Footwear"
 msgstr "Obuv"
 
@@ -358,7 +358,7 @@ msgid "raw data"
 msgstr "surová data"
 
 #: freestep/gui/info.py
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 msgid "Note"
 msgstr "Poznámka"
 
@@ -366,10 +366,14 @@ msgstr "Poznámka"
 msgid "File"
 msgstr "Soubor"
 
-#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/reports/pages.py
 #, python-brace-format
 msgid "Page {number}"
 msgstr "Strana {number}"
+
+#: freestep/gui/reports/pages.py
+msgid "Age at exam"
+msgstr "Věk při měření"
 
 #: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_history.py
@@ -382,6 +386,41 @@ msgid "Parameter"
 msgstr "Parametr"
 
 #: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Left foot"
+msgstr "Levá noha"
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Right foot"
+msgstr "Pravá noha"
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Romberg test on one foot"
+msgstr "Rombergův test na jedné noze"
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "eyes open"
+msgstr "oči otevřené"
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "eyes closed"
+msgstr "oči zavřené"
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Symmetry"
+msgstr "Symetrie"
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Single-leg stance"
+msgstr "Stoj na jedné noze"
+
+#: freestep/gui/reports/stabilometric.py
 msgid "Stabilometric report"
 msgstr "Stabilometrický protokol"
 
@@ -391,10 +430,6 @@ msgstr "Stabilometrický protokol"
 #, python-brace-format
 msgid "Exam {id}"
 msgstr "Měření {id}"
-
-#: freestep/gui/reports/stabilometric.py
-msgid "Age at exam"
-msgstr "Věk při měření"
 
 #: freestep/gui/reports/stabilometric.py
 msgid "Summary"
@@ -439,6 +474,10 @@ msgid "Mean of every sensor over the frames where it is loaded; share of the tot
 msgstr "Průměr každého senzoru přes snímky, ve kterých je zatížen; podíl celkového zatížení v každém kvadrantu, COP celé plošiny (černě) a levého a pravého chodidla."
 
 #: freestep/gui/reports/stabilometric.py
+msgid "Single-leg stance: share of the load of the standing foot on its front and rear half."
+msgstr "Stoj na jedné noze: podíl zatížení stojné nohy na její přední a zadní polovině."
+
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
 msgstr "Zatížení: levá a pravá noha rozděleny v mezeře mezi nimi; přední a zadní polovina délky každého chodidla (prsty směrem k horní části tlakové mapy)."
@@ -474,6 +513,16 @@ msgstr "Stabilometrické parametry"
 #: freestep/gui/reports/stabilometric.py
 msgid "Path length and mean velocity: length of the COP trajectory and its mean speed. 95% confidence ellipse: area containing 95% of the COP positions (principal components). Frequencies from the power spectrum (Welch) in 0.15–5 Hz."
 msgstr "Délka dráhy a průměrná rychlost: délka trajektorie COP a jeho průměrná rychlost. 95% konfidenční elipsa: plocha obsahující 95 % poloh COP (hlavní komponenty). Frekvence z výkonového spektra (Welch) v pásmu 0,15–5 Hz."
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "L/S = path length / area of the 95% confidence ellipse."
+msgstr "L/S = délka dráhy / plocha 95% konfidenční elipsy."
+
+#: freestep/gui/reports/stabilometric.py
+#: freestep/gui/texts.py
+msgid "Symmetry = (left − right) / mean of both; positive when the left foot sways more."
+msgstr "Symetrie = (levá − pravá) / průměr obou; kladná, když se více kýve levá noha."
 
 #: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
@@ -555,17 +604,10 @@ msgid "Female"
 msgstr "Žena"
 
 #: freestep/gui/texts.py
-#: freestep/gui/window_history.py
-msgid "Eyes open"
-msgstr "Oči otevřené"
+msgid "Both feet"
+msgstr "Obě nohy"
 
 #: freestep/gui/texts.py
-#: freestep/gui/window_history.py
-msgid "Eyes closed"
-msgstr "Oči zavřené"
-
-#: freestep/gui/texts.py
-#: freestep/gui/window_history.py
 #, python-brace-format
 msgid "Acquisition {number}"
 msgstr "Záznam {number}"
@@ -678,6 +720,10 @@ msgid "Sway area per second"
 msgstr "Opsaná plocha za sekundu"
 
 #: freestep/gui/texts.py
+msgid "Length per area (L/S)"
+msgstr "Délka na plochu (L/S)"
+
+#: freestep/gui/texts.py
 msgid "Frequency (0.15–5 Hz)"
 msgstr "Frekvence (0,15–5 Hz)"
 
@@ -712,14 +758,6 @@ msgstr "Celkový výkon ML"
 #: freestep/gui/texts.py
 msgid "Total power AP"
 msgstr "Celkový výkon AP"
-
-#: freestep/gui/texts.py
-msgid "Left foot"
-msgstr "Levá noha"
-
-#: freestep/gui/texts.py
-msgid "Right foot"
-msgstr "Pravá noha"
 
 #: freestep/gui/texts.py
 msgid "Asymmetry (right − left)"
@@ -778,8 +816,17 @@ msgid "Quotient"
 msgstr "Kvocient"
 
 #: freestep/gui/texts.py
-msgid "Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."
-msgstr "Nejde o Rombergův test (vyžaduje měření typu Posturografie se dvěma stejně dlouhými záznamy)."
+msgid "Romberg quotient on one foot"
+msgstr "Rombergův kvocient na jedné noze"
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Single-leg stance is recognised by at least {share} % of the load on one foot."
+msgstr "Stoj na jedné noze je rozpoznán podle alespoň {share} % zatížení na jedné noze."
+
+#: freestep/gui/texts.py
+msgid "No Romberg test (needs a posturography exam with acquisitions with eyes open and closed)."
+msgstr "Není Rombergův test (vyžaduje posturografické měření se záznamy s otevřenýma a zavřenýma očima)."
 
 #: freestep/gui/widgets/heatmap.py
 msgid "No exam loaded"

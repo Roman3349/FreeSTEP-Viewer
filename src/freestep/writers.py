@@ -10,7 +10,8 @@ import os
 import numpy as np
 from scipy.io import savemat
 
-from .analysis.stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
+from .analysis.protocols import ROMBERG_PARAMETERS, Romberg
+from .analysis.stabilometry import Stabilometry, unit
 from .recording import Recording
 
 #: Columns of :func:`write_cop_csv`.

@@ -17,7 +17,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..analysis.stabilometry import analyze_all, evaluate_romberg, speed, sway
+from ..analysis.protocols import Assessment, assess
+from ..analysis.stabilometry import analyze_all, speed, sway
 from ..recording import Acquisition
 from .i18n import tr
 from .texts import acquisition_style, directions_note, stabilometry_html
@@ -188,16 +189,20 @@ class AnalysisMixin(WindowBase):
         """Compute the stabilometric parameters and the Romberg test of the shown exam and show them."""
         post = self._current.recording if self._current is not None else None
         if post is None:
-            self._stabilometry, self._romberg = [], None
+            self._stabilometry, self._romberg, self._assessment = [], None, Assessment([])
             self.stabilometry_view.clear()
             return
         self._stabilometry = analyze_all(post, self._lowpass_hz or None, detrend=self._detrend)
         assert self._current is not None
-        self._romberg = evaluate_romberg(
-            post, self._stabilometry, self._current.exam.exam_type, self._eyes_closed_first
+        self._assessment = assess(post, self._stabilometry, self._current.exam.exam_type, self._eyes_closed_first)
+        self._romberg = self._assessment.romberg
+        self.eyes_closed_first.setEnabled(
+            any(
+                c is not None and c.eyes_closed is not None and not c.eyes_from_label
+                for c in self._assessment.conditions
+            )
         )
-        self.eyes_closed_first.setEnabled(self._romberg is not None and not self._romberg.order_from_labels)
-        self.stabilometry_view.setHtml(stabilometry_html(post, self._stabilometry, self._romberg))
+        self.stabilometry_view.setHtml(stabilometry_html(post, self._stabilometry, self._assessment))
         self._update_stabilogram()
 
     def _update_stabilogram(self) -> None:
@@ -265,4 +270,5 @@ class AnalysisMixin(WindowBase):
 
     def _acquisition_style(self, acq: Acquisition) -> tuple[str, QColor]:
         """Legend label and colour of an acquisition compared in the stabilogram and the speed curve."""
-        return acquisition_style(acq.index, self._romberg)
+        conditions = self._assessment.conditions
+        return acquisition_style(acq.index, conditions[acq.index] if acq.index < len(conditions) else None)

@@ -9,8 +9,10 @@ from PySide6.QtCore import QBuffer, QByteArray, QIODevice
 from PySide6.QtGui import QColor, QImage
 from PySide6.QtWidgets import QApplication
 
+from freestep.analysis.load import load_regions
+from freestep.analysis.protocols import Stance
 from freestep.archive import FreFile
-from freestep.gui.exam import decode_images, load_exam
+from freestep.gui.exam import decode_images, load_exam, region_overlay
 
 PATIENT_INI = b"[Paziente]\r\nID=1\r\nIDEsame=7\r\nTipoEsame=8\r\nNominativo=Test Subject\r\nNomeFile=00000007.fre\r\n"
 
@@ -56,3 +58,17 @@ def test_load_static_exam() -> None:
     loaded = load_exam(FreFile(_synthetic_fre(members)))
     assert loaded.recording is not None and loaded.recording.acquisitions[0].frame_count == 1
     assert int(loaded.pressure_sums[0][0]) == frame.sum()
+
+
+def test_region_overlay_single_leg() -> None:
+    """Single-leg stance shows only the standing foot with its front and rear share; both feet show quadrants."""
+    frame = np.zeros((6, 10), np.uint16)
+    frame[0:6, 1:3] = 10  # left foot
+    frame[4:6, 7] = 1  # the raised right foot touches lightly
+    regions = load_regions(frame)
+    shares = {"left_forefoot_pct": 40.0, "left_front_pct": 30.0, "right_rear_pct": 5.0}
+    only, quadrants, foot = region_overlay(regions, shares, Stance.LEFT)
+    assert only.left == regions.left and only.right is None
+    assert quadrants == (None, None, None, None) and foot == (40.0, 60.0)
+    same, quadrants, foot = region_overlay(regions, shares, Stance.BOTH)
+    assert same is regions and foot is None and quadrants == (30.0, None, None, 5.0)

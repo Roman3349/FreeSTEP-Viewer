@@ -9,15 +9,8 @@ import zipfile
 from collections.abc import Callable
 from pathlib import Path
 
-from .analysis.stabilometry import (
-    DEFAULT_LOWPASS_HZ,
-    ROMBERG_PARAMETERS,
-    Romberg,
-    Stabilometry,
-    analyze_all,
-    evaluate_romberg,
-    unit,
-)
+from .analysis.protocols import ROMBERG_PARAMETERS, Assessment, Romberg, assess, condition_key
+from .analysis.stabilometry import DEFAULT_LOWPASS_HZ, Stabilometry, analyze_all, unit
 from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
 from .batch import FORMATS, batch_export, exam_stem, write_summary_csv
 from .history import ROMBERG_PREFIX, analyze_exams, history_rows, patient_exams
@@ -154,16 +147,10 @@ def cmd_exam(args: argparse.Namespace) -> int:
 
         lowpass = args.lowpass or None
         results = analyze_all(post, lowpass, detrend=args.detrend)
-        romberg = evaluate_romberg(post, results, exam.exam_type, args.eyes_closed_first)
+        assessment = assess(post, results, exam.exam_type, args.eyes_closed_first)
+        romberg = assessment.romberg
         _print_stabilometry(results, lowpass, args.detrend)
-        if romberg is not None:
-            order = "from labels" if romberg.order_from_labels else "assumed"
-            print(
-                f"Romberg test: eyes open = acquisition {romberg.eyes_open}, "
-                f"eyes closed = acquisition {romberg.eyes_closed} ({order}); quotients EC/EO:"
-            )
-            for name in ROMBERG_PARAMETERS:
-                print(f"    {name:<28} {romberg.quotients[name]:8.2f}")
+        _print_protocols(assessment)
 
         _write_outputs(args, fre, results, romberg)
     finally:
@@ -171,6 +158,31 @@ def cmd_exam(args: argparse.Namespace) -> int:
         if export is not None:
             export.close()
     return 0
+
+
+def _print_protocols(assessment: Assessment) -> None:
+    """Print the conditions of the acquisitions, the Romberg tests and the single-leg symmetry."""
+    for index, condition in enumerate(assessment.conditions):
+        if condition is not None:
+            how = "label" if condition.stance_from_label or condition.eyes_from_label else "load / order"
+            print(f"Acquisition {index + 1}: {condition_key(condition)} ({how})")
+    for romberg in assessment.rombergs:
+        order = "from labels" if romberg.order_from_labels else "assumed"
+        stance = "both feet" if romberg.stance.value == "both" else f"{romberg.stance.value} foot"
+        print(
+            f"Romberg test ({stance}): eyes open = acquisition {romberg.eyes_open + 1}, "
+            f"eyes closed = acquisition {romberg.eyes_closed + 1} ({order}); quotients EC/EO:"
+        )
+        for name in ROMBERG_PARAMETERS:
+            print(f"    {name:<28} {romberg.quotients[name]:8.2f}")
+    for legs in assessment.legs:
+        eyes = {False: ", eyes open", True: ", eyes closed", None: ""}[legs.eyes_closed]
+        print(
+            f"Single-leg stance{eyes}: left = acquisition {legs.left + 1}, right = acquisition {legs.right + 1}; "
+            "symmetry (left − right) / mean in %:"
+        )
+        for name, value in legs.symmetry_pct.items():
+            print(f"    {name:<28} {value:8.1f}")
 
 
 #: Parameters printed by ``freestep exam`` (all are in the ``--stats`` CSV).

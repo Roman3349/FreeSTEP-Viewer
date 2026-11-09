@@ -40,7 +40,8 @@ from PySide6.QtWidgets import (
     QTreeWidget,
 )
 
-from ..analysis.stabilometry import DEFAULT_LOWPASS_HZ, Romberg, Stabilometry
+from ..analysis.protocols import Assessment, Romberg
+from ..analysis.stabilometry import DEFAULT_LOWPASS_HZ, Stabilometry
 from ..archive import DEFAULT_PASSWORD, FreeStepExport
 from ..history import ExamAnalysis
 from ..models import Exam, Patient
@@ -107,6 +108,7 @@ class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMix
         self._cop_origin = int(setting_float(self._settings.value("cop_origin"), ORIGIN_PLATE))
         self._stabilometry: list[Stabilometry | None] = []
         self._romberg: Romberg | None = None
+        self._assessment = Assessment([])
         # History: analyses by (exam ID, low-pass, detrend, eyes closed first); the shown patient
         self._history_cache: dict[tuple[object, ...], ExamAnalysis] = {}
         self._history_patient: int | None = None

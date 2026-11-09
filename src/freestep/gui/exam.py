@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, replace
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,6 +11,7 @@ from PySide6.QtCore import QBuffer, QByteArray, QIODevice
 from PySide6.QtGui import QImage
 
 from ..analysis.load import LoadDistribution, LoadRegions, load_distribution, load_regions
+from ..analysis.protocols import Stance
 from ..archive import FreFile
 from ..formats import VideoTrack
 from ..models import Exam, FilterSettings, Patient
@@ -126,7 +128,14 @@ def is_bad_password(exc: BaseException) -> bool:
 
 
 def show_on_heatmap(
-    view: HeatmapView, loaded: LoadedExam, acq: Acquisition, frame: int, mode: int, *, trail: int
+    view: HeatmapView,
+    loaded: LoadedExam,
+    acq: Acquisition,
+    frame: int,
+    mode: int,
+    *,
+    trail: int,
+    stance: Stance | None = None,
 ) -> None:
     """Show a frame, or the maximum / mean image, of an acquisition on a heat map.
 
@@ -138,6 +147,8 @@ def show_on_heatmap(
         mode: ``MODE_FRAME``, ``MODE_MAX`` or ``MODE_MEAN``.
         trail: Number of previous frames drawn as the COP trail (0: none; the whole
             trajectory in the maximum / mean mode).
+        stance: Stance of the acquisition (see :func:`freestep.analysis.protocols.classify`); single-leg
+            stance shows only the front and rear of the loaded foot.
     """
     h = acq.header
     cell = (float(h.cell_width_mm), float(h.cell_height_mm))
@@ -160,19 +171,53 @@ def show_on_heatmap(
         view.set_frame(image, h.max_value, cell, trail=acq.cop_total if trail else None)
         if loaded.loads:
             regions, shares = loaded.loads[acq.index]
-            view.set_regions(regions, load_shares(shares))
+            view.set_regions(*region_overlay(regions, shares, stance))
         else:
             view.set_regions(None)
 
 
-def load_shares(shares: LoadDistribution) -> tuple[float | None, float | None, float | None, float | None]:
+def region_overlay(
+    regions: LoadRegions, shares: Mapping[str, object], stance: Stance | None
+) -> tuple[
+    LoadRegions, tuple[float | None, float | None, float | None, float | None], tuple[float | None, float | None] | None
+]:
+    """Arguments of :meth:`HeatmapView.set_regions` for an acquisition.
+
+    Standing on both feet shows the four quadrants. Single-leg stance shows only the
+    loaded foot with the share of its front and rear half; the other, raised foot is left out.
+
+    Args:
+        regions: Split between the feet and their halves.
+        shares: The load distribution (the ``*_pct`` fields of :class:`~freestep.analysis.stabilometry.Stabilometry`).
+        stance: Stance of the acquisition, ``None`` when not known (treated as both feet).
+    """
+    if stance in (Stance.LEFT, Stance.RIGHT):
+        front_pct = _pct(shares, "left_forefoot_pct" if stance == Stance.LEFT else "right_forefoot_pct")
+        foot = regions.left if stance == Stance.LEFT else regions.right
+        if foot is not None:
+            only = (
+                replace(regions, left=foot, right=None)
+                if stance == Stance.LEFT
+                else replace(regions, left=None, right=foot)
+            )
+            return only, (None, None, None, None), (front_pct, None if front_pct is None else 100 - front_pct)
+    return regions, load_shares(shares), None
+
+
+def load_shares(shares: Mapping[str, object]) -> tuple[float | None, float | None, float | None, float | None]:
     """Shares of the left front, left rear, right front and right rear quadrant for :meth:`HeatmapView.set_regions`."""
     return (
-        shares.get("left_front_pct"),
-        shares.get("left_rear_pct"),
-        shares.get("right_front_pct"),
-        shares.get("right_rear_pct"),
+        _pct(shares, "left_front_pct"),
+        _pct(shares, "left_rear_pct"),
+        _pct(shares, "right_front_pct"),
+        _pct(shares, "right_rear_pct"),
     )
+
+
+def _pct(shares: Mapping[str, object], name: str) -> float | None:
+    """A share of the load distribution, ``None`` when missing."""
+    value = shares.get(name)
+    return float(value) if isinstance(value, (int, float)) else None
 
 
 def png_bytes(image: QImage) -> bytes:

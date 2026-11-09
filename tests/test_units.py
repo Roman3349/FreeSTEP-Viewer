@@ -58,10 +58,13 @@ def test_converters() -> None:
     assert str(to_date("2003-04-21 00:00:00")) == "2003-04-21"
 
 
-def _synthetic_postura(version: int, acquisitions: list[int], rows: int = 4, cols: int = 6, tail: int = 0) -> bytes:
+def _synthetic_postura(
+    version: int, acquisitions: list[int], rows: int = 4, cols: int = 6, tail: int = 0, *, both_feet: bool = False
+) -> bytes:
     """Build a ``Postura.dat`` like FreeSTEP writes it.
 
-    Every frame has one loaded cell (value 10 + frame index at row 1, column 2) and
+    Every frame has one loaded cell (value 10 + frame index at row 1, column 2), with
+    ``both_feet`` also one on the right (value 20 at row 1, column ``cols − 2``), and
     a timestamp every 40 ms; each acquisition is followed by its mean image and,
     for version 3, a 100 character label.
     """
@@ -72,6 +75,8 @@ def _synthetic_postura(version: int, acquisitions: list[int], rows: int = 4, col
         for i in range(count):
             p = np.zeros((rows, cols), "<u2")
             p[1, 2] = 10 + i
+            if both_feet:
+                p[1, cols - 2] = 20
             data += p.tobytes() + struct.pack("<ih6f", 1000 + 40 * i, 246, 1.0, 0.5, 1.0, 0.5, 0, 0)
         data += np.full((rows, cols), number, "<u2").tobytes()
         if version == 3:

@@ -1,6 +1,7 @@
 """PDF reports of an exam, painted with Qt.
 
-- :mod:`.stabilometric` — the stabilometric report of a posturography exam.
+- :mod:`.stabilometric` — the stabilometric report of a posturography exam,
+- :mod:`.pages` — pages flowing over A4 and the blocks shared by the reports.
 
 The reports render the widgets of the viewer (plots, heat maps), so they need PySide6
 like the GUI.

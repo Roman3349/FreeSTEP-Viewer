@@ -75,6 +75,7 @@ class HeatmapView(QWidget):
         self.plates = 1
         self._regions: LoadRegions | None = None
         self._shares: tuple[float | None, float | None, float | None, float | None] = (None, None, None, None)
+        self._foot: tuple[float | None, float | None] | None = None
 
     def sizeHint(self) -> QSize:  # noqa: N802 (Qt API)
         """Return the preferred size."""
@@ -122,14 +123,17 @@ class HeatmapView(QWidget):
         self,
         regions: LoadRegions | None,
         shares: tuple[float | None, float | None, float | None, float | None] = (None, None, None, None),
+        foot: tuple[float | None, float | None] | None = None,
     ) -> None:
         """Set the load quadrants drawn over the image (``None`` removes them).
 
         Args:
             regions: Split between the feet and their front and rear halves, with their COPs.
             shares: Load shares in % of the left front, left rear, right front and right rear quadrant.
+            foot: Single-leg stance: shares in % of the front and rear half of the loaded foot
+                (the only foot in ``regions``); shown instead of the quadrants, without the split between the feet.
         """
-        self._regions, self._shares = regions, shares
+        self._regions, self._shares, self._foot = regions, shares, foot
         self.update()
 
     def image(self) -> QImage | None:
@@ -256,8 +260,9 @@ class HeatmapView(QWidget):
     def _paint_region_lines(self, painter: QPainter, rect: QRectF, regions: LoadRegions) -> None:
         """Draw the split between the feet and between the front and rear half of each foot."""
         painter.setPen(QPen(QColor(60, 60, 60), 1.2, Qt.PenStyle.DashLine))
-        split = self._cell_to_widget(rect, regions.split_column, 0).x()
-        painter.drawLine(QPointF(split, rect.top()), QPointF(split, rect.bottom()))
+        if self._foot is None:
+            split = self._cell_to_widget(rect, regions.split_column, 0).x()
+            painter.drawLine(QPointF(split, rect.top()), QPointF(split, rect.bottom()))
         for foot in (regions.left, regions.right):
             if foot is not None:
                 painter.drawLine(
@@ -287,7 +292,7 @@ class HeatmapView(QWidget):
         def total(a: float | None, b: float | None) -> float | None:
             return None if a is None and b is None else (a or 0.0) + (b or 0.0)
 
-        labels = (
+        labels: tuple[tuple[float | None, int, int], ...] = (
             (left_front, -1, -1),
             (left_rear, -1, 1),
             (right_front, 1, -1),
@@ -297,6 +302,8 @@ class HeatmapView(QWidget):
             (total(left_front, right_front), 0, -1),
             (total(left_rear, right_rear), 0, 1),
         )
+        if self._foot is not None:  # single-leg stance: front and rear of the loaded foot only
+            labels = ((self._foot[0], 0, -1), (self._foot[1], 0, 1))
         font = painter.font()
         font.setBold(True)
         painter.setFont(font)

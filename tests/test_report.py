@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 from test_units import _synthetic_postura
 
-from freestep.analysis.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze_all, evaluate_romberg
+from freestep.analysis.protocols import assess
+from freestep.analysis.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze_all
 from freestep.formats import parse_postura
 from freestep.models import Exam, Patient, Sex
 
@@ -15,7 +16,8 @@ pytest.importorskip("PySide6")
 from PySide6.QtGui import QColor, QImage, QPainter, QPalette, QTextDocument
 from PySide6.QtWidgets import QApplication
 
-from freestep.gui.reports.stabilometric import ReportData, draw_document, write_report
+from freestep.gui.reports import ReportData, write_report
+from freestep.gui.reports.pages import draw_document
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -26,7 +28,7 @@ def app() -> QApplication:
 
 def _data(acquisitions: list[int]) -> ReportData:
     """Report data of a synthetic posturography exam."""
-    post = parse_postura(_synthetic_postura(3, acquisitions))
+    post = parse_postura(_synthetic_postura(3, acquisitions, both_feet=True))
     patient = Patient(
         id=1,
         name="Jan Novák",
@@ -55,8 +57,7 @@ def _data(acquisitions: list[int]) -> ReportData:
         file_name="00000007.fre",
     )
     results = analyze_all(post, None)
-    romberg = evaluate_romberg(post, results, exam.exam_type)
-    return ReportData(patient, exam, post, results, romberg, None)
+    return ReportData(patient, exam, post, results, assess(post, results, exam.exam_type), None)
 
 
 @pytest.mark.parametrize("acquisitions", [[40], [40, 40]])

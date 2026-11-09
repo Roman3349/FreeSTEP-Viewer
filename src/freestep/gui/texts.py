@@ -7,7 +7,16 @@ import html
 import numpy as np
 from PySide6.QtGui import QColor
 
-from ..analysis.stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
+from ..analysis.protocols import (
+    ROMBERG_PARAMETERS,
+    SINGLE_LEG_SHARE_PCT,
+    SYMMETRY_PARAMETERS,
+    Assessment,
+    Condition,
+    Romberg,
+    Stance,
+)
+from ..analysis.stabilometry import Stabilometry, unit
 from ..history import ROMBERG_PREFIX
 from ..models import Exam, Sex
 from ..recording import Acquisition, Recording
@@ -60,19 +69,40 @@ def sex_label(sex: Sex | None) -> str | None:
     return {Sex.MALE: tr("Male"), Sex.FEMALE: tr("Female")}[sex]
 
 
-def acquisition_style(index: int, romberg: Romberg | None) -> tuple[str, QColor]:
+def condition_label(condition: Condition | None) -> str | None:
+    """Translated condition of an acquisition, e.g. "Eyes open", "Left foot, eyes closed"; ``None`` when not known."""
+    if condition is None:
+        return None
+    eyes = {False: tr("eyes open"), True: tr("eyes closed"), None: ""}[condition.eyes_closed]
+    if condition.stance == Stance.BOTH:
+        return eyes.capitalize() if eyes else tr("Both feet")
+    foot = tr("Left foot") if condition.stance == Stance.LEFT else tr("Right foot")
+    return f"{foot}, {eyes}" if eyes else foot
+
+
+def condition_name(key: str) -> str:
+    """Translated name of a condition (:func:`~freestep.analysis.protocols.condition_key`) or ``acquisition_<n>``."""
+    if key.startswith("acquisition_"):
+        return tr("Acquisition {number}", number=key.removeprefix("acquisition_"))
+    stance = Stance.LEFT if key.startswith("left_") else Stance.RIGHT if key.startswith("right_") else Stance.BOTH
+    eyes = True if key.endswith("eyes_closed") else False if key.endswith("eyes_open") else None
+    return condition_label(Condition(stance, eyes)) or key
+
+
+def acquisition_style(index: int, condition: Condition | None) -> tuple[str, QColor]:
     """Legend label and colour of an acquisition in plots comparing acquisitions (as in the History tab).
 
     Args:
         index: Zero-based index of the acquisition.
-        romberg: Romberg evaluation of the exam; names the eye conditions.
+        condition: Condition of the acquisition (see :func:`freestep.analysis.protocols.classify`); names it.
     """
-    if romberg is not None and index == romberg.eyes_open:
-        return tr("Eyes open"), ML_COLOR
-    if romberg is not None and index == romberg.eyes_closed:
-        return tr("Eyes closed"), AP_COLOR
     palette = [ML_COLOR, AP_COLOR, COP_LEFT_COLOR, COP_RIGHT_COLOR]
-    return tr("Acquisition {number}", number=index + 1), palette[index % len(palette)]
+    label = condition_label(condition)
+    if condition is None or label is None:
+        return tr("Acquisition {number}", number=index + 1), palette[index % len(palette)]
+    if condition.stance == Stance.BOTH:
+        return label, AP_COLOR if condition.eyes_closed else ML_COLOR
+    return label, COP_LEFT_COLOR if condition.stance == Stance.LEFT else COP_RIGHT_COLOR
 
 
 def acquisition_label(acq: Acquisition, *, gait: bool = False) -> str:
@@ -144,6 +174,7 @@ def parameter_groups() -> list[tuple[str, list[tuple[str, str]]]]:
                 ("ellipse_angle_deg", tr("Ellipse angle")),
                 ("convex_hull_area_mm2", tr("Convex hull")),
                 ("sway_area_mm2_s", tr("Sway area per second")),
+                ("length_per_area_1_mm", tr("Length per area (L/S)")),
             ],
         ),
         (
@@ -202,24 +233,22 @@ def format_number(value: float | None) -> str:
     return "–" if value is None or not np.isfinite(value) else f"{float(value):.2f}"
 
 
-def stabilometry_html(post: Recording, results: list[Stabilometry | None], romberg: Romberg | None) -> str:
-    """Build the HTML of the Stabilometry tab: a table with one column per acquisition.
+def stabilometry_html(post: Recording, results: list[Stabilometry | None], assessment: Assessment) -> str:
+    """Build the HTML of the Stabilometry tab: a table with one column per acquisition, then the tests.
 
-    For a Romberg test the eyes-open and eyes-closed acquisitions are named and the
-    Romberg quotient (eyes closed / eyes open) of the compared parameters is added.
+    The acquisitions are named by their condition; for a Romberg test on both feet
+    the Romberg quotient (eyes closed / eyes open) of the compared parameters is
+    added. Romberg tests on one foot and the left / right symmetry of single-leg
+    stance follow in their own tables.
     """
-
-    def words(text: str) -> str:
-        # One word per line keeps the value columns narrow
-        return "<br>".join(html.escape(w) for w in text.split())
-
-    names = [words(tr("Acquisition {number}", number=a.index + 1)) for a in post.acquisitions]
-    if romberg is not None:
-        for index, condition in ((romberg.eyes_open, tr("Eyes open")), (romberg.eyes_closed, tr("Eyes closed"))):
-            names[index] = f"{words(condition)}<br><small>{names[index].replace('<br>', ' ')}</small>"
-    columns = [*names, words(tr("Quotient"))] if romberg is not None else names
-    header = "".join(f"<th align='right' style='padding-left:12px; white-space:nowrap'>{c}</th>" for c in columns)
-    rows = [f"<tr><th align='left'>{html.escape(tr('Parameter'))}</th><th></th>{header}</tr>"]
+    romberg = assessment.romberg
+    names = []
+    for acq, condition in zip(post.acquisitions, assessment.conditions, strict=True):
+        number = tr("Acquisition {number}", number=acq.index + 1)
+        label = condition_label(condition)
+        names.append(f"{_words(label)}<br><small>{html.escape(number)}</small>" if label else _words(number))
+    columns = [*names, _words(tr("Quotient"))] if romberg is not None else names
+    rows = [_header_row(tr("Parameter"), columns)]
     for title, parameters in parameter_groups():
         rows.append(f"<tr><td colspan='{len(columns) + 2}'><b><br>{html.escape(title)}</b></td></tr>")
         for name, label in parameters:
@@ -227,11 +256,67 @@ def stabilometry_html(post: Recording, results: list[Stabilometry | None], rombe
             if romberg is not None:
                 quotient = romberg.quotients.get(name)
                 cells.append(format_number(quotient) if quotient is not None else "")
-            values = "".join(f"<td align='right' style='padding-left:12px; white-space:nowrap'>{c}</td>" for c in cells)
-            rows.append(
-                f"<tr><td style='padding-right:12px; white-space:nowrap'>{html.escape(label)}</td>"
-                f"<td style='color:gray; white-space:nowrap'>{html.escape(unit(name))}</td>{values}</tr>"
+            rows.append(_parameter_row(name, label, cells))
+    tables = [f"<table cellspacing='0'>{''.join(rows)}</table>", *_test_tables(assessment)]
+    return "".join(tables) + "".join(f"<p style='color:gray'>{html.escape(n)}</p>" for n in _notes(results, assessment))
+
+
+def _words(text: str) -> str:
+    """One word per line keeps the value columns narrow."""
+    return "<br>".join(html.escape(w) for w in text.split())
+
+
+def _header_row(title: str, columns: list[str]) -> str:
+    """Header row of a parameter table."""
+    header = "".join(f"<th align='right' style='padding-left:12px; white-space:nowrap'>{c}</th>" for c in columns)
+    return f"<tr><th align='left'>{html.escape(title)}</th><th></th>{header}</tr>"
+
+
+def _parameter_row(name: str, label: str, cells: list[str]) -> str:
+    """Row of a parameter table: label, unit and the values."""
+    values = "".join(f"<td align='right' style='padding-left:12px; white-space:nowrap'>{c}</td>" for c in cells)
+    return (
+        f"<tr><td style='padding-right:12px; white-space:nowrap'>{html.escape(label)}</td>"
+        f"<td style='color:gray; white-space:nowrap'>{html.escape(unit(name))}</td>{values}</tr>"
+    )
+
+
+def _test_tables(assessment: Assessment) -> list[str]:
+    """Tables of the Romberg tests on one foot and of the single-leg symmetry."""
+    labels = dict(item for _, group in parameter_groups() for item in group)
+    tables = []
+    one_foot = [r for r in assessment.rombergs if r.stance != Stance.BOTH]
+    if one_foot:
+        columns = [_words(tr("Left foot") if r.stance == Stance.LEFT else tr("Right foot")) for r in one_foot]
+        rows = [_header_row(tr("Romberg quotient on one foot"), columns)]
+        for name in ROMBERG_PARAMETERS:
+            rows.append(_parameter_row(name, labels[name], [format_number(r.quotients[name]) for r in one_foot]))
+        tables.append(
+            f"<h3><br>{html.escape(tr('Romberg test on one foot'))}</h3><table cellspacing='0'>{''.join(rows)}</table>"
+        )
+    for legs in assessment.legs:
+        eyes = {False: tr("eyes open"), True: tr("eyes closed"), None: ""}[legs.eyes_closed]
+        title = tr("Single-leg stance") + (f", {eyes}" if eyes else "")
+        columns = [_words(tr("Left foot")), _words(tr("Right foot")), _words(tr("Symmetry"))]
+        rows = [_header_row(tr("Parameter"), columns)]
+        results = assessment.results
+        for name in SYMMETRY_PARAMETERS:
+            left, right = (
+                getattr(results[i], name) if results[i] is not None else None for i in (legs.left, legs.right)
             )
+            rows.append(
+                _parameter_row(
+                    name,
+                    labels[name],
+                    [format_number(left), format_number(right), f"{format_number(legs.symmetry_pct[name])} %"],
+                )
+            )
+        tables.append(f"<h3><br>{html.escape(title)}</h3><table cellspacing='0'>{''.join(rows)}</table>")
+    return tables
+
+
+def _notes(results: list[Stabilometry | None], assessment: Assessment) -> list[str]:
+    """Notes below the Stabilometry tab: directions, filtering, load split and the tests."""
     notes = [directions_note()]
     if any(r is None for r in results):
         notes.append(tr("Acquisitions with fewer than 32 loaded frames are not analysed."))
@@ -251,11 +336,21 @@ def stabilometry_html(post: Recording, results: list[Stabilometry | None], rombe
                 "(toes toward the top of the heat map)."
             )
         )
-    if romberg is not None:
+        notes.append(tr("L/S = path length / area of the 95% confidence ellipse."))
+    if any(c is not None and c.stance != Stance.BOTH and not c.stance_from_label for c in assessment.conditions):
+        notes.append(
+            tr(
+                "Single-leg stance is recognised by at least {share} % of the load on one foot.",
+                share=f"{SINGLE_LEG_SHARE_PCT:g}",
+            )
+        )
+    romberg = assessment.romberg
+    if assessment.rombergs:
         notes.append(tr("Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."))
-        if not romberg.order_from_labels:
+        if romberg is not None and not romberg.order_from_labels:
             notes.append(romberg_order_note(romberg))
     else:
-        notes.append(tr("Not a Romberg test (needs a posturography exam with two acquisitions of equal duration)."))
-    note_html = "".join(f"<p style='color:gray'>{html.escape(n)}</p>" for n in notes)
-    return f"<table cellspacing='0'>{''.join(rows)}</table>{note_html}"
+        notes.append(tr("No Romberg test (needs a posturography exam with acquisitions with eyes open and closed)."))
+    if assessment.legs:
+        notes.append(tr("Symmetry = (left − right) / mean of both; positive when the left foot sways more."))
+    return notes

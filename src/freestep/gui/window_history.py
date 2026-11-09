@@ -23,7 +23,7 @@ from ..history import (
 from ..models import Exam
 from .i18n import ntr, tr
 from .tasks import Progress
-from .texts import history_parameters, plain_value
+from .texts import condition_name, history_parameters, plain_value
 from .widgets import AP_COLOR, COP_LEFT_COLOR, COP_RIGHT_COLOR, COP_TOTAL_COLOR, ML_COLOR, HistoryPlot
 from .window_base import WindowBase
 
@@ -159,17 +159,19 @@ class HistoryMixin(WindowBase):
         """Plot the selected parameter of :attr:`_history_analyses`."""
         analyses = self._history_analyses
         parameter = str(self.history_parameter.currentData())
-        names = {
-            "eyes_open": tr("Eyes open"),
-            "eyes_closed": tr("Eyes closed"),
-            ROMBERG_CONDITION: tr("Romberg quotient"),
-        }
         colours = {"eyes_open": ML_COLOR, "eyes_closed": AP_COLOR, ROMBERG_CONDITION: COP_TOTAL_COLOR}
         palette = [COP_LEFT_COLOR, COP_RIGHT_COLOR, ML_COLOR, AP_COLOR]
         plotted = []
         for i, (condition, values) in enumerate(series(analyses, parameter).items()):
-            label = names.get(condition) or tr("Acquisition {number}", number=condition.removeprefix("acquisition_"))
-            plotted.append((label, colours.get(condition, palette[i % len(palette)]), values))
+            label = tr("Romberg quotient") if condition == ROMBERG_CONDITION else condition_name(condition)
+            colour = colours.get(condition) or (
+                COP_LEFT_COLOR
+                if condition.startswith("left_")
+                else COP_RIGHT_COLOR
+                if condition.startswith("right_")
+                else palette[i % len(palette)]
+            )
+            plotted.append((label, colour, values))
         labels = [f"{plain_value(a.exam.exam_date)}\n{tr('Exam {id}', id=a.exam.id)}" for a in analyses]
         shown = self._current.exam.id if self._current is not None else None
         current = next((i for i, a in enumerate(analyses) if a.exam.id == shown), None)

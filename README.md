@@ -32,7 +32,7 @@ uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
   the 95 % confidence ellipse, and a stabilogram (ML and AP sway over time; click to seek), subject/exam/recording
   metadata and the `Preview1.jpg` preview.
 - Stabilometric parameters and load distribution of every acquisition (Stabilometry tab, see below) and evaluation
-  of the Romberg test.
+  of the test protocol: Romberg test on both feet and on one foot, left / right symmetry of single-leg stance.
 - Export of the COP to CSV, of the frames to NPZ, of everything (frames, COP, parameters) or only the recorded
   (raw) data to MATLAB `.mat`, of the parameters to CSV, of the heat map to PNG and of all frames as PNGs in a ZIP.
 - History of a subject: one parameter (or Romberg quotient) over all their exams, per eye condition; click a
@@ -85,11 +85,20 @@ The load distribution gives the mean share of the load on the left and right hal
 the front and rear half of each foot's length. The toes are assumed to point to row 0 (the top of
 the heat map).
 
-A posturography exam with two acquisitions of the same duration is evaluated as a Romberg test:
-the Romberg quotient (eyes closed / eyes open) of path length, velocity, ellipse area, sway area,
-SD and range. FreeSTEP does not store which acquisition is with eyes closed (unless the labels
-say so). It measures in the order of the classic Romberg protocol, eyes open first, which is the
-default; `--eyes-closed-first` or the "Eyes closed first" check box handles the reverse order.
+The acquisitions of a posturography exam are assigned to the conditions of FreeSTEP's protocol
+(`freestep.analysis.protocols`): standing on both feet or on one foot, eyes open or closed. FreeSTEP
+usually stores no labels, so single-leg stance is recognised by at least 85 % of the load on one
+foot, and of two acquisitions of the same duration in the same stance the first is taken as eyes
+open (the classic Romberg protocol; `--eyes-closed-first` or the "Eyes closed first" check box
+handles the reverse order). Labels such as `Bipodalica OC` or `Monopodalica DX OA` take precedence.
+The evaluation:
+
+- Romberg quotient (eyes closed / eyes open) of path length, velocity, ellipse area, sway area, SD
+  and range, on both feet and, when recorded, on each foot;
+- symmetry of single-leg stance, `(left − right) / mean` in %, of path length, velocity, ellipse
+  area and SD;
+- L/S, the path length per ellipse area, for every acquisition.
+
 No normative values are applied.
 
 In MATLAB / Octave:

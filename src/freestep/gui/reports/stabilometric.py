@@ -16,49 +16,24 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-from PySide6.QtCore import QMarginsF, QPoint, QRectF, Qt
-from PySide6.QtGui import (
-    QAbstractTextDocumentLayout,
-    QColor,
-    QFont,
-    QPageLayout,
-    QPageSize,
-    QPainter,
-    QPalette,
-    QPdfWriter,
-    QTextDocument,
-)
-from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QWidget
 
 from ...analysis.load import load_regions
-from ...analysis.stabilometry import Romberg, Stabilometry, speed, sway, unit
+from ...analysis.protocols import ROMBERG_PARAMETERS, SYMMETRY_PARAMETERS, Assessment, Condition, Romberg, Stance
+from ...analysis.stabilometry import Stabilometry, speed, sway, unit
 from ...models import Exam, Patient
 from ...recording import Recording
+from ..exam import region_overlay
 from ..i18n import tr
-from ..meta import APP_NAME, ICON_PATH
+from ..meta import APP_NAME
 from ..texts import (
     acquisition_style,
     directions_note,
-    exam_type_label,
-    footwear_label,
     format_number,
     parameter_groups,
     romberg_order_note,
-    sex_label,
 )
 from ..widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, ORIGIN_MEAN, CopPlot, HeatmapView, StabilogramPlot
-
-#: Resolution of the PDF in dots per inch; 1 dot = 1 px of the widgets.
-_DPI = 96
-#: Page margin in dots.
-_MARGIN = 48
-#: Height reserved for the footer in dots.
-_FOOTER = 24
-#: Gap between blocks and between plots side by side in dots.
-_GAP = 12
-#: Font size of the text in points.
-_FONT_PT = 9
+from .pages import Pages, exam_when, notes_html, paint_header, section
 
 #: Parameters of the summary on the first page.
 SUMMARY_PARAMETERS = (
@@ -77,171 +52,6 @@ SUMMARY_PARAMETERS = (
 
 _TABLE = "width='100%' cellspacing='0' cellpadding='2' style='border-collapse: collapse'"
 _STRIPE = "#f0f0f0"
-
-
-def _print_palette() -> QPalette:
-    """Black on white, independent of the (possibly dark) theme of the screen."""
-    palette = QPalette(QColor("white"))
-    for role, colour in (
-        (QPalette.ColorRole.Window, "white"),
-        (QPalette.ColorRole.Base, "white"),
-        (QPalette.ColorRole.WindowText, "black"),
-        (QPalette.ColorRole.Text, "black"),
-    ):
-        palette.setColor(role, QColor(colour))
-    return palette
-
-
-def draw_document(painter: QPainter, doc: QTextDocument) -> None:
-    """Paint rich text at the painter's origin, black on white whatever the theme of the screen.
-
-    :meth:`QTextDocument.drawContents` paints text without an explicit colour
-    in the text colour of the application palette, which is white in a dark theme.
-    """
-    context = QAbstractTextDocumentLayout.PaintContext()
-    context.palette = _print_palette()
-    doc.documentLayout().draw(painter, context)
-
-
-class _Pages:
-    """Paints blocks one below another and starts a new page when a block does not fit."""
-
-    def __init__(self, path: Path, title: str, footer: str) -> None:
-        self.writer = QPdfWriter(str(path))
-        self.writer.setResolution(_DPI)
-        self.writer.setPageLayout(
-            QPageLayout(QPageSize(QPageSize.PageSizeId.A4), QPageLayout.Orientation.Portrait, QMarginsF())
-        )
-        self.writer.setTitle(title)
-        self.writer.setCreator(APP_NAME)
-        self.painter = QPainter(self.writer)
-        self.painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        self.font = QFont(self.painter.font())
-        self.font.setPointSizeF(_FONT_PT)
-        self.width = self.writer.width() - 2 * _MARGIN
-        self.bottom = self.writer.height() - _MARGIN - _FOOTER
-        self.footer = footer
-        self.page = 1
-        self.y = float(_MARGIN)
-
-    def ensure(self, height: float) -> None:
-        """Start a new page unless ``height`` fits below the current position (an empty page always fits)."""
-        if self.y + height > self.bottom and self.y > _MARGIN:
-            self.new_page()
-
-    def new_page(self) -> None:
-        """Finish the current page and continue at the top of a new one."""
-        self._paint_footer()
-        self.writer.newPage()
-        self.page += 1
-        self.y = float(_MARGIN)
-
-    def document(self, text: str, width: float | None = None) -> QTextDocument:
-        """Lay out rich text for the PDF."""
-        doc = QTextDocument()
-        doc.documentLayout().setPaintDevice(self.writer)
-        doc.setDefaultFont(self.font)
-        doc.setDocumentMargin(0)
-        doc.setTextWidth(width or self.width)
-        doc.setHtml(text)
-        return doc
-
-    def text(self, text: str, *, keep_with: float = 0) -> None:
-        """Paint rich text across the page.
-
-        Args:
-            text: HTML (the subset of :class:`QTextDocument`).
-            keep_with: Height of the following block that must fit on the same page (for headings).
-        """
-        doc = self.document(text)
-        height = doc.size().height()
-        self.ensure(height + keep_with)
-        self.painter.save()
-        self.painter.translate(_MARGIN, self.y)
-        draw_document(self.painter, doc)
-        self.painter.restore()
-        self.y += height + _GAP / 2
-
-    def widgets(self, items: Sequence[tuple[str, QWidget]], height: int, columns: int) -> None:
-        """Paint widgets in rows of ``columns``, each with a caption above it.
-
-        Args:
-            items: ``(caption, widget)``; the widgets are resized to their cell.
-            height: Height of a widget in dots.
-            columns: Widgets per row.
-        """
-        cell = (self.width - _GAP * (columns - 1)) / columns
-        for start in range(0, len(items), columns):
-            row = items[start : start + columns]
-            captions = [self.document(f"<b>{html.escape(c)}</b>", cell) for c, _ in row]
-            caption_height = max(d.size().height() for d in captions)
-            self.ensure(caption_height + height)
-            for column, ((_, widget), caption) in enumerate(zip(row, captions, strict=True)):
-                x = _MARGIN + column * (cell + _GAP)
-                self.painter.save()
-                self.painter.translate(x, self.y)
-                draw_document(self.painter, caption)
-                self.painter.restore()
-                widget.setPalette(_print_palette())
-                widget.setFont(self.font)
-                widget.resize(int(cell), height)
-                widget.render(self.painter, QPoint(int(x), int(self.y + caption_height)))
-            self.y += caption_height + height + _GAP
-
-    def logo(self, size: float) -> None:
-        """Paint the application logo with its name below in the top right corner of the page."""
-        right = _MARGIN + self.width
-        QSvgRenderer(str(ICON_PATH)).render(self.painter, QRectF(right - size, _MARGIN, size, size))
-        self.painter.save()
-        self.painter.setFont(self.font)
-        self.painter.setPen(QColor(100, 100, 100))
-        # One word per line, centred under the logo
-        name = QRectF(right - size * 1.5, _MARGIN + size + 2, size * 2, 2 * _FOOTER)
-        align = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
-        self.painter.drawText(name, align, APP_NAME.replace(" ", "\n"))
-        self.painter.restore()
-
-    def finish(self) -> None:
-        """Paint the footer of the last page and close the file."""
-        self._paint_footer()
-        self.painter.end()
-
-    def _paint_footer(self) -> None:
-        """Paint the footer line: exam on the left, page number on the right."""
-        top = self.writer.height() - _MARGIN - _FOOTER / 2
-        rect = QRectF(_MARGIN, top, self.width, _FOOTER)
-        self.painter.save()
-        self.painter.setFont(self.font)
-        self.painter.setPen(QColor(128, 128, 128))
-        self.painter.drawLine(rect.topLeft(), rect.topRight())
-        text_rect = rect.adjusted(0, 4, 0, 0)
-        self.painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft, self.footer)
-        self.painter.drawText(text_rect, Qt.AlignmentFlag.AlignRight, tr("Page {number}", number=self.page))
-        self.painter.restore()
-
-
-def _age(patient: Patient, exam: Exam) -> int | None:
-    """Age at the exam in years: as stored with the exam, else from the birth date."""
-    if exam.age is not None:
-        return exam.age
-    born, day = patient.birth_date, exam.exam_date
-    if born is None or day is None:
-        return None
-    return day.year - born.year - ((day.month, day.day) < (born.month, born.day))
-
-
-def _cell(value: object) -> str:
-    """Escape a value for a table cell, empty values as a dash."""
-    return "–" if value is None or value == "" else html.escape(str(value))
-
-
-def _info_table(rows: list[tuple[str, object]]) -> str:
-    """Two-column table of labels (grey) and values."""
-    body = "".join(
-        f"<tr><td style='color:#666666; padding-right:10px'>{html.escape(k)}</td><td>{_cell(v)}</td></tr>"
-        for k, v in rows
-    )
-    return f"<table cellspacing='0' cellpadding='1'>{body}</table>"
 
 
 def _parameter_table(parameters: list[tuple[str, str]], data: ReportData) -> str:
@@ -270,14 +80,51 @@ def _parameter_table(parameters: list[tuple[str, str]], data: ReportData) -> str
     return f"<table {_TABLE}>{''.join(rows)}</table>"
 
 
-def _section(title: str) -> str:
-    """Heading of a report section."""
-    return f"<h2 style='margin-top:6px'>{html.escape(title)}</h2>"
+def _test_tables(data: ReportData) -> list[tuple[str, str]]:
+    """``(title, table)`` of the Romberg tests on one foot and of the single-leg symmetry."""
+    labels = dict(item for _, group in parameter_groups() for item in group)
+    tables = []
+    one_foot = [r for r in data.assessment.rombergs if r.stance != Stance.BOTH]
+    if one_foot:
+        columns = [tr("Left foot") if r.stance == Stance.LEFT else tr("Right foot") for r in one_foot]
+        rows = [[format_number(r.quotients[name]) for r in one_foot] for name in ROMBERG_PARAMETERS]
+        tables.append(
+            (tr("Romberg test on one foot"), _value_table(columns, [(n, labels[n]) for n in ROMBERG_PARAMETERS], rows))
+        )
+    for legs in data.assessment.legs:
+        eyes = {False: tr("eyes open"), True: tr("eyes closed"), None: ""}[legs.eyes_closed]
+        left, right = data.results[legs.left], data.results[legs.right]
+        rows = [
+            [
+                format_number(None if left is None else getattr(left, name)),
+                format_number(None if right is None else getattr(right, name)),
+                f"{format_number(legs.symmetry_pct[name])} %",
+            ]
+            for name in SYMMETRY_PARAMETERS
+        ]
+        columns = [tr("Left foot"), tr("Right foot"), tr("Symmetry")]
+        title = tr("Single-leg stance") + (f", {eyes}" if eyes else "")
+        tables.append((title, _value_table(columns, [(n, labels[n]) for n in SYMMETRY_PARAMETERS], rows)))
+    return tables
 
 
-def _notes(items: list[str]) -> str:
-    """Grey small paragraphs."""
-    return "".join(f"<p style='color:#555555; font-size:small'>{html.escape(n)}</p>" for n in items)
+def _value_table(columns: list[str], parameters: list[tuple[str, str]], rows: list[list[str]]) -> str:
+    """Table of parameters (rows) with values in the given columns."""
+    width = f"{63 / len(columns):.0f}%"
+    head = "".join(f"<th align='right' width='{width}'>{html.escape(c)}</th>" for c in columns)
+    parameter = html.escape(tr("Parameter"))
+    lines = [
+        f"<tr style='background-color:#dddddd'><th align='left' width='30%'>{parameter}</th>"
+        f"<th width='7%'></th>{head}</tr>"
+    ]
+    for number, ((name, label), cells) in enumerate(zip(parameters, rows, strict=True)):
+        values = "".join(f"<td align='right'>{c}</td>" for c in cells)
+        stripe = f" style='background-color:{_STRIPE}'" if number % 2 else ""
+        lines.append(
+            f"<tr{stripe}><td>{html.escape(label)}</td><td style='color:#666666'>{html.escape(unit(name))}</td>"
+            f"{values}</tr>"
+        )
+    return f"<table {_TABLE}>{''.join(lines)}</table>"
 
 
 @dataclass(frozen=True)
@@ -289,7 +136,7 @@ class ReportData:
         exam: The exam.
         post: Its recording.
         results: Stabilometric parameters of every acquisition (``None`` where not analysed).
-        romberg: Romberg evaluation, ``None`` when not a Romberg test.
+        assessment: Conditions of the acquisitions and the tests they form (Romberg, single-leg stance).
         lowpass_hz: Cut-off of the low-pass filter used for ``results`` (``None``: unfiltered).
         detrend: The linear trend was removed for ``results``.
     """
@@ -298,20 +145,34 @@ class ReportData:
     exam: Exam
     post: Recording
     results: list[Stabilometry | None]
-    romberg: Romberg | None
+    assessment: Assessment
     lowpass_hz: float | None
     detrend: bool = False
 
     @property
+    def romberg(self) -> Romberg | None:
+        """The Romberg test on both feet, ``None`` when there is none."""
+        return self.assessment.romberg
+
+    @property
     def names(self) -> list[str]:
-        """Column names of the acquisitions (eye condition of a Romberg test, else the number)."""
-        return [acquisition_style(acq.index, self.romberg)[0] for acq in self.post.acquisitions]
+        """Column names of the acquisitions (their condition when known, else the number)."""
+        return [acquisition_style(acq.index, self._condition(acq.index))[0] for acq in self.post.acquisitions]
+
+    def _condition(self, index: int) -> Condition | None:
+        """Condition of an acquisition, ``None`` when not known."""
+        conditions = self.assessment.conditions
+        return conditions[index] if index < len(conditions) else None
+
+    def stance(self, index: int) -> Stance | None:
+        """Stance of an acquisition, ``None`` when not known."""
+        condition = self._condition(index)
+        return condition.stance if condition is not None else None
 
     @property
     def when(self) -> str:
         """Date and time of the exam."""
-        time = self.exam.exam_time.strftime("%H:%M") if self.exam.exam_time else None
-        return " ".join(str(v) for v in (self.exam.exam_date, time) if v)
+        return exam_when(self.exam)
 
 
 def write_report(path: Path, data: ReportData) -> None:
@@ -328,7 +189,7 @@ def write_report(path: Path, data: ReportData) -> None:
     """
     title = tr("Stabilometric report")
     name = data.patient.name
-    pages = _Pages(path, f"{title} — {name}", f"{name} · {tr('Exam {id}', id=data.exam.id)} · {data.when}")
+    pages = Pages(path, f"{title} — {name}", f"{name} · {tr('Exam {id}', id=data.exam.id)} · {data.when}")
     try:
         pages.logo(52)
         pages.text(f"<h1>{html.escape(title)}</h1>")
@@ -342,44 +203,24 @@ def write_report(path: Path, data: ReportData) -> None:
         pages.finish()
 
 
-def _paint_header(pages: _Pages, data: ReportData) -> None:
-    """Patient and exam data side by side."""
-    patient, exam, post = data.patient, data.exam, data.post
-    height = exam.height_cm or patient.height_cm
-    weight = exam.weight_kg or patient.weight_kg
-    left = _info_table(
+def _paint_header(pages: Pages, data: ReportData) -> None:
+    """Subject and exam data side by side."""
+    durations = ", ".join(f"{a.duration_s:.1f} s" for a in data.post.acquisitions)
+    paint_header(
+        pages,
+        data.patient,
+        data.exam,
         [
-            (tr("Name"), patient.name),
-            (tr("Born"), patient.birth_date),
-            (tr("Age at exam"), _age(patient, exam)),
-            (tr("Sex"), sex_label(patient.sex)),
-            (tr("Height"), f"{height:g} cm" if height else None),
-            (tr("Weight"), f"{weight:g} kg" if weight else None),
-        ]
+            (tr("Acquisitions"), f"{len(data.post.acquisitions)} ({durations})"),
+            (tr("Platform"), data.post.header.platform),
+        ],
     )
-    durations = ", ".join(f"{a.duration_s:.1f} s" for a in post.acquisitions)
-    right = _info_table(
-        [
-            (tr("ID"), exam.id),
-            (tr("Date"), data.when),
-            (tr("Type"), exam_type_label(exam)),
-            (tr("Footwear"), footwear_label(exam)),
-            (tr("Acquisitions"), f"{len(post.acquisitions)} ({durations})"),
-            (tr("Platform"), post.header.platform),
-        ]
-    )
-    pages.text(
-        f"<table width='100%' cellspacing='0'><tr><td width='50%' valign='top'><b>{html.escape(tr('Subject'))}</b>"
-        f"{left}</td><td width='50%' valign='top'><b>{html.escape(tr('Exam'))}</b>{right}</td></tr></table>"
-    )
-    if exam.note:
-        pages.text(f"<p><b>{html.escape(tr('Note'))}:</b> {html.escape(exam.note)}</p>")
 
 
-def _paint_summary(pages: _Pages, data: ReportData) -> None:
+def _paint_summary(pages: Pages, data: ReportData) -> None:
     """Main parameters per acquisition and how to read them."""
     labels = {name: label for _, group in parameter_groups() for name, label in group}
-    pages.text(_section(tr("Summary")), keep_with=120)
+    pages.text(section(tr("Summary")), keep_with=120)
     pages.text(_parameter_table([(n, labels[n]) for n in SUMMARY_PARAMETERS], data))
     notes = []
     if data.romberg is not None:
@@ -387,7 +228,7 @@ def _paint_summary(pages: _Pages, data: ReportData) -> None:
         if not data.romberg.order_from_labels:
             notes.append(romberg_order_note(data.romberg))
     notes.append(_filter_note(data))
-    pages.text(_notes(notes))
+    pages.text(notes_html(notes))
 
 
 def _filter_note(data: ReportData) -> str:
@@ -405,37 +246,41 @@ def _columns(data: ReportData) -> int:
     return 2 if len(data.post.acquisitions) > 1 else 1
 
 
-def _paint_statokinesigrams(pages: _Pages, data: ReportData) -> None:
+def _paint_statokinesigrams(pages: Pages, data: ReportData) -> None:
     """COP trajectories with the confidence ellipses."""
     cop_plots = _statokinesigrams(data)
     if cop_plots:
         names = data.names
-        pages.text(_section(tr("Statokinesigram")), keep_with=380)
+        pages.text(section(tr("Statokinesigram")), keep_with=380)
         pages.widgets([(names[i], plot) for i, plot in cop_plots], 340, _columns(data))
-        pages.text(_notes([tr("COP of the whole plate around its mean position, same scale for all acquisitions.")]))
+        pages.text(
+            notes_html([tr("COP of the whole plate around its mean position, same scale for all acquisitions.")])
+        )
 
 
-def _paint_load(pages: _Pages, data: ReportData) -> None:
+def _paint_load(pages: Pages, data: ReportData) -> None:
     """Mean pressure images and the load distribution parameters."""
     post, names = data.post, data.names
     pages.new_page()
-    pages.text(_section(tr("Load distribution")))
-    heatmaps = [(names[a.index], _mean_heatmap(post, a.index, data.results[a.index])) for a in post.acquisitions]
+    pages.text(section(tr("Load distribution")))
+    heatmaps = [
+        (names[a.index], _mean_heatmap(post, a.index, data.results[a.index], data.stance(a.index)))
+        for a in post.acquisitions
+    ]
     pages.widgets(heatmaps, 300, _columns(data))
-    pages.text(
-        _notes(
-            [
-                tr(
-                    "Mean of every sensor over the frames where it is loaded; share of the total load in every "
-                    "quadrant, COP of the whole plate (black) and of the left and right foot."
-                )
-            ]
+    notes = [
+        tr(
+            "Mean of every sensor over the frames where it is loaded; share of the total load in every "
+            "quadrant, COP of the whole plate (black) and of the left and right foot."
         )
-    )
+    ]
+    if any(data.stance(a.index) in (Stance.LEFT, Stance.RIGHT) for a in post.acquisitions):
+        notes.append(tr("Single-leg stance: share of the load of the standing foot on its front and rear half."))
+    pages.text(notes_html(notes))
     title, parameters = parameter_groups()[-1]  # load distribution
     pages.text(f"<h3>{html.escape(title)}</h3>{_parameter_table(parameters, data)}")
     pages.text(
-        _notes(
+        notes_html(
             [
                 tr(
                     "Load: left and right foot split in the gap between them; "
@@ -447,7 +292,7 @@ def _paint_load(pages: _Pages, data: ReportData) -> None:
     )
 
 
-def _paint_time_course(pages: _Pages, data: ReportData) -> None:
+def _paint_time_course(pages: Pages, data: ReportData) -> None:
     """Stabilogram and speed curve of all acquisitions."""
     post = data.post
     signals = []
@@ -460,14 +305,14 @@ def _paint_time_course(pages: _Pages, data: ReportData) -> None:
         signals.append((acq.index, time, cop, speed(cop, acq.sampling_rate_hz)))
     if not signals:
         return
-    stabilogram, speed_curve = _time_plots(signals, data.romberg)
+    stabilogram, speed_curve = _time_plots(signals, data.assessment.conditions)
     pages.new_page()
-    pages.text(_section(tr("Stabilogram")))
+    pages.text(section(tr("Stabilogram")))
     pages.widgets([("", stabilogram)], 420, 1)
-    pages.text(_section(tr("Speed")), keep_with=260)
+    pages.text(section(tr("Speed")), keep_with=260)
     pages.widgets([("", speed_curve)], 240, 1)
     pages.text(
-        _notes(
+        notes_html(
             [
                 tr("Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."),
                 directions_note(),
@@ -504,8 +349,11 @@ def _statokinesigrams(data: ReportData) -> list[tuple[int, CopPlot]]:
     return plots
 
 
-def _mean_heatmap(post: Recording, index: int, result: Stabilometry | None) -> HeatmapView:
-    """Heat map of the mean pressure image of an acquisition with the load quadrants, scaled to its maximum."""
+def _mean_heatmap(post: Recording, index: int, result: Stabilometry | None, stance: Stance | None) -> HeatmapView:
+    """Heat map of the mean pressure image of an acquisition with the load quadrants, scaled to its maximum.
+
+    Single-leg stance shows only the front and rear half of the loaded foot.
+    """
     acq, header = post.acquisitions[index], post.header
     view = HeatmapView()
     view.smooth = True
@@ -515,13 +363,12 @@ def _mean_heatmap(post: Recording, index: int, result: Stabilometry | None) -> H
         (float(header.cell_width_mm), float(header.cell_height_mm)),
     )
     if result is not None:
-        shares = (result.left_front_pct, result.left_rear_pct, result.right_front_pct, result.right_rear_pct)
-        view.set_regions(load_regions(acq.pressure.sum(axis=0)), shares)
+        view.set_regions(*region_overlay(load_regions(acq.pressure.sum(axis=0)), result.as_dict(), stance))
     return view
 
 
 def _time_plots(
-    signals: Sequence[tuple[int, np.ndarray, np.ndarray, np.ndarray]], romberg: Romberg | None
+    signals: Sequence[tuple[int, np.ndarray, np.ndarray, np.ndarray]], conditions: list[Condition | None]
 ) -> tuple[StabilogramPlot, StabilogramPlot]:
     """Stabilogram and speed curve; with several acquisitions all are drawn, coloured by acquisition."""
     stabilogram, speed_curve = StabilogramPlot(), StabilogramPlot()
@@ -531,8 +378,8 @@ def _time_plots(
         stabilogram.set_data(time, [(tr("ML (x)"), ML_COLOR, cop[:, 0]), (tr("AP (y)"), AP_COLOR, cop[:, 1])], "mm")
         speed_curve.set_data(time[1:], [(tr("COP speed"), COP_TOTAL_COLOR, curve)], "mm/s")
     else:
-        label, colour = acquisition_style(index, romberg)
-        styles = [acquisition_style(i, romberg) for i, *_ in others]
+        label, colour = acquisition_style(index, conditions[index] if index < len(conditions) else None)
+        styles = [acquisition_style(i, conditions[i] if i < len(conditions) else None) for i, *_ in others]
         stabilogram.set_data(
             time,
             [(tr("ML (x)"), colour, cop[:, 0]), (tr("AP (y)"), colour, cop[:, 1])],
@@ -552,12 +399,14 @@ def _time_plots(
     return stabilogram, speed_curve
 
 
-def _paint_parameters(pages: _Pages, data: ReportData) -> None:
+def _paint_parameters(pages: Pages, data: ReportData) -> None:
     """The stabilometric parameters, one table per group, and notes on the methods."""
     pages.new_page()
-    pages.text(_section(tr("Stabilometric parameters")))
+    pages.text(section(tr("Stabilometric parameters")))
     for title, parameters in parameter_groups()[:-1]:  # the load distribution is on its own page
         pages.text(f"<h3>{html.escape(title)}</h3>{_parameter_table(parameters, data)}")
+    for title, table in _test_tables(data):
+        pages.text(f"<h3>{html.escape(title)}</h3>{table}")
     notes = [
         _filter_note(data),
         tr(
@@ -565,9 +414,12 @@ def _paint_parameters(pages: _Pages, data: ReportData) -> None:
             "95% confidence ellipse: area containing 95% of the COP positions (principal components). "
             "Frequencies from the power spectrum (Welch) in 0.15–5 Hz."
         ),
+        tr("L/S = path length / area of the 95% confidence ellipse."),
         directions_note(),
     ]
+    if data.assessment.legs:
+        notes.append(tr("Symmetry = (left − right) / mean of both; positive when the left foot sways more."))
     if any(r is None for r in data.results):
         notes.append(tr("Acquisitions with fewer than 32 loaded frames are not analysed."))
     notes.append(tr("Generated by {app} on {date}.", app=APP_NAME, date=datetime.now().strftime("%Y-%m-%d %H:%M")))
-    pages.text(_section(tr("Methods")) + _notes(notes))
+    pages.text(section(tr("Methods")) + notes_html(notes))

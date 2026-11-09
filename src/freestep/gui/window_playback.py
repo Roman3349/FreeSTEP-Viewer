@@ -6,6 +6,7 @@ import numpy as np
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QSlider, QSpinBox, QToolButton, QVBoxLayout, QWidget
 
+from ..analysis.protocols import Stance
 from ..recording import Acquisition
 from .exam import MODE_FRAME, show_on_heatmap
 from .i18n import tr
@@ -149,7 +150,9 @@ class PlaybackMixin(WindowBase):
             return
         frame = min(self.slider.value(), acq.frame_count - 1)
         mode = self.mode.currentIndex()
-        show_on_heatmap(self.heatmap, loaded, acq, frame, mode, trail=self.trail.value())
+        show_on_heatmap(
+            self.heatmap, loaded, acq, frame, mode, trail=self.trail.value(), stance=self._stance(acq.index)
+        )
         if mode == MODE_FRAME:
             sums = loaded.pressure_sums[acq.index]
             self.frame_label.setText(f"{frame + 1} / {acq.frame_count}  {acq.time_s[frame]:.2f} s  Σ {sums[frame]}")
@@ -199,6 +202,12 @@ class PlaybackMixin(WindowBase):
         self.play_button.setText("▶")
         if was_playing:
             self._follow_video()
+
+    def _stance(self, index: int) -> Stance | None:
+        """Stance of an acquisition (see :func:`freestep.analysis.protocols.classify`), ``None`` when not known."""
+        conditions = self._assessment.conditions
+        condition = conditions[index] if index < len(conditions) else None
+        return condition.stance if condition is not None else None
 
     def _playback_speed(self) -> float:
         """Playback speed relative to real time (the speed box in frames per second over the sampling rate)."""

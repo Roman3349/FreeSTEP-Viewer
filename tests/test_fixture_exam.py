@@ -11,7 +11,8 @@ import pytest
 from scipy.io import loadmat
 
 from freestep import FreFile
-from freestep.analysis.stabilometry import analyze_all, evaluate_romberg
+from freestep.analysis.protocols import evaluate_romberg
+from freestep.analysis.stabilometry import analyze_all
 from freestep.batch import FORMATS, exam_stem, export_exam, summary_rows, write_summary_csv
 from freestep.cli import main
 from freestep.history import (

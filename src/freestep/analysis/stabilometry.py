@@ -1,4 +1,4 @@
-"""Stabilometric parameters of the centre of pressure, load distribution and evaluation of the Romberg test.
+"""Stabilometric parameters of the centre of pressure and the load distribution of one acquisition.
 
 The COP of the whole plate is used, x is the medio-lateral (ML) and y the
 antero-posterior (AP) direction. All parameters are computed after removing the
@@ -32,12 +32,6 @@ ELLIPSE_PROBABILITY = 0.95
 MIN_FRAMES = 32
 #: Exam type code of posturography (see :data:`freestep.models.EXAM_TYPES`).
 POSTUROGRAPHY_EXAM_TYPE = 4
-#: Maximum relative difference of the durations of the two Romberg acquisitions.
-ROMBERG_DURATION_TOLERANCE = 0.1
-
-# Words in acquisition labels telling the eye condition (English, Italian, Czech).
-_OPEN_WORDS = ("open", "aperti", "otevř", "otevr", "eo", "oa")
-_CLOSED_WORDS = ("closed", "chiusi", "zavř", "zavr", "ec", "oc")
 
 
 @dataclass(frozen=True)
@@ -70,6 +64,8 @@ class Stabilometry:
         ellipse_angle_deg: Angle of the major axis from the x axis (−90…90°).
         convex_hull_area_mm2: Area of the convex hull of the trajectory.
         sway_area_mm2_s: Area swept by the COP vector per second.
+        length_per_area_1_mm: Path length divided by the area of the confidence ellipse
+            (L/S, "length as a function of surface"; higher means more energy spent per area).
         mean_frequency_ml_hz: Mean frequency of the ML power spectrum.
         mean_frequency_ap_hz: Mean frequency of the AP power spectrum.
         median_frequency_ml_hz: Frequency below which 50 % of the ML power lies.
@@ -125,6 +121,7 @@ class Stabilometry:
     ellipse_angle_deg: float
     convex_hull_area_mm2: float
     sway_area_mm2_s: float
+    length_per_area_1_mm: float
     mean_frequency_ml_hz: float
     mean_frequency_ap_hz: float
     median_frequency_ml_hz: float
@@ -152,42 +149,11 @@ class Stabilometry:
         return {f.name: getattr(self, f.name) for f in fields(self)}
 
 
-#: Parameters compared by the Romberg quotient (eyes closed / eyes open).
-ROMBERG_PARAMETERS = (
-    "path_length_mm",
-    "mean_velocity_mm_s",
-    "ellipse_area_mm2",
-    "sway_area_mm2_s",
-    "sd_ml_mm",
-    "sd_ap_mm",
-    "range_ml_mm",
-    "range_ap_mm",
-)
-
-
-@dataclass(frozen=True)
-class Romberg:
-    """Evaluation of a Romberg test (standing with eyes open, then with eyes closed).
-
-    Attributes:
-        eyes_open: Index of the eyes-open acquisition.
-        eyes_closed: Index of the eyes-closed acquisition.
-        order_from_labels: The eye condition was read from the acquisition labels;
-            otherwise the order given by the caller was used (FreeSTEP stores none).
-        quotients: Romberg quotient (eyes closed / eyes open) of every parameter in
-            :data:`ROMBERG_PARAMETERS`; ``nan`` when the eyes-open value is zero.
-    """
-
-    eyes_open: int
-    eyes_closed: int
-    order_from_labels: bool
-    quotients: dict[str, float]
-
-
 def unit(name: str) -> str:
     """Return the unit of a :class:`Stabilometry` attribute from its name suffix (empty for counts)."""
     for suffix, text in (
         ("_mm2_s", "mm²/s"),
+        ("_1_mm", "1/mm"),
         ("_mm2", "mm²"),
         ("_mm_s", "mm/s"),
         ("_mm", "mm"),
@@ -338,6 +304,7 @@ def compute(
     scale = -2 * math.log(1 - ELLIPSE_PROBABILITY)
     minor, major = (math.sqrt(scale * max(float(v), 0.0)) for v in eigenvalues)
     angle = math.degrees(math.atan2(eigenvectors[1, 1], eigenvectors[0, 1]))
+    ellipse_area = math.pi * major * minor
     angle = (angle + 90) % 180 - 90
 
     try:
@@ -367,12 +334,13 @@ def compute(
         mean_velocity_mm_s=path / duration,
         mean_velocity_ml_mm_s=path_ml / duration,
         mean_velocity_ap_mm_s=path_ap / duration,
-        ellipse_area_mm2=math.pi * major * minor,
+        ellipse_area_mm2=ellipse_area,
         ellipse_major_mm=major,
         ellipse_minor_mm=minor,
         ellipse_angle_deg=angle,
         convex_hull_area_mm2=hull_area,
         sway_area_mm2_s=float(swept) / duration,
+        length_per_area_1_mm=path / ellipse_area if ellipse_area > 0 else math.nan,
         mean_frequency_ml_hz=spectra[0][0],
         mean_frequency_ap_hz=spectra[1][0],
         median_frequency_ml_hz=spectra[0][1],
@@ -441,79 +409,3 @@ def _spectrum(values: NDArray[np.float64], fs: float) -> tuple[float, float, flo
     median = int(np.searchsorted(cumulative, 0.5))
     f95 = min(int(np.searchsorted(cumulative, 0.95)), len(freqs) - 1)
     return float((freqs * psd).sum() / total), float(freqs[median]), float(freqs[f95]), total * fs / segment
-
-
-def _eye_condition(label: str) -> bool | None:
-    """Return ``True`` for an eyes-open label, ``False`` for eyes closed, ``None`` when unknown."""
-    words = "".join(c if c.isalnum() else " " for c in label.casefold()).split()
-
-    def matches(hints: tuple[str, ...]) -> bool:
-        # Short hints (EO, OC, …) must be whole words, longer ones may be prefixes
-        return any(w == h if len(h) <= 2 else w.startswith(h) for w in words for h in hints)
-
-    is_open, is_closed = matches(_OPEN_WORDS), matches(_CLOSED_WORDS)
-    return None if is_open == is_closed else is_open
-
-
-def detect_romberg(
-    post: Recording, exam_type: int | None = None, eyes_closed_first: bool = False
-) -> tuple[int, int, bool] | None:
-    """Detect a Romberg test: two acquisitions of about the same duration in a posturography exam.
-
-    The eye condition is taken from the acquisition labels when they tell it.
-    FreeSTEP usually leaves them empty, then ``eyes_closed_first`` decides.
-
-    Args:
-        post: The recording.
-        exam_type: Type code of the exam; another type than posturography rules the test out.
-        eyes_closed_first: Without labels, the first acquisition is with eyes closed.
-
-    Returns:
-        ``(eyes open index, eyes closed index, order read from labels)`` or ``None``.
-    """
-    if exam_type is not None and exam_type != POSTUROGRAPHY_EXAM_TYPE:
-        return None
-    if len(post.acquisitions) != 2:
-        return None
-    first, second = post.acquisitions
-    longer = max(first.duration_s, second.duration_s)
-    if longer <= 0 or abs(first.duration_s - second.duration_s) > ROMBERG_DURATION_TOLERANCE * longer:
-        return None
-    conditions = (_eye_condition(first.label), _eye_condition(second.label))
-    if conditions == (True, False):
-        return 0, 1, True
-    if conditions == (False, True):
-        return 1, 0, True
-    return (1, 0, False) if eyes_closed_first else (0, 1, False)
-
-
-def evaluate_romberg(
-    post: Recording,
-    results: list[Stabilometry | None],
-    exam_type: int | None = None,
-    eyes_closed_first: bool = False,
-) -> Romberg | None:
-    """Evaluate the Romberg test of a recording.
-
-    Args:
-        post: The recording.
-        results: Parameters of every acquisition (``None`` where the analysis failed).
-        exam_type: Type code of the exam (see :func:`detect_romberg`).
-        eyes_closed_first: Order of the acquisitions without labels (see :func:`detect_romberg`).
-
-    Returns:
-        The evaluation, or ``None`` when the recording is not a Romberg test or
-        one of the acquisitions could not be analysed.
-    """
-    detected = detect_romberg(post, exam_type, eyes_closed_first)
-    if detected is None:
-        return None
-    eo, ec, from_labels = detected
-    open_result, closed_result = results[eo], results[ec]
-    if open_result is None or closed_result is None:
-        return None
-    quotients = {}
-    for name in ROMBERG_PARAMETERS:
-        reference = float(getattr(open_result, name))
-        quotients[name] = float(getattr(closed_result, name)) / reference if reference else math.nan
-    return Romberg(eyes_open=eo, eyes_closed=ec, order_from_labels=from_labels, quotients=quotients)
