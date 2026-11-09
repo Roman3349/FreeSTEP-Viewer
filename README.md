@@ -33,6 +33,9 @@ uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
   metadata and the `Preview1.jpg` preview.
 - Stabilometric parameters and load distribution of every acquisition (Stabilometry tab, see below) and evaluation
   of the test protocol: Romberg test on both feet and on one foot, left / right symmetry of single-leg stance.
+- PDF report (File › Create PDF report): the stabilometric report of a posturography exam; for a static exam
+  the static report with the pressure map, the footprint of each foot (load, front / rear half, contact area,
+  length, width, peak and mean value) and, on request, the photo.
 - Export of the COP to CSV, of the frames to NPZ, of everything (frames, COP, parameters) or only the recorded
   (raw) data to MATLAB `.mat`, of the parameters to CSV, of the heat map to PNG and of all frames as PNGs in a ZIP.
 - History of a subject: one parameter (or Romberg quotient) over all their exams, per eye condition; click a

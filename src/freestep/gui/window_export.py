@@ -7,6 +7,7 @@ import zipfile
 from pathlib import Path
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox, QProgressDialog
 
 from ..batch import BatchResult, batch_export, exam_stem
@@ -14,9 +15,9 @@ from ..models import Exam
 from ..recording import Recording
 from ..writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 from .batch_dialog import BatchDialog
-from .exam import MODE_FILE_SUFFIX, MODE_FRAME, MODE_MAX, MODE_MEAN, png_bytes, show_on_heatmap
+from .exam import MODE_FILE_SUFFIX, MODE_FRAME, MODE_MAX, MODE_MEAN, decode_images, png_bytes, show_on_heatmap
 from .i18n import ntr, tr
-from .reports import ReportData, write_report
+from .reports import ReportData, StaticReportData, write_report, write_static_report
 from .tasks import Progress
 from .widgets import HeatmapView
 from .window_base import WindowBase
@@ -93,12 +94,39 @@ class ExportMixin(WindowBase):
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_report(self) -> None:
-        """Save the PDF report of the shown exam with the settings of the Stabilometry tab."""
+        """Save the PDF report of the shown exam with the settings of the Stabilometry tab.
+
+        A static exam (one frame) gets the static report; when it has photos, the user
+        chooses whether to add them.
+        """
         title = tr("Create PDF report")
         loaded, post = self._current, self._recording()
         if loaded is None or post is None:
             return
+        static = len(post.acquisitions) == 1 and post.acquisitions[0].frame_count == 1
+        photos: list[tuple[str, QImage]] = []
+        if static:
+            photos = [(name, image) for name, image, _ in decode_images(loaded) if not image.isNull()]
+            if photos:
+                answer = QMessageBox.question(
+                    self,
+                    title,
+                    tr("Add the photo of the exam to the report?"),
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel,
+                )
+                if answer == QMessageBox.StandardButton.Cancel:
+                    return
+                if answer == QMessageBox.StandardButton.No:
+                    photos = []
         if (path := self._save_name(title, "_report.pdf", tr("PDF (*.pdf)"))) is None:
+            return
+        if static:
+            try:
+                write_static_report(path, StaticReportData(loaded.patient, loaded.exam, post, photos))
+            except ValueError as exc:
+                self._error(title, exc)
+                return
+            self.statusBar().showMessage(tr("Saved {path}", path=path))
             return
         data = ReportData(
             loaded.patient,

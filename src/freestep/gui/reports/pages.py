@@ -15,6 +15,7 @@ from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
     QColor,
     QFont,
+    QImage,
     QPageLayout,
     QPageSize,
     QPainter,
@@ -151,6 +152,34 @@ class Pages:
                 widget.resize(int(cell), height)
                 widget.render(self.painter, QPoint(int(x), int(self.y + caption_height)))
             self.y += caption_height + height + _GAP
+
+    def image(self, caption: str, image: QImage, max_height: float) -> None:
+        """Paint an image centred across the page, scaled to fit the page width and ``max_height``.
+
+        Args:
+            caption: Bold caption above the image (empty: none).
+            image: The image.
+            max_height: Largest height in dots (the rest of an empty page is the limit too).
+        """
+        if image.isNull():
+            return
+        doc = self.document(f"<b>{html.escape(caption)}</b>") if caption else None
+        caption_height = doc.size().height() if doc is not None else 0
+        limit = min(max_height, self.bottom - _MARGIN - caption_height)
+        scale = min(self.width / image.width(), limit / image.height())
+        width, height = image.width() * scale, image.height() * scale
+        self.ensure(caption_height + height)
+        if doc is not None:
+            self.painter.save()
+            self.painter.translate(_MARGIN, self.y)
+            draw_document(self.painter, doc)
+            self.painter.restore()
+        target = QRectF(_MARGIN + (self.width - width) / 2, self.y + caption_height, width, height)
+        self.painter.save()
+        self.painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
+        self.painter.drawImage(target, image)
+        self.painter.restore()
+        self.y += caption_height + height + _GAP
 
     def logo(self, size: float) -> None:
         """Paint the application logo with its name below in the top right corner of the page."""
