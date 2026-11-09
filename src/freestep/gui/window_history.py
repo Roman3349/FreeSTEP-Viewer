@@ -8,6 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QComboBox, QFileDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
+from ..analysis.stabilometry import unit
 from ..batch import safe_name, write_summary_csv
 from ..history import (
     ROMBERG_CONDITION,
@@ -20,7 +21,6 @@ from ..history import (
     series,
 )
 from ..models import Exam
-from ..stabilometry import unit
 from .i18n import ntr, tr
 from .tasks import Progress
 from .texts import history_parameters, plain_value
@@ -83,11 +83,11 @@ class HistoryMixin(WindowBase):
         name = patient.name if patient is not None else str(patient_id)
         self.history_title.setText(ntr("{name}: {n} exam", "{name}: {n} exams", len(exams), name=name))
         current = self._current
-        if current is not None and current.postura is not None and current.exam.patient_id == patient_id:
+        if current is not None and current.recording is not None and current.exam.patient_id == patient_id:
             key = self._history_key(current.exam)
             if key not in self._history_cache:
                 self._history_cache[key] = analyze_exam(
-                    current.postura,
+                    current.recording,
                     current.exam,
                     lowpass_hz=self._lowpass_hz or None,
                     detrend=self._detrend,

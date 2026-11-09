@@ -11,12 +11,12 @@ from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox, Q
 
 from ..batch import BatchResult, batch_export, exam_stem
 from ..models import Exam
-from ..postura import Postura
+from ..recording import Recording
 from ..writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 from .batch_dialog import BatchDialog
 from .exam import MODE_FILE_SUFFIX, MODE_FRAME, MODE_MAX, MODE_MEAN, png_bytes, show_on_heatmap
 from .i18n import ntr, tr
-from .report import ReportData, write_report
+from .reports import ReportData, write_report
 from .tasks import Progress
 from .widgets import HeatmapView
 from .window_base import WindowBase
@@ -42,9 +42,9 @@ class ExportMixin(WindowBase):
         path, _ = QFileDialog.getSaveFileName(self, title, str(start / name), filter_)
         return Path(path) if path else None
 
-    def _recording(self) -> Postura | None:
+    def _recording(self) -> Recording | None:
         """Pressure data of the shown exam, ``None`` without an exam or for an exam without them."""
-        return self._current.postura if self._current is not None else None
+        return self._current.recording if self._current is not None else None
 
     def _export_csv(self) -> None:
         """Save the per-frame time, pressure sum and COP of all acquisitions as CSV."""

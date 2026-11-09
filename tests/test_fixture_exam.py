@@ -11,6 +11,7 @@ import pytest
 from scipy.io import loadmat
 
 from freestep import FreFile
+from freestep.analysis.stabilometry import analyze_all, evaluate_romberg
 from freestep.batch import FORMATS, exam_stem, export_exam, summary_rows, write_summary_csv
 from freestep.cli import main
 from freestep.history import (
@@ -24,7 +25,6 @@ from freestep.history import (
     series,
 )
 from freestep.models import Exam
-from freestep.stabilometry import analyze_all, evaluate_romberg
 from freestep.writers import write_mat
 
 FIXTURE = Path(__file__).resolve().parent / "data" / "00000160.fre"
@@ -34,7 +34,7 @@ FIXTURE = Path(__file__).resolve().parent / "data" / "00000160.fre"
 def fre() -> Iterator[FreFile]:
     """Open and decode the exam once for the whole module (decryption takes a few seconds)."""
     with FreFile(FIXTURE) as exam:
-        _ = exam.postura
+        _ = exam.recording
         yield exam
 
 
@@ -48,7 +48,7 @@ def test_metadata_is_anonymised(fre: FreFile) -> None:
 
 def test_stabilometry_and_romberg(fre: FreFile) -> None:
     """Parameters of both acquisitions (regression values) and the Romberg quotients."""
-    post = fre.postura
+    post = fre.recording
     results = analyze_all(post)
     assert all(r is not None and r.frames == 1281 and r.lowpass_hz == 5.0 for r in results)
     first, second = results
@@ -88,7 +88,7 @@ def test_cli_exports(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None
 @pytest.mark.skipif(shutil.which("octave-cli") is None, reason="GNU Octave not installed")
 def test_mat_loads_in_octave(fre: FreFile, tmp_path: Path) -> None:
     """GNU Octave reads the MATLAB file with the documented layout."""
-    post = fre.postura
+    post = fre.recording
     results = analyze_all(post)
     path = tmp_path / "exam.mat"
     write_mat(post, path, results, evaluate_romberg(post, results, fre.exam.exam_type))
@@ -111,18 +111,18 @@ def test_mat_loads_in_octave(fre: FreFile, tmp_path: Path) -> None:
 def test_raw_mat_has_no_analysis(fre: FreFile, tmp_path: Path) -> None:
     """The raw MATLAB file holds the recorded data and the header, but no parameters."""
     path = tmp_path / "raw.mat"
-    write_mat(fre.postura, path)
+    write_mat(fre.recording, path)
     data = loadmat(path, squeeze_me=True, struct_as_record=False)
     assert "romberg" not in data
     first = data["acq"][0]
     assert "stabilometry" not in first._fieldnames
     assert first.unknown.shape == (1281,)
-    assert data["header"].version == 3 and list(data["header"].settings) == list(fre.postura.header.settings)
+    assert data["header"].version == 3 and list(data["header"].settings) == list(fre.recording.header.settings)
 
 
 def test_export_exam_names_and_formats(fre: FreFile, tmp_path: Path) -> None:
     """Every format is written under the ``<birth date>_<name>_<exam date>_<HH-MM>`` stem."""
-    post = fre.postura
+    post = fre.recording
     results = analyze_all(post)
     stem = exam_stem(fre.patient, fre.exam)
     assert stem == "1990-01-01_Testovaci_Pacient_2025-03-10_09-37"
@@ -141,7 +141,7 @@ def test_export_exam_names_and_formats(fre: FreFile, tmp_path: Path) -> None:
 
 def test_history_series(fre: FreFile) -> None:
     """The history has one series per eye condition and one for the Romberg quotient."""
-    analysis = analyze_exam(fre.postura, fre.exam)
+    analysis = analyze_exam(fre.recording, fre.exam)
     assert analysis.conditions == ["eyes_open", "eyes_closed"]
     failed = ExamAnalysis(exam=fre.exam, results=[None], romberg=None, conditions=["acquisition_1"])
     values = series([analysis, failed, analysis], "path_length_mm")

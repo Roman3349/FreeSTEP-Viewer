@@ -7,15 +7,15 @@ from pathlib import Path
 import pytest
 from test_units import _synthetic_postura
 
+from freestep.analysis.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze_all, evaluate_romberg
+from freestep.formats import parse_postura
 from freestep.models import Exam, Patient, Sex
-from freestep.postura import Postura
-from freestep.stabilometry import POSTUROGRAPHY_EXAM_TYPE, analyze_all, evaluate_romberg
 
 pytest.importorskip("PySide6")
 from PySide6.QtGui import QColor, QImage, QPainter, QPalette, QTextDocument
 from PySide6.QtWidgets import QApplication
 
-from freestep.gui.report import ReportData, draw_document, write_report
+from freestep.gui.reports.stabilometric import ReportData, draw_document, write_report
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -26,7 +26,7 @@ def app() -> QApplication:
 
 def _data(acquisitions: list[int]) -> ReportData:
     """Report data of a synthetic posturography exam."""
-    post = Postura.parse(_synthetic_postura(3, acquisitions))
+    post = parse_postura(_synthetic_postura(3, acquisitions))
     patient = Patient(
         id=1,
         name="Jan Novák",

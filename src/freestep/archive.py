@@ -9,26 +9,24 @@ Typical use::
     with FreeStepExport("FreeStep_Export.zip") as export:
         for exam in export.exams:
             with export.open_fre(exam) as fre:
-                print(fre.patient.name, fre.postura.header.frame_count)
+                print(fre.patient.name, len(fre.recording.acquisitions))
 """
 
 from __future__ import annotations
 
 import io
 import os
-import struct
 import zipfile
-from dataclasses import dataclass
 from datetime import date, time
 from functools import cached_property
 from pathlib import Path
 from typing import BinaryIO, Self
 
+from .formats import VideoTrack, parse_postura, parse_static, parse_walkway
 from .ini import DEFAULT_ANSI_ENCODING, IniData, parse_ini
 from .mdb import AccessDatabase
 from .models import Exam, ExportIndex, FilterSettings, Patient
-from .postura import Postura
-from .walkway import parse_walkway
+from .recording import Recording
 
 #: Password FreeSTEP uses for both the export ZIP and the ``.fre`` archives.
 DEFAULT_PASSWORD = "pwtecnico"
@@ -75,33 +73,6 @@ def _find_member(archive: zipfile.ZipFile, name: str) -> str | None:
         if member.lower() == lowered:
             return member
     return None
-
-
-@dataclass(frozen=True)
-class VideoTrack:
-    """Header of ``VideoTrack*.dat``: how the video relates to the pressure recording.
-
-    Attributes:
-        start_frame: Video frame at the first pressure frame (verified on a dynamic exam
-            with video: the recording time ``t`` is at video frame ``start_frame + t × fps``).
-        end_frame: Last video frame of the analysed range ❓.
-        frame_count: Number of frames of the video.
-    """
-
-    start_frame: int
-    end_frame: int
-    frame_count: int
-
-    @classmethod
-    def parse(cls, data: bytes) -> VideoTrack | None:
-        """Parse the header (int16 version, then three int32), ``None`` when the data are too short."""
-        if len(data) < _VIDEO_TRACK_STRUCT.size:
-            return None
-        _, start, end, count = _VIDEO_TRACK_STRUCT.unpack_from(data)
-        return cls(start, end, count)
-
-
-_VIDEO_TRACK_STRUCT = struct.Struct("<h3i")
 
 
 class _ZipBacked:
@@ -232,14 +203,14 @@ class FreFile(_ZipBacked):
         return data
 
     @cached_property
-    def postura(self) -> Postura:
+    def recording(self) -> Recording:
         """Decoded pressure recording (decrypting it takes ~2 s for a 2.5 MB ``.fre``).
 
         A static exam stores a single frame in ``Statica.dat`` instead; it is
-        returned as one acquisition of one frame (see :meth:`Postura.parse_static`).
+        returned as one acquisition of one frame (see :func:`~freestep.formats.parse_static`).
         A dynamic or treadmill exam stores passes over several plates in
         ``Dinamica.dat`` or ``TreadMILL.dat``; they are returned as one acquisition
-        per pass (see :func:`~freestep.walkway.parse_walkway`).
+        per pass (see :func:`~freestep.formats.parse_walkway`).
 
         Raises:
             FileNotFoundError: The archive contains no pressure recording.
@@ -248,16 +219,16 @@ class FreFile(_ZipBacked):
         if _find_member(self._zip, "Postura.dat") is None:
             static = self._read("Statica.dat")
             if static is not None:
-                return Postura.parse_static(static)
+                return parse_static(static)
             for name in GAIT_RECORDINGS:
                 data = self._read(name)
                 if data is not None:
                     return parse_walkway(data, name)
-        return Postura.parse(self.postura_bytes)
+        return parse_postura(self.postura_bytes)
 
     @property
     def has_pressure(self) -> bool:
-        """The archive contains pressure data :attr:`postura` can decode.
+        """The archive contains pressure data :attr:`recording` can decode.
 
         Other exam types store data of unknown format or only images (see :attr:`image_names`).
         """

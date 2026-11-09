@@ -11,7 +11,7 @@ from .texts import acquisition_label, exam_type_label, footwear_label, format_va
 
 def info_html(loaded: LoadedExam) -> str:
     """Build the HTML of the Info tab (subject, exam, recording and acquisition or image tables)."""
-    p, e, f, post = loaded.patient, loaded.exam, loaded.filter, loaded.postura
+    p, e, f, post = loaded.patient, loaded.exam, loaded.filter, loaded.recording
 
     def table(title: str, rows: list[tuple[str, object]]) -> str:
         body = "".join(

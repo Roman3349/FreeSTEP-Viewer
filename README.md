@@ -71,7 +71,7 @@ off with `--no-summary`). `--dry-run` only prints the file names. Decrypting tak
 
 ## Stabilometry
 
-`freestep.stabilometry` computes the parameters from the COP of the whole plate (x = medio-lateral,
+`freestep.analysis.stabilometry` computes the parameters from the COP of the whole plate (x = medio-lateral,
 y = antero-posterior) after a zero-phase 4th order Butterworth low-pass filter (5 Hz by default,
 `--lowpass 0` / "unfiltered" turns it off). Unloaded frames at the start and end are left out,
 those in between are interpolated. Parameters: mean position, range, standard deviation, mean and
@@ -111,7 +111,7 @@ with FreeStepExport("FreeStep_Export.zip") as export:
     for patient in export.patients:
         for exam in export.exams_of(patient.id):
             with export.open_fre(exam) as fre:
-                post = fre.postura  # decryption takes ~4 s
+                post = fre.recording  # decryption takes ~4 s
                 post.header.platform  # "Max 50x60"
                 post.pressure  # numpy (frames, 100, 120), uint16
                 post.cop_total  # numpy (frames, 2), cm

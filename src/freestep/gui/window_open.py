@@ -14,9 +14,9 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QImage
 from PySide6.QtWidgets import QApplication, QFileDialog, QInputDialog, QLineEdit, QMessageBox, QTreeWidgetItem
 
+from ..analysis.stabilometry import MIN_FRAMES
 from ..archive import FreeStepExport, FreFile
 from ..models import Exam, Patient
-from ..stabilometry import MIN_FRAMES
 from .exam import LoadedExam, decode_images, is_bad_password, load_exam
 from .i18n import ntr, tr
 from .info import info_html
@@ -234,7 +234,7 @@ class OpenMixin(WindowBase):
         Without an exam, the History tab is shown for the subjects of an open export.
         """
         loaded = self._current
-        post = loaded.postura if loaded is not None else None
+        post = loaded.recording if loaded is not None else None
         analysable = post is not None and not post.gait and any(a.frame_count >= MIN_FRAMES for a in post.acquisitions)
         visible = {self.info: True, self.history_tab: self._export is not None and (analysable or loaded is None)}
         visible |= dict.fromkeys(self.analysis_tabs, analysable)
@@ -346,7 +346,7 @@ class OpenMixin(WindowBase):
         if self._export is not None and loaded.exam.patient_id is not None:
             self._history_patient = loaded.exam.patient_id
         self._show_video(loaded)
-        post = loaded.postura
+        post = loaded.recording
         if post is None:
             self._show_image_exam(loaded, images)
             return

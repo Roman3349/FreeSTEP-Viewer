@@ -34,11 +34,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..analysis.stabilometry import Romberg, Stabilometry
 from ..archive import FreeStepExport, FreFile
 from ..history import ExamAnalysis
 from ..models import Exam, Patient
-from ..postura import Acquisition
-from ..stabilometry import Romberg, Stabilometry
+from ..recording import Acquisition
 from .exam import LoadedExam
 from .tasks import Task
 from .widgets import CopPlot, HeatmapView, HistoryPlot, ImagePanel, StabilogramPlot

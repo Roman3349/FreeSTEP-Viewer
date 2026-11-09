@@ -54,7 +54,7 @@ def test_exam(export: FreeStepExport, name: str) -> None:
         patient = export.patient(mdb_exam.patient_id)
         assert patient is not None and fre.patient.name == patient.name
 
-        post = fre.postura
+        post = fre.recording
         assert post.header.platform == "Max 50x60"
         assert (post.header.columns, post.header.rows) == (120, 100)
         assert post.unused_size == 0

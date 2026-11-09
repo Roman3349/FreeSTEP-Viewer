@@ -10,8 +10,8 @@ import os
 import numpy as np
 from scipy.io import savemat
 
-from .postura import Postura
-from .stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
+from .analysis.stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
+from .recording import Recording
 
 #: Columns of :func:`write_cop_csv`.
 COP_CSV_COLUMNS = [
@@ -29,7 +29,7 @@ COP_CSV_COLUMNS = [
 ]
 
 
-def write_cop_csv(post: Postura, path: str | os.PathLike[str]) -> None:
+def write_cop_csv(post: Recording, path: str | os.PathLike[str]) -> None:
     """Write the per-frame time, pressure sum and COP of all acquisitions to a CSV file.
 
     Args:
@@ -54,7 +54,7 @@ def write_cop_csv(post: Postura, path: str | os.PathLike[str]) -> None:
                 )
 
 
-def write_npz(post: Postura, path: str | os.PathLike[str]) -> None:
+def write_npz(post: Recording, path: str | os.PathLike[str]) -> None:
     """Write all acquisitions to a compressed NumPy archive.
 
     Keys are prefixed with the acquisition index, e.g. ``a0_pressure``
@@ -91,7 +91,7 @@ def write_stabilometry_csv(
     """Write the stabilometric parameters with one row per parameter and one column per acquisition.
 
     Args:
-        results: Parameters of every acquisition (see :func:`freestep.stabilometry.analyze_all`);
+        results: Parameters of every acquisition (see :func:`freestep.analysis.stabilometry.analyze_all`);
             ``None`` gives empty cells.
         path: Output file (overwritten), UTF-8 with ``,`` as separator.
         romberg: Adds the ``romberg_quotient`` column (eyes closed / eyes open).
@@ -117,7 +117,7 @@ def _csv_value(value: float | int | None) -> str:
 
 
 def write_mat(
-    post: Postura,
+    post: Recording,
     path: str | os.PathLike[str],
     results: list[Stabilometry | None] | None = None,
     romberg: Romberg | None = None,

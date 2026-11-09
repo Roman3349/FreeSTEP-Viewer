@@ -39,7 +39,7 @@ def test_load_exam_without_pressure() -> None:
     scan, photo = _bmp(100), _bmp(96)
     members = {"Paziente.ini": PATIENT_INI, "Scanner.bmp": scan, "Originale.bmp": scan, "Foto.bmp": photo}
     loaded = load_exam(FreFile(_synthetic_fre(members)))
-    assert loaded.postura is None and loaded.max_images == []
+    assert loaded.recording is None and loaded.max_images == []
     assert [name for name, _ in loaded.images] == ["Scanner.bmp", "Foto.bmp"]
     (_, scanned, scale), (_, _, no_scale) = decode_images(loaded)
     assert scanned.width() == 20 and scale == pytest.approx(0.254, rel=0.01)
@@ -54,5 +54,5 @@ def test_load_static_exam() -> None:
         "Statica.dat": _synthetic_static(frame),
     }
     loaded = load_exam(FreFile(_synthetic_fre(members)))
-    assert loaded.postura is not None and loaded.postura.acquisitions[0].frame_count == 1
+    assert loaded.recording is not None and loaded.recording.acquisitions[0].frame_count == 1
     assert int(loaded.pressure_sums[0][0]) == frame.sum()

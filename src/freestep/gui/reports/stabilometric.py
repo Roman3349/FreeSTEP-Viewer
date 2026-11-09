@@ -1,4 +1,4 @@
-"""PDF report of a stabilometric exam.
+"""PDF report of a posturography exam: the stabilometric report.
 
 The report is painted with :class:`~PySide6.QtGui.QPdfWriter`: texts and tables
 as rich text (:class:`~PySide6.QtGui.QTextDocument`), plots by rendering the
@@ -31,13 +31,13 @@ from PySide6.QtGui import (
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QWidget
 
-from ..load import load_regions
-from ..models import Exam, Patient
-from ..postura import Postura
-from ..stabilometry import Romberg, Stabilometry, speed, sway, unit
-from .i18n import tr
-from .meta import APP_NAME, ICON_PATH
-from .texts import (
+from ...analysis.load import load_regions
+from ...analysis.stabilometry import Romberg, Stabilometry, speed, sway, unit
+from ...models import Exam, Patient
+from ...recording import Recording
+from ..i18n import tr
+from ..meta import APP_NAME, ICON_PATH
+from ..texts import (
     acquisition_style,
     directions_note,
     exam_type_label,
@@ -47,7 +47,7 @@ from .texts import (
     romberg_order_note,
     sex_label,
 )
-from .widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, ORIGIN_MEAN, CopPlot, HeatmapView, StabilogramPlot
+from ..widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, ORIGIN_MEAN, CopPlot, HeatmapView, StabilogramPlot
 
 #: Resolution of the PDF in dots per inch; 1 dot = 1 px of the widgets.
 _DPI = 96
@@ -296,7 +296,7 @@ class ReportData:
 
     patient: Patient
     exam: Exam
-    post: Postura
+    post: Recording
     results: list[Stabilometry | None]
     romberg: Romberg | None
     lowpass_hz: float | None
@@ -504,7 +504,7 @@ def _statokinesigrams(data: ReportData) -> list[tuple[int, CopPlot]]:
     return plots
 
 
-def _mean_heatmap(post: Postura, index: int, result: Stabilometry | None) -> HeatmapView:
+def _mean_heatmap(post: Recording, index: int, result: Stabilometry | None) -> HeatmapView:
     """Heat map of the mean pressure image of an acquisition with the load quadrants, scaled to its maximum."""
     acq, header = post.acquisitions[index], post.header
     view = HeatmapView()

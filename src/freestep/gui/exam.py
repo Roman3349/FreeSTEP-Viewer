@@ -9,10 +9,11 @@ from numpy.typing import NDArray
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice
 from PySide6.QtGui import QImage
 
-from ..archive import FreFile, VideoTrack
-from ..load import LoadDistribution, LoadRegions, load_distribution, load_regions
+from ..analysis.load import LoadDistribution, LoadRegions, load_distribution, load_regions
+from ..archive import FreFile
+from ..formats import VideoTrack
 from ..models import Exam, FilterSettings, Patient
-from ..postura import Acquisition, Postura
+from ..recording import Acquisition, Recording
 from .widgets import COP_LEFT_COLOR, COP_RIGHT_COLOR, COP_TOTAL_COLOR, HeatmapView
 
 # Indexes of the display mode combo box; also used in PNG file names.
@@ -29,7 +30,7 @@ class LoadedExam:
         exam: Exam metadata from the archive.
         patient: Patient from the archive.
         filter: Filter settings of the recording.
-        postura: The decoded pressure recording; ``None`` for exam types without
+        recording: The decoded pressure recording; ``None`` for exam types without
             readable pressure data (e.g. podoscanner, videography).
         pressure_sums: Per acquisition: sum of all sensor values per frame.
         max_images: Per acquisition: per-sensor maximum over all frames.
@@ -44,7 +45,7 @@ class LoadedExam:
     exam: Exam
     patient: Patient
     filter: FilterSettings
-    postura: Postura | None
+    recording: Recording | None
     pressure_sums: list[NDArray[np.int64]]
     max_images: list[NDArray[np.uint16]]
     loads: list[tuple[LoadRegions, LoadDistribution]]
@@ -68,13 +69,13 @@ def load_exam(fre: FreFile) -> LoadedExam:
         return LoadedExam(
             fre, fre.exam, fre.patient, fre.filter, None, [], [], [], images, fre.video, fre.video_rotation, None
         )
-    post = fre.postura  # the slow part (ZipCrypto decryption)
+    post = fre.recording  # the slow part (ZipCrypto decryption)
     return LoadedExam(
         fre=fre,
         exam=fre.exam,
         patient=fre.patient,
         filter=fre.filter,
-        postura=post,
+        recording=post,
         pressure_sums=[a.pressure.reshape(a.frame_count, -1).sum(axis=1, dtype=np.int64) for a in post.acquisitions],
         max_images=[a.pressure.max(axis=0) for a in post.acquisitions],
         loads=[]

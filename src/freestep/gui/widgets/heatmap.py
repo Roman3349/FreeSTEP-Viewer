@@ -8,7 +8,7 @@ from PySide6.QtCore import QPointF, QRectF, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QImage, QMouseEvent, QPainter, QPainterPath, QPaintEvent, QPen
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
-from ...load import LoadRegions
+from ...analysis.load import LoadRegions
 from ..colormap import LUT, colorize
 from ..i18n import tr
 from .common import COP_LEFT_COLOR, COP_RIGHT_COLOR, COP_TOTAL_COLOR

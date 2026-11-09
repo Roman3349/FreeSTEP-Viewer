@@ -10,9 +10,8 @@ import pytest
 from scipy.io import loadmat
 from test_units import _synthetic_postura
 
-from freestep.load import load_distribution, load_regions
-from freestep.postura import Postura
-from freestep.stabilometry import (
+from freestep.analysis.load import load_distribution, load_regions
+from freestep.analysis.stabilometry import (
     POSTUROGRAPHY_EXAM_TYPE,
     analyze,
     analyze_all,
@@ -22,6 +21,8 @@ from freestep.stabilometry import (
     speed,
     unit,
 )
+from freestep.formats import parse_postura
+from freestep.recording import Recording
 from freestep.writers import write_mat, write_stabilometry_csv
 
 FS = 25.0
@@ -131,7 +132,7 @@ def test_too_short_is_rejected() -> None:
         compute(_circle(1.0, 1.0, seconds=1.0), FS)
 
 
-def _postura(labels: tuple[str, str] = ("", ""), frames: int = 64) -> Postura:
+def _postura(labels: tuple[str, str] = ("", ""), frames: int = 64) -> Recording:
     """Synthetic recording with two acquisitions; the first has unloaded frames at the start and inside."""
     data = bytearray(_synthetic_postura(3, [frames, frames]))
     header, frame_size = 74, 4 * 6 * 2 + 30
@@ -141,7 +142,7 @@ def _postura(labels: tuple[str, str] = ("", ""), frames: int = 64) -> Postura:
     label_offsets[1] = label_offsets[0] + 100 + 6 + frames * frame_size + 48
     for offset, label in zip(label_offsets, labels, strict=True):
         data[offset : offset + 100] = label.ljust(100).encode()
-    return Postura.parse(bytes(data))
+    return parse_postura(bytes(data))
 
 
 def test_unloaded_frames_are_trimmed_and_interpolated() -> None:

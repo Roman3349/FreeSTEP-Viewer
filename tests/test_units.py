@@ -10,15 +10,15 @@ import numpy as np
 import pytest
 from scipy.io import loadmat
 
-from freestep.archive import FreFile, VideoTrack
+from freestep.archive import FreFile
 from freestep.batch import safe_name
 from freestep.convert import to_date, to_float
+from freestep.formats import VideoTrack, parse_postura, parse_static
 from freestep.gui import i18n, po
 from freestep.gui.colormap import colorize
 from freestep.ini import parse_ini
 from freestep.mdb import decode_jet4_text
 from freestep.models import Sex, to_sex
-from freestep.postura import Postura
 from freestep.writers import write_mat
 
 
@@ -119,7 +119,7 @@ def test_postura_static() -> None:
     frame = np.zeros((3, 8), np.uint16)
     frame[1, 1], frame[2, 2] = 10, 30  # left half
     frame[0, 5] = 20  # right half
-    post = Postura.parse_static(_synthetic_static(frame))
+    post = parse_static(_synthetic_static(frame))
     assert (post.header.columns, post.header.rows, post.header.size) == (8, 3, 94)
     (acq,) = post.acquisitions
     assert acq.frame_count == 1
@@ -130,9 +130,9 @@ def test_postura_static() -> None:
     without_descriptor = bytearray(_synthetic_static(frame))
     without_descriptor[76:94] = bytes(18)
     with pytest.raises(ValueError, match="no 8x3 array descriptor"):
-        Postura.parse_static(bytes(without_descriptor))
+        parse_static(bytes(without_descriptor))
     with pytest.raises(ValueError, match="one 8x3 frame"):
-        Postura.parse_static(_synthetic_static(frame)[: 94 + frame.size * 2 - 1])
+        parse_static(_synthetic_static(frame)[: 94 + frame.size * 2 - 1])
 
 
 def test_fre_exam_types() -> None:
@@ -140,7 +140,7 @@ def test_fre_exam_types() -> None:
     frame = np.ones((3, 8), np.uint16)
     with FreFile(_synthetic_fre({"Statica.dat": _synthetic_static(frame), "Statica.BMP": b"photo"})) as fre:
         assert fre.has_pressure
-        assert fre.postura.acquisitions[0].pressure.sum() == frame.sum()
+        assert fre.recording.acquisitions[0].pressure.sum() == frame.sum()
         assert fre.image_names == ["Statica.BMP"]
     scan = {"Originale.bmp": b"scan", "Thumbs.db": b"", "Scanner.bmp": b"scan", "Preview1.jpg": b"jpeg"}
     with FreFile(_synthetic_fre(scan)) as fre:
@@ -148,7 +148,7 @@ def test_fre_exam_types() -> None:
         assert fre.image_names == ["Scanner.bmp", "Originale.bmp"]  # the scan first, no previews
         assert fre.image("Scanner.bmp") == b"scan" and fre.image("missing.bmp") is None
         with pytest.raises(FileNotFoundError):
-            _ = fre.postura
+            _ = fre.recording
         assert fre.video is None and fre.video_rotation == 0
     video = {"Capture.avi": b"RIFF....AVI ", "Capture.ini": b"[CAPINFO]\r\nCOMPRESSIONE=1\r\nROTAZIONE=90\r\n"}
     with FreFile(_synthetic_fre(video)) as fre:
@@ -162,7 +162,7 @@ def test_fre_exam_types() -> None:
 @pytest.mark.parametrize("version", [1, 3])
 def test_postura_synthetic(version: int) -> None:
     """Header, all acquisitions, frame data, timestamps and COP of a synthetic file are decoded."""
-    post = Postura.parse(_synthetic_postura(version, [3, 5], tail=10))
+    post = parse_postura(_synthetic_postura(version, [3, 5], tail=10))
     assert post.header.platform == "Test"
     assert post.header.size == {1: 66, 3: 74}[version]
     assert [a.frame_count for a in post.acquisitions] == [3, 5]
@@ -182,7 +182,7 @@ def test_postura_unknown_version_is_detected() -> None:
     """For an unknown version the header size is found from the first acquisition."""
     data = bytearray(_synthetic_postura(3, [2]))
     data[0:2] = struct.pack("<h", 7)
-    post = Postura.parse(bytes(data))
+    post = parse_postura(bytes(data))
     assert post.header.size == 74
     assert post.acquisitions[0].frame_count == 2
 
@@ -190,7 +190,7 @@ def test_postura_unknown_version_is_detected() -> None:
 def test_postura_rejects_truncated_file() -> None:
     """A file shorter than its first acquisition is rejected."""
     with pytest.raises(ValueError):
-        Postura.parse(_synthetic_postura(3, [5])[:-2000])
+        parse_postura(_synthetic_postura(3, [5])[:-2000])
 
 
 def test_colormap() -> None:
@@ -283,7 +283,7 @@ def test_safe_name() -> None:
 
 def test_write_mat(tmp_path: Path) -> None:
     """The MATLAB file holds the frames (rows × columns × frames), COP, timestamps and the header."""
-    post = Postura.parse(_synthetic_postura(3, [3, 5]))
+    post = parse_postura(_synthetic_postura(3, [3, 5]))
     path = tmp_path / "exam.mat"
     write_mat(post, path)
     mat = loadmat(path, squeeze_me=True, struct_as_record=False)

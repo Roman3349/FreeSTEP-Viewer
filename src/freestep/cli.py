@@ -9,12 +9,7 @@ import zipfile
 from collections.abc import Callable
 from pathlib import Path
 
-from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
-from .batch import FORMATS, batch_export, exam_stem, write_summary_csv
-from .history import ROMBERG_PREFIX, analyze_exams, history_rows, patient_exams
-from .ini import DEFAULT_ANSI_ENCODING
-from .models import Exam
-from .stabilometry import (
+from .analysis.stabilometry import (
     DEFAULT_LOWPASS_HZ,
     ROMBERG_PARAMETERS,
     Romberg,
@@ -23,6 +18,11 @@ from .stabilometry import (
     evaluate_romberg,
     unit,
 )
+from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
+from .batch import FORMATS, batch_export, exam_stem, write_summary_csv
+from .history import ROMBERG_PREFIX, analyze_exams, history_rows, patient_exams
+from .ini import DEFAULT_ANSI_ENCODING
+from .models import Exam
 from .writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 
 
@@ -84,7 +84,7 @@ def _write_outputs(
     args: argparse.Namespace, fre: FreFile, results: list[Stabilometry | None], romberg: Romberg | None
 ) -> None:
     """Write the files requested by the ``freestep exam`` options (``--csv``, ``--mat``, …)."""
-    post = fre.postura
+    post = fre.recording
     if args.csv:
         write_cop_csv(post, args.csv)
         print(f"COP written to {args.csv}")
@@ -131,7 +131,7 @@ def cmd_exam(args: argparse.Namespace) -> int:
         print(f"Subject {patient.id}: {patient.name}, born {_fmt(patient.birth_date)}")
         print(f"Members: {', '.join(fre.members)}")
 
-        post = fre.postura
+        post = fre.recording
         h = post.header
         print(
             f"Platform: {h.platform!r} v{h.version}, {h.columns}x{h.rows} cells of "

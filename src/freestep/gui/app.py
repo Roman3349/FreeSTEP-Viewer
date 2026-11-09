@@ -40,10 +40,10 @@ from PySide6.QtWidgets import (
     QTreeWidget,
 )
 
+from ..analysis.stabilometry import DEFAULT_LOWPASS_HZ, Romberg, Stabilometry
 from ..archive import DEFAULT_PASSWORD, FreeStepExport
 from ..history import ExamAnalysis
 from ..models import Exam, Patient
-from ..stabilometry import DEFAULT_LOWPASS_HZ, Romberg, Stabilometry
 from .exam import LoadedExam
 from .i18n import (
     AUTO_LANGUAGE,

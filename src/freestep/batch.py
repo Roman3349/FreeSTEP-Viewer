@@ -16,16 +16,16 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .archive import FreeStepExport
-from .history import analyze_exam
-from .models import Exam, Patient
-from .postura import Postura
-from .stabilometry import (
+from .analysis.stabilometry import (
     DEFAULT_LOWPASS_HZ,
     ROMBERG_PARAMETERS,
     Romberg,
     Stabilometry,
 )
+from .archive import FreeStepExport
+from .history import analyze_exam
+from .models import Exam, Patient
+from .recording import Recording
 from .writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 
 #: Export formats: key -> file name suffix (appended to the exam stem).
@@ -75,7 +75,7 @@ def exam_stem(patient: Patient | None, exam: Exam) -> str:
 
 
 def export_exam(
-    post: Postura,
+    post: Recording,
     directory: str | os.PathLike[str],
     stem: str,
     formats: Sequence[str],
@@ -118,7 +118,7 @@ def export_exam(
 def summary_rows(
     patient: Patient | None,
     exam: Exam,
-    post: Postura,
+    post: Recording,
     results: list[Stabilometry | None],
     romberg: Romberg | None,
 ) -> list[dict[str, object]]:
@@ -199,9 +199,9 @@ def batch_export(
         summary: Also write :data:`SUMMARY_NAME` with the parameters of all acquisitions.
             :data:`INDEX_NAME` with one row per exam (patient, exam, files, status)
             is written always.
-        lowpass_hz: Low-pass filter of the analysis (see :func:`freestep.stabilometry.analyze`).
-        detrend: Remove the linear trend of the COP (see :func:`freestep.stabilometry.analyze`).
-        eyes_closed_first: Romberg order without labels (see :func:`freestep.stabilometry.detect_romberg`).
+        lowpass_hz: Low-pass filter of the analysis (see :func:`freestep.analysis.stabilometry.analyze`).
+        detrend: Remove the linear trend of the COP (see :func:`freestep.analysis.stabilometry.analyze`).
+        eyes_closed_first: Romberg order without labels (see :func:`freestep.analysis.stabilometry.detect_romberg`).
         progress: Called before each exam with ``(index, count, exam)``; returning
             ``False`` cancels the export (the files written so far are kept).
 
@@ -238,7 +238,7 @@ def batch_export(
             continue
         try:
             with export.open_fre(exam.file_name) as fre:
-                post = fre.postura
+                post = fre.recording
                 results: list[Stabilometry | None] = []
                 romberg: Romberg | None = None
                 if analyse:

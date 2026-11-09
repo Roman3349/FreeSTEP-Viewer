@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 00:31+0000\n"
+"POT-Creation-Date: 2026-11-09 03:55+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -14,13 +14,13 @@ msgstr ""
 
 #: freestep/gui/app.py
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Date"
 msgstr ""
 
 #: freestep/gui/app.py
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Type"
 msgstr ""
 
@@ -33,12 +33,12 @@ msgid "COP"
 msgstr ""
 
 #: freestep/gui/app.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Stabilogram"
 msgstr ""
 
 #: freestep/gui/app.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Speed"
 msgstr ""
 
@@ -243,7 +243,7 @@ msgid "Recording"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Platform"
 msgstr ""
 
@@ -276,7 +276,7 @@ msgid "Passes"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Acquisitions"
 msgstr ""
 
@@ -285,37 +285,37 @@ msgid "Unknown settings"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Subject"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Name"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "ID"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Born"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Sex"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Height"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Weight"
 msgstr ""
 
@@ -328,7 +328,7 @@ msgid "SSID"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Exam"
 msgstr ""
 
@@ -337,7 +337,7 @@ msgid "Time"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Footwear"
 msgstr ""
 
@@ -358,7 +358,7 @@ msgid "raw data"
 msgstr ""
 
 #: freestep/gui/info.py
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Note"
 msgstr ""
 
@@ -366,126 +366,126 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #, python-brace-format
 msgid "Page {number}"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_history.py
 msgid "Romberg quotient"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Parameter"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Stabilometric report"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_history.py
 #: freestep/gui/window_open.py
 #, python-brace-format
 msgid "Exam {id}"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Age at exam"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Summary"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Romberg quotient = eyes closed / eyes open; above 1 means more sway with eyes closed."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 #, python-brace-format
 msgid "Low-pass filter {cutoff} Hz."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "COP not filtered."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Linear trend removed."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Statokinesigram"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "COP of the whole plate around its mean position, same scale for all acquisitions."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Load distribution"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Mean of every sensor over the frames where it is loaded; share of the total load in every quadrant, COP of the whole plate (black) and of the left and right foot."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Load: left and right foot split in the gap between them; front and rear half of each foot's length (toes toward the top of the heat map)."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Displacement of the COP of the whole plate from its mean (or trend) and its instantaneous speed."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_playback.py
 msgid "total"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_analysis.py
 msgid "ML (x)"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_analysis.py
 msgid "AP (y)"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/window_analysis.py
 msgid "COP speed"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Stabilometric parameters"
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Path length and mean velocity: length of the COP trajectory and its mean speed. 95% confidence ellipse: area containing 95% of the COP positions (principal components). Frequencies from the power spectrum (Welch) in 0.15–5 Hz."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #: freestep/gui/texts.py
 msgid "Acquisitions with fewer than 32 loaded frames are not analysed."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 #, python-brace-format
 msgid "Generated by {app} on {date}."
 msgstr ""
 
-#: freestep/gui/report.py
+#: freestep/gui/reports/stabilometric.py
 msgid "Methods"
 msgstr ""
 

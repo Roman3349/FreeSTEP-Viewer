@@ -19,8 +19,8 @@ from numpy.typing import NDArray
 from scipy import signal
 from scipy.spatial import ConvexHull, QhullError
 
+from ..recording import Acquisition, Recording
 from .load import load_distribution
-from .postura import Acquisition, Postura
 
 #: Default cut-off of the zero-phase low-pass filter in Hz (4th order Butterworth).
 DEFAULT_LOWPASS_HZ = 5.0
@@ -96,7 +96,7 @@ class Stabilometry:
     parameters are computed from a COP trajectory only (:func:`compute`). The
     feet are split in the gap between them, the front and rear half of a foot
     in the middle of its length (the rows it loads); the toes are assumed to
-    point to row 0, as the heat map shows them at the top (see :func:`freestep.load.load_regions`).
+    point to row 0, as the heat map shows them at the top (see :func:`freestep.analysis.load.load_regions`).
     The shares are means over the frames.
     """
 
@@ -202,11 +202,11 @@ def unit(name: str) -> str:
 
 
 def analyze_all(
-    post: Postura, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False
+    post: Recording, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False
 ) -> list[Stabilometry | None]:
     """Analyse every acquisition of a recording (see :func:`analyze`), ``None`` where it is not possible.
 
-    A gait recording (:attr:`Postura.gait`) is not analysed.
+    A gait recording (:attr:`Recording.gait`) is not analysed.
     """
     results: list[Stabilometry | None] = []
     if post.gait:
@@ -456,7 +456,7 @@ def _eye_condition(label: str) -> bool | None:
 
 
 def detect_romberg(
-    post: Postura, exam_type: int | None = None, eyes_closed_first: bool = False
+    post: Recording, exam_type: int | None = None, eyes_closed_first: bool = False
 ) -> tuple[int, int, bool] | None:
     """Detect a Romberg test: two acquisitions of about the same duration in a posturography exam.
 
@@ -488,7 +488,7 @@ def detect_romberg(
 
 
 def evaluate_romberg(
-    post: Postura,
+    post: Recording,
     results: list[Stabilometry | None],
     exam_type: int | None = None,
     eyes_closed_first: bool = False,

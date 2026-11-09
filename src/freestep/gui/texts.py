@@ -7,10 +7,10 @@ import html
 import numpy as np
 from PySide6.QtGui import QColor
 
+from ..analysis.stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
 from ..history import ROMBERG_PREFIX
 from ..models import Exam, Sex
-from ..postura import Acquisition, Postura
-from ..stabilometry import ROMBERG_PARAMETERS, Romberg, Stabilometry, unit
+from ..recording import Acquisition, Recording
 from .i18n import tr
 from .widgets import AP_COLOR, COP_LEFT_COLOR, COP_RIGHT_COLOR, ML_COLOR
 
@@ -202,7 +202,7 @@ def format_number(value: float | None) -> str:
     return "–" if value is None or not np.isfinite(value) else f"{float(value):.2f}"
 
 
-def stabilometry_html(post: Postura, results: list[Stabilometry | None], romberg: Romberg | None) -> str:
+def stabilometry_html(post: Recording, results: list[Stabilometry | None], romberg: Romberg | None) -> str:
     """Build the HTML of the Stabilometry tab: a table with one column per acquisition.
 
     For a Romberg test the eyes-open and eyes-closed acquisitions are named and the

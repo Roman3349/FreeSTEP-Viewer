@@ -32,7 +32,7 @@ class VideoMixin(WindowBase):
         self.exam_video.set_video(
             path,
             loaded.video_rotation,
-            sync_start=track.start_frame if track is not None and loaded.postura is not None else None,
+            sync_start=track.start_frame if track is not None and loaded.recording is not None else None,
             frame_count=track.frame_count if track is not None else None,
         )
 
@@ -52,10 +52,10 @@ class VideoMixin(WindowBase):
             speed: Playback speed of the pressure recording (1 = real time).
         """
         acq = self._current_acquisition()
-        if acq is None or self._current is None or self._current.postura is None:
+        if acq is None or self._current is None or self._current.recording is None:
             return
         if self.tabs.currentWidget() is not self.exam_video or not self.exam_video.following:
             return
-        first = int(self._current.postura.acquisitions[0].timestamps_ms[0])
+        first = int(self._current.recording.acquisitions[0].timestamps_ms[0])
         frame = min(self.slider.value(), acq.frame_count - 1)
         self.exam_video.follow((int(acq.timestamps_ms[frame]) - first) / 1000, playing=playing, speed=speed)

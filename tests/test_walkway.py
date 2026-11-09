@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 from test_units import _synthetic_fre
 
+from freestep.analysis.stabilometry import analyze_all
 from freestep.archive import FreFile
-from freestep.stabilometry import analyze_all
-from freestep.walkway import WALKWAY_LAYOUT, parse_walkway
+from freestep.formats.walkway import WALKWAY_LAYOUT, parse_walkway
 
 ROWS, COLUMNS, PLATES = 4, 3, 2
 
@@ -66,7 +66,7 @@ def test_walkway_in_fre() -> None:
     for name in ("Dinamica.dat", "TreadMILL.dat"):
         with FreFile(_synthetic_fre({name: data, "Old.dat": b"junk"})) as fre:
             assert fre.has_pressure
-            assert fre.postura.gait and fre.postura.acquisitions[0].frame_count == 3
+            assert fre.recording.gait and fre.recording.acquisitions[0].frame_count == 3
 
 
 def test_walkway_without_frames() -> None:

@@ -4,7 +4,7 @@ from .archive import DEFAULT_PASSWORD, FreeStepExport, FreFile
 from .ini import parse_ini
 from .mdb import AccessDatabase
 from .models import Exam, ExportIndex, FilterSettings, Patient, Sex
-from .postura import Postura, PosturaHeader
+from .recording import Recording, RecordingHeader
 
 __all__ = [
     "DEFAULT_PASSWORD",
@@ -15,8 +15,8 @@ __all__ = [
     "FreFile",
     "FreeStepExport",
     "Patient",
-    "Postura",
-    "PosturaHeader",
+    "Recording",
+    "RecordingHeader",
     "Sex",
     "parse_ini",
 ]

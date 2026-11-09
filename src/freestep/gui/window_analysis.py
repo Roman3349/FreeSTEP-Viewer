@@ -17,8 +17,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..postura import Acquisition
-from ..stabilometry import analyze_all, evaluate_romberg, speed, sway
+from ..analysis.stabilometry import analyze_all, evaluate_romberg, speed, sway
+from ..recording import Acquisition
 from .i18n import tr
 from .texts import acquisition_style, directions_note, stabilometry_html
 from .widgets import AP_COLOR, COP_TOTAL_COLOR, ML_COLOR, CopPlot, StabilogramPlot
@@ -186,7 +186,7 @@ class AnalysisMixin(WindowBase):
 
     def _update_stabilometry(self) -> None:
         """Compute the stabilometric parameters and the Romberg test of the shown exam and show them."""
-        post = self._current.postura if self._current is not None else None
+        post = self._current.recording if self._current is not None else None
         if post is None:
             self._stabilometry, self._romberg = [], None
             self.stabilometry_view.clear()
@@ -220,8 +220,8 @@ class AnalysisMixin(WindowBase):
             return
         time, cop, curve, first = signals
         others = []
-        if self._compare and self._current is not None and self._current.postura is not None:
-            for other in self._current.postura.acquisitions:
+        if self._compare and self._current is not None and self._current.recording is not None:
+            for other in self._current.recording.acquisitions:
                 if other.index != acq.index and (other_signals := self._signals(other)) is not None:
                     others.append((other, other_signals))
         if others:

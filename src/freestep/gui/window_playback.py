@@ -6,7 +6,7 @@ import numpy as np
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QSlider, QSpinBox, QToolButton, QVBoxLayout, QWidget
 
-from ..postura import Acquisition
+from ..recording import Acquisition
 from .exam import MODE_FRAME, show_on_heatmap
 from .i18n import tr
 from .widgets import COP_LEFT_COLOR, COP_RIGHT_COLOR, COP_TOTAL_COLOR, HeatmapView
@@ -85,7 +85,7 @@ class PlaybackMixin(WindowBase):
         """
         for widget in (self.acquisition, self.mode, self.play_button, self.slider, self.fps, self.trail):
             widget.setEnabled(enabled)
-        post = self._current.postura if self._current is not None else None
+        post = self._current.recording if self._current is not None else None
         gait = post is not None and post.gait
         for action in self.export_actions:
             action.setEnabled(enabled and not (gait and action in self.analysis_actions))
@@ -95,7 +95,7 @@ class PlaybackMixin(WindowBase):
     def _update_frame_controls(self) -> None:
         """Enable playback, its speed and the time axis only for single frames (not for the maximum / mean image)."""
         enabled = (
-            self._current is not None and self._current.postura is not None and self.mode.currentIndex() == MODE_FRAME
+            self._current is not None and self._current.recording is not None and self.mode.currentIndex() == MODE_FRAME
         )
         if not enabled:
             self._stop()
@@ -113,9 +113,9 @@ class PlaybackMixin(WindowBase):
 
     def _current_acquisition(self) -> Acquisition | None:
         """Return the acquisition selected in the selection box."""
-        if self._current is None or self._current.postura is None:
+        if self._current is None or self._current.recording is None:
             return None
-        acquisitions = self._current.postura.acquisitions
+        acquisitions = self._current.recording.acquisitions
         return acquisitions[min(max(self.acquisition.currentIndex(), 0), len(acquisitions) - 1)]
 
     @Slot()
@@ -164,9 +164,9 @@ class PlaybackMixin(WindowBase):
     @Slot(int, int, int)
     def _on_hover(self, col: int, row: int, value: int) -> None:
         """Show the position and value of the sensor under the mouse in the status bar."""
-        if col < 0 or self._current is None or self._current.postura is None:
+        if col < 0 or self._current is None or self._current.recording is None:
             return
-        h = self._current.postura.header
+        h = self._current.recording.header
         self.statusBar().showMessage(
             tr(
                 "x {x} cm (col {col}), y {y} cm (row {row}): {value}",

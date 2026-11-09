@@ -36,7 +36,8 @@ import struct
 import numpy as np
 from numpy.typing import NDArray
 
-from .postura import COMMON_HEADER_SIZE, Acquisition, Postura, PosturaHeader, frame_dtype
+from ..recording import Acquisition, Recording, RecordingHeader, frame_dtype
+from .common import COMMON_HEADER_SIZE, decode_name
 
 #: Size of the file header and of the frame trailer in bytes, by format version (2 and 4 are known).
 WALKWAY_LAYOUT: dict[int, tuple[int, int]] = {2: (90, 22), 4: (102, 26)}
@@ -50,12 +51,12 @@ _SEARCH_FRAMES = 32
 _WALKWAY_STRUCT = struct.Struct("<h50s6h")
 
 
-def parse_walkway(data: bytes, name: str = "Dinamica.dat") -> Postura:
+def parse_walkway(data: bytes, name: str = "Dinamica.dat") -> Recording:
     """Parse ``Dinamica.dat`` or ``TreadMILL.dat`` as a recording with one acquisition per pass.
 
     The plates are joined into one wide plate. The COP of every frame is computed
     from the pressure like FreeSTEP's (cell index times cell size); there is no
-    left and right COP. The result has :attr:`Postura.gait` set.
+    left and right COP. The result has :attr:`~freestep.recording.Recording.gait` set.
 
     Args:
         data: Complete (decrypted) file content.
@@ -74,9 +75,9 @@ def parse_walkway(data: bytes, name: str = "Dinamica.dat") -> Postura:
         raise ValueError(f"{name}: invalid plate size {columns}x{rows}, {plates} plates")
     size, trailer = WALKWAY_LAYOUT[2] if version <= 2 else WALKWAY_LAYOUT[4]
     width = columns * plates
-    header = PosturaHeader(
+    header = RecordingHeader(
         version=version,
-        platform=platform.decode("cp1252").rstrip(" \x00"),
+        platform=decode_name(platform),
         columns=width,
         rows=rows,
         cell_width_mm=cell_w,
@@ -118,7 +119,7 @@ def parse_walkway(data: bytes, name: str = "Dinamica.dat") -> Postura:
         )
     last, count = passes[-1]
     end = last + (count - 1) * (matrix + trailer) + trailer
-    return Postura(header=header, acquisitions=acquisitions, raw=data, data_end=end, gait=True)
+    return Recording(header=header, acquisitions=acquisitions, raw=data, data_end=end, gait=True)
 
 
 def _find_passes(data: bytes, start: int, matrix: int, trailer: int) -> list[tuple[int, int]]:

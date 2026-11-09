@@ -6,10 +6,7 @@ import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
-from .archive import FreeStepExport
-from .models import Exam
-from .postura import Postura
-from .stabilometry import (
+from .analysis.stabilometry import (
     DEFAULT_LOWPASS_HZ,
     ROMBERG_PARAMETERS,
     Romberg,
@@ -17,6 +14,9 @@ from .stabilometry import (
     analyze_all,
     evaluate_romberg,
 )
+from .archive import FreeStepExport
+from .models import Exam
+from .recording import Recording
 
 #: Prefix of the Romberg quotient "parameters" accepted by :func:`series` (e.g. ``romberg_path_length_mm``).
 ROMBERG_PREFIX = "romberg_"
@@ -43,7 +43,7 @@ class ExamAnalysis:
 
 
 def analyze_exam(
-    post: Postura,
+    post: Recording,
     exam: Exam,
     *,
     lowpass_hz: float | None = DEFAULT_LOWPASS_HZ,
@@ -55,9 +55,9 @@ def analyze_exam(
     Args:
         post: The recording of the exam.
         exam: The exam (its type decides about the Romberg test).
-        lowpass_hz: Low-pass filter (see :func:`freestep.stabilometry.analyze`).
-        detrend: Remove the linear trend (see :func:`freestep.stabilometry.analyze`).
-        eyes_closed_first: Romberg order without labels (see :func:`freestep.stabilometry.detect_romberg`).
+        lowpass_hz: Low-pass filter (see :func:`freestep.analysis.stabilometry.analyze`).
+        detrend: Remove the linear trend (see :func:`freestep.analysis.stabilometry.analyze`).
+        eyes_closed_first: Romberg order without labels (see :func:`freestep.analysis.stabilometry.detect_romberg`).
     """
     results = analyze_all(post, lowpass_hz, detrend=detrend)
     romberg = evaluate_romberg(post, results, exam.exam_type, eyes_closed_first)
@@ -106,7 +106,7 @@ def analyze_exams(
             with export.open_fre(exam) as fre:
                 analyses.append(
                     analyze_exam(
-                        fre.postura, exam, lowpass_hz=lowpass_hz, detrend=detrend, eyes_closed_first=eyes_closed_first
+                        fre.recording, exam, lowpass_hz=lowpass_hz, detrend=detrend, eyes_closed_first=eyes_closed_first
                     )
                 )
         except (OSError, ValueError, RuntimeError) as exc:
@@ -119,8 +119,8 @@ def series(analyses: Sequence[ExamAnalysis], parameter: str) -> dict[str, list[f
 
     Args:
         analyses: The exams in the order to plot.
-        parameter: A :class:`~freestep.stabilometry.Stabilometry` attribute, or
-            :data:`ROMBERG_PREFIX` + one of :data:`~freestep.stabilometry.ROMBERG_PARAMETERS`
+        parameter: A :class:`~freestep.analysis.stabilometry.Stabilometry` attribute, or
+            :data:`ROMBERG_PREFIX` + one of :data:`~freestep.analysis.stabilometry.ROMBERG_PARAMETERS`
             for the Romberg quotient.
 
     Returns:
