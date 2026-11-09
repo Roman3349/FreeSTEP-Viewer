@@ -72,6 +72,10 @@ msgid "&Open…"
 msgstr ""
 
 #: freestep/gui/app.py
+msgid "Open &folder…"
+msgstr ""
+
+#: freestep/gui/app.py
 msgid "Export COP to &CSV…"
 msgstr ""
 
@@ -1073,6 +1077,14 @@ msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
 msgstr ""
 
 #: freestep/gui/window_open.py
+msgid "Open a folder with exams"
+msgstr ""
+
+#: freestep/gui/window_open.py
+msgid "The folder contains no exam files (.fre)."
+msgstr ""
+
+#: freestep/gui/window_open.py
 #, python-brace-format
 msgid "Reading {name}…"
 msgstr ""
@@ -1091,7 +1103,18 @@ msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
 msgstr ""
 
 #: freestep/gui/window_open.py
-msgid "Cannot open exam"
+msgid "These exam files cannot be opened:"
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{n} exam file"
+msgid_plural "{n} exam files"
+msgstr[0] ""
+msgstr[1] ""
+
+#: freestep/gui/window_open.py
+msgid "Unknown"
 msgstr ""
 
 #: freestep/gui/window_open.py

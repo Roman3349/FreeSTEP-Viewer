@@ -72,6 +72,10 @@ msgid "&Open…"
 msgstr "&Otevřít…"
 
 #: freestep/gui/app.py
+msgid "Open &folder…"
+msgstr "Otevřít &složku…"
+
+#: freestep/gui/app.py
 msgid "Export COP to &CSV…"
 msgstr "Exportovat COP do &CSV…"
 
@@ -1076,6 +1080,14 @@ msgid "FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"
 msgstr "Data FreeSTEP (*.zip *.fre);;Export (*.zip);;Měření (*.fre);;Vše (*)"
 
 #: freestep/gui/window_open.py
+msgid "Open a folder with exams"
+msgstr "Otevřít složku s měřeními"
+
+#: freestep/gui/window_open.py
+msgid "The folder contains no exam files (.fre)."
+msgstr "Složka neobsahuje žádné soubory měření (.fre)."
+
+#: freestep/gui/window_open.py
 #, python-brace-format
 msgid "Reading {name}…"
 msgstr "Načítám {name}…"
@@ -1094,8 +1106,20 @@ msgid "{name}: centre {centre}, {patients} subjects, {exams} exams"
 msgstr "{name}: centrum {centre}, probandů: {patients}, měření: {exams}"
 
 #: freestep/gui/window_open.py
-msgid "Cannot open exam"
-msgstr "Měření nelze otevřít"
+msgid "These exam files cannot be opened:"
+msgstr "Tyto soubory měření nelze otevřít:"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{n} exam file"
+msgid_plural "{n} exam files"
+msgstr[0] "{n} soubor měření"
+msgstr[1] "{n} soubory měření"
+msgstr[2] "{n} souborů měření"
+
+#: freestep/gui/window_open.py
+msgid "Unknown"
+msgstr "Neznámý"
 
 #: freestep/gui/window_open.py
 #, python-brace-format

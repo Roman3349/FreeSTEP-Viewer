@@ -11,6 +11,7 @@ from __future__ import annotations
 import tempfile
 import threading
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from PySide6.QtCore import QElapsedTimer, QSettings, Qt, QThreadPool, QTimer
@@ -35,6 +36,7 @@ from PySide6.QtWidgets import (
 
 from ..archive import FreeStepExport, FreFile
 from ..history import ExamAnalysis
+from ..models import Exam, Patient
 from ..postura import Acquisition
 from ..stabilometry import Romberg, Stabilometry
 from .exam import LoadedExam
@@ -57,6 +59,7 @@ class WindowBase(QMainWindow):
     _current: LoadedExam | None
     _loading_exam_id: object
     _current_key: object
+    _fre_files: list[tuple[Path, Patient, Exam]]
     _video_dir: tempfile.TemporaryDirectory[str] | None
     _password: str
     _timer: QTimer

@@ -21,7 +21,11 @@ uv sync --extra gui     # + the Qt viewer (PySide6)
 uv run freestep-viewer [FreeStep_Export.zip | 00000158.fre]
 ```
 
-- Subject/exam tree read from `Export.mdb`. A single `.fre` file can be opened too, via the menu or drag & drop.
+- Subject/exam tree read from `Export.mdb`. Exam files (`.fre`) can be opened too, several at once or all in a
+  folder and its subfolders (e.g. FreeSTEP's `Esami` data folder), via the menu, drag & drop or the command line.
+- Exam types: posturography and static exams (pressure data), dynamic and treadmill exams (gait over
+  several plates in a row, one acquisition per pass), podoscanner (foot scan with a scale in mm),
+  videography and exams with video (images; the video is played in the viewer, rotated as recorded).
 - Pressure heat map with the COP of the whole plate and of both halves, plus a COP trail.
 - Playback (Space, arrow keys, PageUp/PageDown) and frame / maximum / mean display modes.
 - COP trajectory plot with the origin in the plate corner (as stored), the plate centre or the mean position and

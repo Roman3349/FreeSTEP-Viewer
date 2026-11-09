@@ -42,6 +42,7 @@ from PySide6.QtWidgets import (
 
 from ..archive import DEFAULT_PASSWORD, FreeStepExport
 from ..history import ExamAnalysis
+from ..models import Exam, Patient
 from ..stabilometry import DEFAULT_LOWPASS_HZ, Romberg, Stabilometry
 from .exam import LoadedExam
 from .i18n import (
@@ -92,6 +93,7 @@ class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMix
         self._current: LoadedExam | None = None
         self._loading_exam_id: object = None
         self._current_key: object = None
+        self._fre_files: list[tuple[Path, Patient, Exam]] = []
         self._video_dir: tempfile.TemporaryDirectory[str] | None = None
         self._password = DEFAULT_PASSWORD
         self._settings = QSettings("FreeStepViewer", "FreeStepViewer")
@@ -186,6 +188,7 @@ class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMix
 
         file_menu = self.menuBar().addMenu(tr("&File"))
         self._add_action(file_menu, tr("&Open…"), self.open_dialog, QKeySequence.StandardKey.Open)
+        self._add_action(file_menu, tr("Open &folder…"), self.open_folder_dialog, QKeySequence("Ctrl+Shift+O"))
         file_menu.addSeparator()
         self.export_actions = [
             self._add_action(file_menu, tr("Export COP to &CSV…"), self._export_csv),
@@ -249,7 +252,11 @@ class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMix
         self._add_action(help_menu, tr("&About"), self._about)
 
     def _add_action(
-        self, menu: QMenu, text: str, slot: Callable[[], object], shortcut: QKeySequence.StandardKey | None = None
+        self,
+        menu: QMenu,
+        text: str,
+        slot: Callable[[], object],
+        shortcut: QKeySequence.StandardKey | QKeySequence | None = None,
     ) -> QAction:
         """Add a menu item.
 
@@ -257,7 +264,7 @@ class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMix
             menu: Menu to add the item to.
             text: Translated item text (``&`` marks the mnemonic).
             slot: Called when the item is triggered.
-            shortcut: Optional standard keyboard shortcut.
+            shortcut: Optional keyboard shortcut (``Ctrl`` is ``Cmd`` on macOS).
 
         Returns:
             The created action.
@@ -338,8 +345,8 @@ class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMix
         if self._export is not None:
             self._populate_tree(self._export)
             self._show_export_status()
-        elif self._current is not None:
-            self._add_fre_item(self._current)
+        elif self._fre_files:
+            self._populate_files()
         if self._current is not None:
             self._show_exam(self._current)
             self.acquisition.setCurrentIndex(acquisition)
@@ -386,7 +393,7 @@ class _FileOpenFilter(QObject):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802 (Qt API)
         """Open the file of a ``FileOpen`` event; let other events pass."""
         if isinstance(event, QFileOpenEvent) and event.file():
-            self._window.open_path(Path(event.file()))
+            self._window.open_paths([Path(event.file())])
             return True
         return super().eventFilter(watched, event)
 
@@ -416,7 +423,7 @@ def main(argv: list[str] | None = None) -> int:
     The language is taken from the saved setting, else from the system locale.
 
     Args:
-        argv: Command line including the program name; ``argv[1]`` may be a file
+        argv: Command line including the program name; ``argv[1:]`` may be files
             to open. ``None`` uses ``sys.argv``.
 
     Returns:
@@ -436,7 +443,7 @@ def main(argv: list[str] | None = None) -> int:
     app.installEventFilter(_FileOpenFilter(window))
     window.show()
     if len(argv) > 1:
-        window.open_path(Path(argv[1]))
+        window.open_paths([Path(arg) for arg in argv[1:]])
     return app.exec()
 
 

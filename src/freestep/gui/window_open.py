@@ -6,6 +6,7 @@ import html
 import traceback
 import zipfile
 from collections.abc import Callable
+from datetime import date, time
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ from PySide6.QtGui import QDragEnterEvent, QDropEvent, QImage
 from PySide6.QtWidgets import QApplication, QFileDialog, QInputDialog, QLineEdit, QMessageBox, QTreeWidgetItem
 
 from ..archive import FreeStepExport, FreFile
+from ..models import Exam, Patient
 from ..stabilometry import MIN_FRAMES
 from .exam import LoadedExam, decode_images, is_bad_password, load_exam
 from .i18n import ntr, tr
@@ -79,32 +81,51 @@ class OpenMixin(WindowBase):
         return ok
 
     def open_dialog(self) -> None:
-        """Let the user pick an export or exam file and open it."""
+        """Let the user pick an export or exam files and open them."""
         start = str(self._settings.value("last_dir", str(Path.home())))
-        path, _ = QFileDialog.getOpenFileName(
+        paths, _ = QFileDialog.getOpenFileNames(
             self,
             tr("Open FreeSTEP data"),
             start,
             tr("FreeSTEP data (*.zip *.fre);;Export (*.zip);;Exam (*.fre);;All (*)"),
         )
+        if paths:
+            self.open_paths([Path(p) for p in paths])
+
+    def open_folder_dialog(self) -> None:
+        """Let the user pick a folder and open all exam files in it and its subfolders."""
+        start = str(self._settings.value("last_dir", str(Path.home())))
+        path = QFileDialog.getExistingDirectory(self, tr("Open a folder with exams"), start)
         if path:
-            self.open_path(Path(path))
+            self.open_paths([Path(path)])
 
     def open_path(self, path: Path) -> None:
-        """Open an export (``.zip``) or a single exam (``.fre``).
+        """Open an export (``.zip``), an exam (``.fre``) or the exams in a folder (see :meth:`open_paths`)."""
+        self.open_paths([path])
+
+    def open_paths(self, paths: list[Path]) -> None:
+        """Open an export (``.zip``), or exam files (``.fre``) and the exam files in folders.
+
+        Exam files take precedence: a ``.zip`` given together with them is ignored.
 
         Args:
-            path: File to open; the type is decided by the suffix.
+            paths: Files and folders to open; the type of a file is decided by its suffix.
         """
-        self._settings.setValue("last_dir", str(path.parent))
+        if not paths:
+            return
+        self._settings.setValue("last_dir", str(paths[0] if paths[0].is_dir() else paths[0].parent))
         self._stop()
-        if path.suffix.lower() == ".fre":
-            self._open_fre_file(path)
+        exams = sorted({f for p in paths for f in (p.rglob("*") if p.is_dir() else [p]) if f.suffix.lower() == ".fre"})
+        if exams:
+            self._open_fre_files(exams)
+        elif any(p.is_dir() for p in paths):
+            QMessageBox.information(self, APP_NAME, tr("The folder contains no exam files (.fre)."))
         else:
-            self._open_export(path)
+            self._open_export(paths[0])
 
     def _open_export(self, path: Path) -> None:
         """Open an export in the worker thread and fill the tree; asks for the password if needed."""
+        self._fre_files = []
         self.statusBar().showMessage(tr("Reading {name}…", name=path.name))
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         password = self._password
@@ -153,38 +174,57 @@ class OpenMixin(WindowBase):
             )
         )
 
-    def _open_fre_file(self, path: Path) -> None:
-        """Open a single exam file; asks for the password if needed."""
+    def _open_fre_files(self, paths: list[Path]) -> None:
+        """Open exam files: list them in the tree by subject and show the first one.
+
+        Only the small INI files are read here; the data are decoded when an exam is shown.
+        Files that cannot be read are skipped and listed afterwards.
+        """
         self._close_export()
         self.tree.clear()
-        try:
-            fre = FreFile(path, self._password)
-            _ = fre.exam  # reads the INI files, i.e. checks the password
-        except BaseException as exc:
-            if is_bad_password(exc) and self._ask_password():
-                self._open_fre_file(path)
-            else:
-                self._error(tr("Cannot open exam"), exc)
+        entries: list[tuple[Path, Patient, Exam]] = []
+        failed: list[str] = []
+        for path in paths:
+            try:
+                with FreFile(path, self._password) as fre:
+                    entries.append((path, fre.patient, fre.exam))  # reading the INI files checks the password
+            except BaseException as exc:
+                if is_bad_password(exc) and not entries and self._ask_password():
+                    self._open_fre_files(paths)
+                    return
+                failed.append(f"{path.name}: {exc}")
+        self._fre_files = sorted(
+            entries, key=lambda e: (e[1].name.casefold(), e[2].exam_date or date.min, e[2].exam_time or time.min)
+        )
+        self._populate_files()
+        if failed:
+            shown = "\n".join(failed[:10]) + ("\n…" if len(failed) > 10 else "")
+            QMessageBox.warning(self, APP_NAME, tr("These exam files cannot be opened:") + "\n\n" + shown)
+        if not self._fre_files:
             return
-        item = QTreeWidgetItem(
-            [fre.patient.name or path.name, plain_value(fre.exam.exam_date), exam_type_label(fre.exam)]
-        )
-        item.setData(0, EXAM_ROLE, ("file", str(path)))
-        self.tree.addTopLevelItem(item)
-        self.setWindowTitle(f"{path.name} — {APP_NAME}")
-        self._load(lambda: fre, ("file", str(path)))
+        first = self._fre_files[0][0]
+        self._load(lambda: FreFile(first, self._password), ("file", str(first)))
 
-    def _add_fre_item(self, loaded: LoadedExam) -> None:
-        """Re-add the tree item of a single opened ``.fre`` file (after rebuilding the UI)."""
-        item = QTreeWidgetItem(
-            [
-                loaded.patient.name or loaded.exam.file_name,
-                plain_value(loaded.exam.exam_date),
-                exam_type_label(loaded.exam),
-            ]
-        )
-        item.setData(0, EXAM_ROLE, self._current_key)
-        self.tree.addTopLevelItem(item)
+    def _populate_files(self) -> None:
+        """Fill the tree with the opened exam files grouped by subject (see :attr:`_fre_files`) and set the title."""
+        self.tree.clear()
+        count = len(self._fre_files)
+        name = self._fre_files[0][0].name if count == 1 else ntr("{n} exam file", "{n} exam files", count)
+        self.setWindowTitle(f"{name} — {APP_NAME}" if count else APP_NAME)
+        nodes: dict[tuple[str, object], QTreeWidgetItem] = {}
+        for path, patient, exam in self._fre_files:
+            subject = (patient.name, patient.birth_date)
+            if subject not in nodes:
+                nodes[subject] = QTreeWidgetItem([patient.name or tr("Unknown"), plain_value(patient.birth_date), ""])
+                self.tree.addTopLevelItem(nodes[subject])
+                nodes[subject].setExpanded(True)
+            child = QTreeWidgetItem(
+                [path.name, f"{plain_value(exam.exam_date)} {plain_value(exam.exam_time)}", exam_type_label(exam)]
+            )
+            child.setToolTip(0, str(path))
+            child.setData(0, EXAM_ROLE, ("file", str(path)))
+            nodes[subject].addChild(child)
+        self.tree.resizeColumnToContents(1)
 
     def _update_tabs(self) -> None:
         """Show only the tabs relevant for the shown exam; Info is always shown and comes first.
@@ -255,6 +295,9 @@ class OpenMixin(WindowBase):
         elif kind == "exam" and self._export is not None:
             export = self._export
             self._load(lambda: export.open_fre(int(value)), key)
+        elif kind == "file":
+            path = Path(value)
+            self._load(lambda: FreFile(path, self._password), key)
 
     def _load(self, open_fre: Callable[[], FreFile], key: object) -> None:
         """Open (decrypt) the exam and decode it in the worker thread, then show it.
@@ -367,13 +410,13 @@ class OpenMixin(WindowBase):
         )
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:  # noqa: N802 (Qt API)
-        """Accept dragged ``.zip`` and ``.fre`` files (Qt event handler)."""
-        urls = event.mimeData().urls()
-        if urls and urls[0].isLocalFile() and Path(urls[0].toLocalFile()).suffix.lower() in (".zip", ".fre"):
-            event.acceptProposedAction()
+        """Accept dragged ``.zip`` and ``.fre`` files and folders (Qt event handler)."""
+        for url in event.mimeData().urls():
+            path = Path(url.toLocalFile()) if url.isLocalFile() else None
+            if path is not None and (path.is_dir() or path.suffix.lower() in (".zip", ".fre")):
+                event.acceptProposedAction()
+                return
 
     def dropEvent(self, event: QDropEvent) -> None:  # noqa: N802 (Qt API)
-        """Open the first dropped file (Qt event handler)."""
-        urls = event.mimeData().urls()
-        if urls:
-            self.open_path(Path(urls[0].toLocalFile()))
+        """Open the dropped files and folders (Qt event handler)."""
+        self.open_paths([Path(url.toLocalFile()) for url in event.mimeData().urls() if url.isLocalFile()])
