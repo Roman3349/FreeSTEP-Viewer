@@ -187,7 +187,7 @@ Privacy & Security).
 uv sync --extra gui
 uv run --with pillow python packaging/make_icons.py build/icons
 uv run --with pyinstaller pyinstaller --noconfirm --distpath dist --workpath build/pyinstaller packaging/pyinstaller/freestep.spec
-iscc /DAppVersion=0.2.1 packaging\windows\installer.iss
+iscc /DAppVersion=0.3.0 packaging\windows\installer.iss
 ```
 
 ### macOS (locally)
