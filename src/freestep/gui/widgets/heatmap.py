@@ -71,6 +71,8 @@ class HeatmapView(QWidget):
         self.show_grid = False
         self.show_cop = True
         self.show_regions = True
+        #: Number of plates in a row shown side by side (gait recordings); their boundaries replace the midline.
+        self.plates = 1
         self._regions: LoadRegions | None = None
         self._shares: tuple[float | None, float | None, float | None, float | None] = (None, None, None, None)
 
@@ -198,23 +200,11 @@ class HeatmapView(QWidget):
                 y = rect.top() + r / rows * rect.height()
                 painter.drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y))
 
-        # Plate outline and midline (the COP halves split at columns / 2) or the load quadrants
-        painter.setPen(QPen(QColor(120, 120, 120), 1))
-        painter.drawRect(rect)
         regions = self._regions if self.show_regions else None
-        if regions is None:
-            painter.setPen(QPen(QColor(120, 120, 120), 1, Qt.PenStyle.DashLine))
-            painter.drawLine(QPointF(rect.center().x(), rect.top()), QPointF(rect.center().x(), rect.bottom()))
-        else:
-            self._paint_region_lines(painter, rect, regions)
+        self._paint_outline(painter, rect, regions)
 
         if self.show_cop:
-            if self._trail is not None and len(self._trail) > 1:
-                path = QPainterPath(self._cm_to_widget(rect, *self._trail[0]))
-                for x, y in self._trail[1:]:
-                    path.lineTo(self._cm_to_widget(rect, x, y))
-                painter.setPen(QPen(QColor(0, 0, 0, 140), 1.2))
-                painter.drawPath(path)
+            self._paint_trail(painter, rect)
             for colour, cop in self._cops:
                 if cop is None or not np.all(np.isfinite(cop)) or not np.any(cop):
                     continue
@@ -226,6 +216,36 @@ class HeatmapView(QWidget):
             self._paint_region_labels(painter, rect, regions)
 
         self._paint_colorbar(painter, rect)
+
+    def _paint_outline(self, painter: QPainter, rect: QRectF, regions: LoadRegions | None) -> None:
+        """Draw the plate outline with the midline (COP halves at columns / 2), the plate boundaries or quadrants."""
+        painter.setPen(QPen(QColor(120, 120, 120), 1))
+        painter.drawRect(rect)
+        for plate in range(1, self.plates):
+            x = rect.left() + plate / self.plates * rect.width()
+            painter.drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()))
+        if regions is not None:
+            self._paint_region_lines(painter, rect, regions)
+        elif self.plates == 1:
+            painter.setPen(QPen(QColor(120, 120, 120), 1, Qt.PenStyle.DashLine))
+            painter.drawLine(QPointF(rect.center().x(), rect.top()), QPointF(rect.center().x(), rect.bottom()))
+
+    def _paint_trail(self, painter: QPainter, rect: QRectF) -> None:
+        """Draw the COP trail, interrupted at frames without load (they have no COP)."""
+        if self._trail is None or len(self._trail) < 2:
+            return
+        path = QPainterPath()
+        gap = True
+        for x, y in self._trail:
+            if not (x or y) or not (np.isfinite(x) and np.isfinite(y)):
+                gap = True
+            elif gap:
+                path.moveTo(self._cm_to_widget(rect, x, y))
+                gap = False
+            else:
+                path.lineTo(self._cm_to_widget(rect, x, y))
+        painter.setPen(QPen(QColor(0, 0, 0, 140), 1.2))
+        painter.drawPath(path)
 
     def _cell_to_widget(self, rect: QRectF, column: float, row: float) -> QPointF:
         """Convert a position in cells (boundaries at integers) to widget coordinates inside ``rect``."""

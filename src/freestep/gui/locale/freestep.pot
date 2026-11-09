@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FreeStepViewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-08 23:04+0000\n"
+"POT-Creation-Date: 2026-11-09 00:42+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -25,7 +25,7 @@ msgid "Type"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "No preview"
+msgid "Info"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -51,11 +51,12 @@ msgid "History"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Info"
+#: freestep/gui/info.py
+msgid "Images"
 msgstr ""
 
 #: freestep/gui/app.py
-msgid "Preview"
+msgid "Video"
 msgstr ""
 
 #: freestep/gui/app.py
@@ -140,6 +141,7 @@ msgid "System ({language})"
 msgstr ""
 
 #: freestep/gui/app.py
+#: freestep/gui/widgets/video.py
 msgid "Play / pause"
 msgstr ""
 
@@ -233,6 +235,52 @@ msgid "{min} … {max} (mean {mean})"
 msgstr ""
 
 #: freestep/gui/info.py
+msgid "Recording"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Platform"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Format version"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Sensors"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Cell"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Plate"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Plates in a row"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Max value"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Passes"
+msgstr ""
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Acquisitions"
+msgstr ""
+
+#: freestep/gui/info.py
+msgid "Unknown settings"
+msgstr ""
+
+#: freestep/gui/info.py
 #: freestep/gui/report.py
 msgid "Subject"
 msgstr ""
@@ -312,44 +360,6 @@ msgstr ""
 
 #: freestep/gui/info.py
 msgid "File"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Recording"
-msgstr ""
-
-#: freestep/gui/info.py
-#: freestep/gui/report.py
-msgid "Platform"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Format version"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Sensors"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Cell"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Plate"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Max value"
-msgstr ""
-
-#: freestep/gui/info.py
-#: freestep/gui/report.py
-msgid "Acquisitions"
-msgstr ""
-
-#: freestep/gui/info.py
-msgid "Unknown settings"
 msgstr ""
 
 #: freestep/gui/report.py
@@ -546,6 +556,11 @@ msgstr ""
 #: freestep/gui/window_history.py
 #, python-brace-format
 msgid "Acquisition {number}"
+msgstr ""
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Pass {number} ({duration} s)"
 msgstr ""
 
 #: freestep/gui/texts.py
@@ -762,6 +777,10 @@ msgstr ""
 msgid "No data"
 msgstr ""
 
+#: freestep/gui/widgets/images.py
+msgid "No image"
+msgstr ""
+
 #: freestep/gui/widgets/plots.py
 msgid "No COP data"
 msgstr ""
@@ -778,6 +797,35 @@ msgstr ""
 #: freestep/gui/widgets/plots.py
 #, python-brace-format
 msgid "time {value} s"
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+msgid "Follow the pressure recording"
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+msgid "Show the video at the time of the shown pressure frame and play it along"
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+msgid "start frame "
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+msgid "Video frame at the start of the pressure recording"
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+#: freestep/gui/window_playback.py
+msgid " fps"
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+msgid "Real frame rate of the video; correct it when the video runs too fast or slow"
+msgstr ""
+
+#: freestep/gui/widgets/video.py
+msgid "No video"
 msgstr ""
 
 #: freestep/gui/window_analysis.py
@@ -1057,7 +1105,7 @@ msgid "Exam {id} (missing)"
 msgstr ""
 
 #: freestep/gui/window_open.py
-msgid "Decrypting and decoding Postura.dat…"
+msgid "Decrypting and decoding the exam…"
 msgstr ""
 
 #: freestep/gui/window_open.py
@@ -1065,8 +1113,15 @@ msgid "Cannot decode exam"
 msgstr ""
 
 #: freestep/gui/window_open.py
-msgid "No preview in this exam"
+msgid "No images in this exam"
 msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {n} pass, {platform}"
+msgid_plural "Exam {id} — {name}: {n} passes, {platform}"
+msgstr[0] ""
+msgstr[1] ""
 
 #: freestep/gui/window_open.py
 #, python-brace-format
@@ -1074,6 +1129,21 @@ msgid "Exam {id} — {name}: {n} acquisition, {platform}"
 msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
 msgstr[0] ""
 msgstr[1] ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{type}: the viewer cannot read the data of this exam type and the exam has no images."
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{type}: the exam has no pressure data to analyse."
+msgstr ""
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {type}, no pressure data"
+msgstr ""
 
 #: freestep/gui/window_playback.py
 msgid "Acquisition (e.g. eyes open / eyes closed)"
@@ -1093,10 +1163,6 @@ msgstr ""
 
 #: freestep/gui/window_playback.py
 msgid "Play / pause (Space)"
-msgstr ""
-
-#: freestep/gui/window_playback.py
-msgid " fps"
 msgstr ""
 
 #: freestep/gui/window_playback.py

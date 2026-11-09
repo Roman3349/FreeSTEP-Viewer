@@ -11,6 +11,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox, Q
 
 from ..batch import BatchResult, batch_export, exam_stem
 from ..models import Exam
+from ..postura import Postura
 from ..writers import write_cop_csv, write_mat, write_npz, write_stabilometry_csv
 from .batch_dialog import BatchDialog
 from .exam import MODE_FILE_SUFFIX, MODE_FRAME, MODE_MAX, MODE_MEAN, png_bytes, show_on_heatmap
@@ -41,34 +42,46 @@ class ExportMixin(WindowBase):
         path, _ = QFileDialog.getSaveFileName(self, title, str(start / name), filter_)
         return Path(path) if path else None
 
+    def _recording(self) -> Postura | None:
+        """Pressure data of the shown exam, ``None`` without an exam or for an exam without them."""
+        return self._current.postura if self._current is not None else None
+
     def _export_csv(self) -> None:
         """Save the per-frame time, pressure sum and COP of all acquisitions as CSV."""
-        if self._current is None or (path := self._save_name(tr("Export COP"), "_cop.csv", tr("CSV (*.csv)"))) is None:
+        if (post := self._recording()) is None or (
+            path := self._save_name(tr("Export COP"), "_cop.csv", tr("CSV (*.csv)"))
+        ) is None:
             return
-        write_cop_csv(self._current.postura, path)
+        write_cop_csv(post, path)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_npz(self) -> None:
         """Save the frames and COP of all acquisitions as a compressed NumPy archive."""
-        if self._current is None or (path := self._save_name(tr("Export frames"), ".npz", tr("NumPy (*.npz)"))) is None:
+        if (post := self._recording()) is None or (
+            path := self._save_name(tr("Export frames"), ".npz", tr("NumPy (*.npz)"))
+        ) is None:
             return
-        write_npz(self._current.postura, path)
+        write_npz(post, path)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_mat(self) -> None:
         """Save the frames, COP and stabilometric parameters as a MATLAB file."""
         title = tr("Export to MATLAB")
-        if self._current is None or (path := self._save_name(title, ".mat", tr("MATLAB (*.mat)"))) is None:
+        if (post := self._recording()) is None or (
+            path := self._save_name(title, ".mat", tr("MATLAB (*.mat)"))
+        ) is None:
             return
-        write_mat(self._current.postura, path, self._stabilometry, self._romberg)
+        write_mat(post, path, self._stabilometry, self._romberg)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_mat_raw(self) -> None:
         """Save only the recorded data (no filtering, no parameters) as a MATLAB file."""
         title = tr("Export raw data to MATLAB")
-        if self._current is None or (path := self._save_name(title, "_raw.mat", tr("MATLAB (*.mat)"))) is None:
+        if (post := self._recording()) is None or (
+            path := self._save_name(title, "_raw.mat", tr("MATLAB (*.mat)"))
+        ) is None:
             return
-        write_mat(self._current.postura, path)
+        write_mat(post, path)
         self.statusBar().showMessage(tr("Saved {path}", path=path))
 
     def _export_stabilometry(self) -> None:
@@ -82,13 +95,15 @@ class ExportMixin(WindowBase):
     def _export_report(self) -> None:
         """Save the PDF report of the shown exam with the settings of the Stabilometry tab."""
         title = tr("Create PDF report")
-        if self._current is None or (path := self._save_name(title, "_report.pdf", tr("PDF (*.pdf)"))) is None:
+        loaded, post = self._current, self._recording()
+        if loaded is None or post is None:
             return
-        loaded = self._current
+        if (path := self._save_name(title, "_report.pdf", tr("PDF (*.pdf)"))) is None:
+            return
         data = ReportData(
             loaded.patient,
             loaded.exam,
-            loaded.postura,
+            post,
             self._stabilometry,
             self._romberg,
             self._lowpass_hz or None,
@@ -122,8 +137,10 @@ class ExportMixin(WindowBase):
         Rendering runs in the GUI thread (widgets cannot paint elsewhere) behind a
         cancellable progress dialog; a cancelled export leaves no file.
         """
-        loaded = self._current
-        if loaded is None or (path := self._save_name(tr("Export images"), "_images.zip", tr("ZIP (*.zip)"))) is None:
+        loaded, post = self._current, self._recording()
+        if loaded is None or post is None:
+            return
+        if (path := self._save_name(tr("Export images"), "_images.zip", tr("ZIP (*.zip)"))) is None:
             return
         self._stop()
         view = HeatmapView()
@@ -132,10 +149,10 @@ class ExportMixin(WindowBase):
             setattr(view, attribute, value)
         jobs = [
             (acq, frame, MODE_FRAME, f"a{acq.index + 1}/frame_{frame + 1:04d}.png")
-            for acq in loaded.postura.acquisitions
+            for acq in post.acquisitions
             for frame in range(acq.frame_count)
         ]
-        for acq in loaded.postura.acquisitions:
+        for acq in post.acquisitions:
             jobs += [
                 (acq, 0, MODE_MAX, f"a{acq.index + 1}_max.png"),
                 (acq, 0, MODE_MEAN, f"a{acq.index + 1}_mean.png"),

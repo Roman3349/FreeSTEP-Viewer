@@ -11,26 +11,30 @@ from __future__ import annotations
 
 import html
 import sys
+import tempfile
 import threading
 from collections.abc import Callable
 from pathlib import Path
 
 from PySide6.QtCore import (
+    QElapsedTimer,
     QEvent,
+    QMessageLogContext,
     QObject,
     QSettings,
     Qt,
     QThreadPool,
     QTimer,
+    QtMsgType,
+    qInstallMessageHandler,
 )
 from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QFileOpenEvent, QIcon, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
-    QLabel,
     QMenu,
     QMessageBox,
-    QScrollArea,
     QSplitter,
+    QStackedWidget,
     QTabWidget,
     QTextBrowser,
     QTreeWidget,
@@ -53,17 +57,19 @@ from .i18n import (
 from .meta import APP_ID, APP_NAME, APP_URL, ICON_PATH
 from .tasks import Task
 from .texts import setting_float
-from .widgets import ORIGIN_PLATE
+from .widgets import ORIGIN_PLATE, ImagePanel
+from .widgets.video import VideoPlayer
 from .window_analysis import AnalysisMixin
 from .window_export import ExportMixin
 from .window_history import HistoryMixin
 from .window_open import OpenMixin
 from .window_playback import PlaybackMixin
+from .window_video import VideoMixin
 
 # -- main window ---------------------------------------------------------------
 
 
-class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMixin):
+class MainWindow(OpenMixin, PlaybackMixin, VideoMixin, AnalysisMixin, HistoryMixin, ExportMixin):
     """Main window of the viewer.
 
     Holds at most one open export (:attr:`_export`) and one shown exam
@@ -86,6 +92,7 @@ class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMi
         self._current: LoadedExam | None = None
         self._loading_exam_id: object = None
         self._current_key: object = None
+        self._video_dir: tempfile.TemporaryDirectory[str] | None = None
         self._password = DEFAULT_PASSWORD
         self._settings = QSettings("FreeStepViewer", "FreeStepViewer")
         self._language_pref = str(self._settings.value("language", AUTO_LANGUAGE))
@@ -107,6 +114,8 @@ class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMi
         self._window_actions: list[QAction] = []
 
         self._timer = QTimer(self)
+        self._play_clock = QElapsedTimer()
+        self._play_origin_s = 0.0
         self._timer.timeout.connect(self._advance_frame)
         self._frame_actions: list[QAction] = []  # playback and seeking shortcuts, see _build_actions
         self._build_ui()
@@ -130,16 +139,13 @@ class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMi
         cop_tab = self._build_cop_tab()
         self.info = QTextBrowser()
         self.info.setOpenExternalLinks(False)
-        self.preview = QLabel(tr("No preview"))
-        self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        preview_scroll = QScrollArea()
-        preview_scroll.setWidget(self.preview)
-        preview_scroll.setWidgetResizable(True)
+        self.images = ImagePanel()
 
         analysis = self._build_stabilometry_tab()
 
         self.tabs = QTabWidget()
         stabilogram_tab, speed_tab = self._build_signal_tabs()
+        self.tabs.addTab(self.info, tr("Info"))
         self.tabs.addTab(cop_tab, tr("COP"))
         self.tabs.addTab(stabilogram_tab, tr("Stabilogram"))
         self.tabs.addTab(speed_tab, tr("Speed"))
@@ -147,19 +153,28 @@ class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMi
 
         self.tabs.addTab(analysis, tr("Stabilometry"))
         self.tabs.addTab(self.history_tab, tr("History"))
-        self.tabs.addTab(self.info, tr("Info"))
         self.tabs.currentChanged.connect(self._update_history)
-        self.tabs.addTab(preview_scroll, tr("Preview"))
+        self.tabs.addTab(self.images, tr("Images"))
+        self.exam_video = VideoPlayer()
+        self.tabs.addTab(self.exam_video, tr("Video"))
+        self.tabs.currentChanged.connect(self._pause_hidden_video)
+        self.analysis_tabs = [cop_tab, stabilogram_tab, speed_tab, analysis]
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         self.splitter.addWidget(self.tree)
-        self.splitter.addWidget(left)
+        # The pressure views, or the images of an exam without pressure data
+        self.exam_images = ImagePanel()
+        self.main_view = QStackedWidget()
+        self.main_view.addWidget(left)
+        self.main_view.addWidget(self.exam_images)
+        self.splitter.addWidget(self.main_view)
         self.splitter.addWidget(self.tabs)
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 3)
         self.splitter.setStretchFactor(2, 2)
         self.splitter.setSizes([280, 620, 380])
         self.setCentralWidget(self.splitter)
+        self._update_tabs()
         self.statusBar().showMessage(tr("Open a FreeSTEP export (.zip) or exam (.fre) — File › Open or drag & drop"))
 
     def _build_actions(self) -> None:
@@ -177,8 +192,13 @@ class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMi
             self._add_action(file_menu, tr("Export frames to &NPZ…"), self._export_npz),
             self._add_action(file_menu, tr("Export to &MATLAB…"), self._export_mat),
             self._add_action(file_menu, tr("Export &raw data to MATLAB…"), self._export_mat_raw),
+        ]
+        self.analysis_actions = [
             self._add_action(file_menu, tr("Export &stabilometric parameters to CSV…"), self._export_stabilometry),
             self._add_action(file_menu, tr("Create PDF &report…"), self._export_report),
+        ]
+        self.export_actions += [
+            *self.analysis_actions,
             self._add_action(file_menu, tr("Save heat map as &PNG…"), self._export_png),
             self._add_action(file_menu, tr("Export all images to &ZIP…"), self._export_png_zip),
         ]
@@ -345,6 +365,9 @@ class MainWindow(OpenMixin, PlaybackMixin, AnalysisMixin, HistoryMixin, ExportMi
         if self._current is not None:
             self._current.fre.close()
         self._close_export()
+        self.exam_video.set_video(None)
+        if self._video_dir is not None:
+            self._video_dir.cleanup()
         super().closeEvent(event)
 
 
@@ -368,6 +391,25 @@ class _FileOpenFilter(QObject):
         return super().eventFilter(watched, event)
 
 
+#: Qt warns about every frame of the exam videos (XviD with packed B-frames); harmless.
+_VIDEO_WARNING = "QFFmpeg::Demuxer received AVPacket with pts == AV_NOPTS_VALUE"
+
+
+def _quiet_video_warnings() -> None:
+    """Drop the per-frame warning of Qt Multimedia about the exam videos, pass on other messages."""
+    previous = None
+
+    def handler(mode: QtMsgType, context: QMessageLogContext, message: str) -> None:
+        if message == _VIDEO_WARNING:
+            return
+        if previous is not None:
+            previous(mode, context, message)
+        else:
+            print(message, file=sys.stderr)
+
+    previous = qInstallMessageHandler(handler)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point of ``freestep-viewer``.
 
@@ -381,6 +423,7 @@ def main(argv: list[str] | None = None) -> int:
         Process exit code.
     """
     argv = sys.argv if argv is None else argv
+    _quiet_video_warnings()
     app = QApplication(argv)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName("FreeStepViewer")

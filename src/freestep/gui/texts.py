@@ -68,9 +68,13 @@ def acquisition_style(index: int, romberg: Romberg | None) -> tuple[str, QColor]
     return tr("Acquisition {number}", number=index + 1), palette[index % len(palette)]
 
 
-def acquisition_label(acq: Acquisition) -> str:
-    """Name of an acquisition for the selection box, e.g. "Acquisition 1 (51.2 s)"."""
-    text = tr("Acquisition {number} ({duration} s)", number=acq.index + 1, duration=f"{acq.duration_s:.1f}")
+def acquisition_label(acq: Acquisition, *, gait: bool = False) -> str:
+    """Name of an acquisition for the selection box, e.g. "Acquisition 1 (51.2 s)", "Pass 1 (2.4 s)" for gait."""
+    duration = f"{acq.duration_s:.1f}"
+    if gait:
+        text = tr("Pass {number} ({duration} s)", number=acq.index + 1, duration=duration)
+    else:
+        text = tr("Acquisition {number} ({duration} s)", number=acq.index + 1, duration=duration)
     return f"{text} — {acq.label}" if acq.label else text
 
 

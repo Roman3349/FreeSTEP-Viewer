@@ -20,8 +20,8 @@ icon = [str(ICON)] if ICON.exists() else None
 
 # Translations (locale/*.po) and the application icon
 datas = collect_data_files("freestep", includes=["gui/locale/*", "gui/icon.svg", "py.typed"])
-# Only the Qt modules the viewer uses
-excludes = ["tkinter", "PySide6.QtNetwork", "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtWebEngineCore"]
+# Only the Qt modules the viewer uses (QtMultimedia, for the exam videos, needs QtNetwork)
+excludes = ["tkinter", "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtWebEngineCore"]
 
 gui = Analysis(
     [str(ROOT / "packaging" / "pyinstaller" / "freestep_viewer.py")],

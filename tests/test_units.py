@@ -3,12 +3,14 @@
 import gettext
 import io
 import struct
+import zipfile
 from pathlib import Path
 
 import numpy as np
 import pytest
 from scipy.io import loadmat
 
+from freestep.archive import FreFile, VideoTrack
 from freestep.batch import safe_name
 from freestep.convert import to_date, to_float
 from freestep.gui import i18n, po
@@ -74,6 +76,68 @@ def _synthetic_postura(version: int, acquisitions: list[int], rows: int = 4, col
         if version == 3:
             data += f"label {number}".ljust(100).encode()
     return data + bytes(tail)
+
+
+def _synthetic_static(frame: np.ndarray) -> bytes:
+    """Build a ``Statica.dat``: header, 7 int16 settings, the array descriptor, one frame and the record rest."""
+    rows, cols = frame.shape
+    header = struct.pack("<h50s5h", 3, b"Test 40x40".ljust(50), cols, rows, 5, 5, 255)
+    descriptor = struct.pack("<h4i", 2, cols, 0, rows, 0)
+    return header + bytes(2 * 7) + descriptor + frame.astype("<u2").tobytes() + bytes(26)
+
+
+def _synthetic_fre(members: dict[str, bytes]) -> bytes:
+    """Build an (unencrypted) ``.fre`` archive with the given members."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for name, data in members.items():
+            archive.writestr(name, data)
+    return buffer.getvalue()
+
+
+def test_postura_static() -> None:
+    """``Statica.dat`` is read as one acquisition of one frame with the COPs computed like FreeSTEP's."""
+    frame = np.zeros((3, 8), np.uint16)
+    frame[1, 1], frame[2, 2] = 10, 30  # left half
+    frame[0, 5] = 20  # right half
+    post = Postura.parse_static(_synthetic_static(frame))
+    assert (post.header.columns, post.header.rows, post.header.size) == (8, 3, 94)
+    (acq,) = post.acquisitions
+    assert acq.frame_count == 1
+    assert np.array_equal(acq.pressure[0], frame) and np.array_equal(acq.mean_image, frame)
+    assert acq.cop_total[0] == pytest.approx(acq.compute_cop(0))
+    assert acq.cop_left[0] == pytest.approx(((10 * 1 + 30 * 2) / 40 * 0.5, (10 * 1 + 30 * 2) / 40 * 0.5))
+    assert acq.cop_right[0] == pytest.approx((5 * 0.5, 0))
+    without_descriptor = bytearray(_synthetic_static(frame))
+    without_descriptor[76:94] = bytes(18)
+    with pytest.raises(ValueError, match="no 8x3 array descriptor"):
+        Postura.parse_static(bytes(without_descriptor))
+    with pytest.raises(ValueError, match="one 8x3 frame"):
+        Postura.parse_static(_synthetic_static(frame)[: 94 + frame.size * 2 - 1])
+
+
+def test_fre_exam_types() -> None:
+    """Static exams are read from ``Statica.dat``; other exams without pressure data offer their images."""
+    frame = np.ones((3, 8), np.uint16)
+    with FreFile(_synthetic_fre({"Statica.dat": _synthetic_static(frame), "Statica.BMP": b"photo"})) as fre:
+        assert fre.has_pressure
+        assert fre.postura.acquisitions[0].pressure.sum() == frame.sum()
+        assert fre.image_names == ["Statica.BMP"]
+    scan = {"Originale.bmp": b"scan", "Thumbs.db": b"", "Scanner.bmp": b"scan", "Preview1.jpg": b"jpeg"}
+    with FreFile(_synthetic_fre(scan)) as fre:
+        assert not fre.has_pressure
+        assert fre.image_names == ["Scanner.bmp", "Originale.bmp"]  # the scan first, no previews
+        assert fre.image("Scanner.bmp") == b"scan" and fre.image("missing.bmp") is None
+        with pytest.raises(FileNotFoundError):
+            _ = fre.postura
+        assert fre.video is None and fre.video_rotation == 0
+    video = {"Capture.avi": b"RIFF....AVI ", "Capture.ini": b"[CAPINFO]\r\nCOMPRESSIONE=1\r\nROTAZIONE=90\r\n"}
+    with FreFile(_synthetic_fre(video)) as fre:
+        assert fre.video == video["Capture.avi"] and fre.video_rotation == 90
+        assert fre.video_track is None
+    video["VideoTrack_0.dat"] = struct.pack("<h3i", 1, 89, 153, 674) + bytes(40)
+    with FreFile(_synthetic_fre(video)) as fre:
+        assert fre.video_track == VideoTrack(start_frame=89, end_frame=153, frame_count=674)
 
 
 @pytest.mark.parametrize("version", [1, 3])

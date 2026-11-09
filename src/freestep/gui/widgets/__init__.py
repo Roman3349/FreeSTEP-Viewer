@@ -19,6 +19,7 @@ from .common import (
 )
 from .heatmap import HeatmapView
 from .history import HistoryPlot
+from .images import ImagePanel, ImageView
 from .plots import CopPlot, StabilogramPlot
 
 __all__ = [
@@ -35,5 +36,7 @@ __all__ = [
     "CopPlot",
     "HeatmapView",
     "HistoryPlot",
+    "ImagePanel",
+    "ImageView",
     "StabilogramPlot",
 ]

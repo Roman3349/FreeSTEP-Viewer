@@ -8,11 +8,12 @@ methods one part calls in another, so that every part can be type checked.
 
 from __future__ import annotations
 
+import tempfile
 import threading
 from collections.abc import Callable
 from typing import Any
 
-from PySide6.QtCore import QSettings, Qt, QThreadPool, QTimer
+from PySide6.QtCore import QElapsedTimer, QSettings, Qt, QThreadPool, QTimer
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -24,6 +25,7 @@ from PySide6.QtWidgets import (
     QSlider,
     QSpinBox,
     QSplitter,
+    QStackedWidget,
     QTabWidget,
     QTextBrowser,
     QToolButton,
@@ -37,7 +39,8 @@ from ..postura import Acquisition
 from ..stabilometry import Romberg, Stabilometry
 from .exam import LoadedExam
 from .tasks import Task
-from .widgets import CopPlot, HeatmapView, HistoryPlot, StabilogramPlot
+from .widgets import CopPlot, HeatmapView, HistoryPlot, ImagePanel, StabilogramPlot
+from .widgets.video import VideoPlayer
 
 #: Tree item data role holding the exam key: ``("exam", exam_id)``, ``("file", path)`` or ``("patient", id)``.
 EXAM_ROLE = Qt.ItemDataRole.UserRole
@@ -54,8 +57,11 @@ class WindowBase(QMainWindow):
     _current: LoadedExam | None
     _loading_exam_id: object
     _current_key: object
+    _video_dir: tempfile.TemporaryDirectory[str] | None
     _password: str
     _timer: QTimer
+    _play_clock: QElapsedTimer
+    _play_origin_s: float
 
     # Settings
     _settings: QSettings
@@ -81,12 +87,17 @@ class WindowBase(QMainWindow):
     _window_actions: list[QAction]
     _frame_actions: list[QAction]
     export_actions: list[QAction]
+    analysis_actions: list[QAction]
     batch_action: QAction
 
     # Widgets
     tree: QTreeWidget
     splitter: QSplitter
+    main_view: QStackedWidget
+    exam_images: ImagePanel
+    exam_video: VideoPlayer
     tabs: QTabWidget
+    analysis_tabs: list[QWidget]
     heatmap: HeatmapView
     acquisition: QComboBox
     mode: QComboBox
@@ -99,7 +110,7 @@ class WindowBase(QMainWindow):
     cop_origin: QComboBox
     ellipse_check: QCheckBox
     info: QTextBrowser
-    preview: QLabel
+    images: ImagePanel
     lowpass: QDoubleSpinBox
     eyes_closed_first: QCheckBox
     detrend: QCheckBox
@@ -148,4 +159,16 @@ class WindowBase(QMainWindow):
         raise NotImplementedError
 
     def _update_history(self) -> None:
+        raise NotImplementedError
+
+    def _update_tabs(self) -> None:
+        raise NotImplementedError
+
+    def _show_video(self, loaded: LoadedExam) -> None:
+        raise NotImplementedError
+
+    def _playback_speed(self) -> float:
+        raise NotImplementedError
+
+    def _follow_video(self, *, playing: bool = False, speed: float = 1.0) -> None:
         raise NotImplementedError

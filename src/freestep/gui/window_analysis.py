@@ -186,12 +186,13 @@ class AnalysisMixin(WindowBase):
 
     def _update_stabilometry(self) -> None:
         """Compute the stabilometric parameters and the Romberg test of the shown exam and show them."""
-        if self._current is None:
+        post = self._current.postura if self._current is not None else None
+        if post is None:
             self._stabilometry, self._romberg = [], None
             self.stabilometry_view.clear()
             return
-        post = self._current.postura
         self._stabilometry = analyze_all(post, self._lowpass_hz or None, detrend=self._detrend)
+        assert self._current is not None
         self._romberg = evaluate_romberg(
             post, self._stabilometry, self._current.exam.exam_type, self._eyes_closed_first
         )
@@ -219,7 +220,7 @@ class AnalysisMixin(WindowBase):
             return
         time, cop, curve, first = signals
         others = []
-        if self._compare and self._current is not None:
+        if self._compare and self._current is not None and self._current.postura is not None:
             for other in self._current.postura.acquisitions:
                 if other.index != acq.index and (other_signals := self._signals(other)) is not None:
                     others.append((other, other_signals))

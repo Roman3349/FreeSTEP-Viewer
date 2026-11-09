@@ -31,7 +31,7 @@ Repository = "https://github.com/Roman3349/FreeSTEP-Viewer"
 Issues = "https://github.com/Roman3349/FreeSTEP-Viewer/issues"
 
 [project.optional-dependencies]
-gui = ["PySide6-Essentials>=6.6"]
+gui = ["PySide6-Essentials>=6.6", "PySide6-Addons>=6.6"]
 
 [project.scripts]
 freestep = "freestep.cli:main"

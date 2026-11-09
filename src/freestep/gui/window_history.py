@@ -83,7 +83,7 @@ class HistoryMixin(WindowBase):
         name = patient.name if patient is not None else str(patient_id)
         self.history_title.setText(ntr("{name}: {n} exam", "{name}: {n} exams", len(exams), name=name))
         current = self._current
-        if current is not None and current.exam.patient_id == patient_id:
+        if current is not None and current.postura is not None and current.exam.patient_id == patient_id:
             key = self._history_key(current.exam)
             if key not in self._history_cache:
                 self._history_cache[key] = analyze_exam(

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import html
 
-from .exam import LoadedExam
+from .exam import LoadedExam, decode_images, image_size
 from .i18n import tr
 from .texts import acquisition_label, exam_type_label, footwear_label, format_value
 
 
 def info_html(loaded: LoadedExam) -> str:
-    """Build the HTML of the Info tab (patient, exam, recording and acquisition tables)."""
-    p, e, h, f = loaded.patient, loaded.exam, loaded.postura.header, loaded.filter
+    """Build the HTML of the Info tab (subject, exam, recording and acquisition or image tables)."""
+    p, e, f, post = loaded.patient, loaded.exam, loaded.filter, loaded.postura
 
     def table(title: str, rows: list[tuple[str, object]]) -> str:
         body = "".join(
@@ -20,9 +20,10 @@ def info_html(loaded: LoadedExam) -> str:
         )
         return f"<h3>{html.escape(title)}</h3><table>{body}</table>"
 
+    gait = post is not None and post.gait
     acquisitions = [
         table(
-            acquisition_label(acq),
+            acquisition_label(acq, gait=gait),
             [
                 (tr("Frames"), acq.frame_count),
                 (tr("Duration"), f"{acq.duration_s:.2f} s"),
@@ -34,8 +35,30 @@ def info_html(loaded: LoadedExam) -> str:
                 ),
             ],
         )
-        for acq, sums in zip(loaded.postura.acquisitions, loaded.pressure_sums, strict=True)
+        for acq, sums in zip(post.acquisitions if post else [], loaded.pressure_sums, strict=True)
     ]
+    recording = []
+    if post is not None:
+        h = post.header
+        recording.append(
+            table(
+                tr("Recording"),
+                [
+                    (tr("Platform"), h.platform),
+                    (tr("Format version"), h.version),
+                    (tr("Sensors"), f"{h.columns} × {h.rows}"),
+                    (tr("Cell"), f"{h.cell_width_mm} × {h.cell_height_mm} mm"),
+                    (tr("Plate"), f"{h.width_cm:g} × {h.height_cm:g} cm"),
+                    *([(tr("Plates in a row"), h.plates)] if h.plates > 1 else []),
+                    (tr("Max value"), h.max_value),
+                    (tr("Passes") if gait else tr("Acquisitions"), len(post.acquisitions)),
+                    (tr("Unknown settings"), h.settings),
+                ],
+            )
+        )
+    images = decode_images(loaded)
+    if images:
+        recording.append(table(tr("Images"), [(name, image_size(image, scale)) for name, image, scale in images]))
     return "".join(
         [
             table(
@@ -67,19 +90,7 @@ def info_html(loaded: LoadedExam) -> str:
                     (tr("SSID"), e.ssid),
                 ],
             ),
-            table(
-                tr("Recording"),
-                [
-                    (tr("Platform"), h.platform),
-                    (tr("Format version"), h.version),
-                    (tr("Sensors"), f"{h.columns} × {h.rows}"),
-                    (tr("Cell"), f"{h.cell_width_mm} × {h.cell_height_mm} mm"),
-                    (tr("Plate"), f"{h.width_cm:g} × {h.height_cm:g} cm"),
-                    (tr("Max value"), h.max_value),
-                    (tr("Acquisitions"), len(loaded.postura.acquisitions)),
-                    (tr("Unknown settings"), h.settings),
-                ],
-            ),
+            *recording,
             *acquisitions,
         ]
     )

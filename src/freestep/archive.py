@@ -16,7 +16,9 @@ from __future__ import annotations
 
 import io
 import os
+import struct
 import zipfile
+from dataclasses import dataclass
 from datetime import date, time
 from functools import cached_property
 from pathlib import Path
@@ -26,9 +28,12 @@ from .ini import DEFAULT_ANSI_ENCODING, IniData, parse_ini
 from .mdb import AccessDatabase
 from .models import Exam, ExportIndex, FilterSettings, Patient
 from .postura import Postura
+from .walkway import parse_walkway
 
 #: Password FreeSTEP uses for both the export ZIP and the ``.fre`` archives.
 DEFAULT_PASSWORD = "pwtecnico"
+#: Members holding a gait recording over several plates (dynamic and treadmill exams).
+GAIT_RECORDINGS = ("Dinamica.dat", "TreadMILL.dat")
 
 #: Anything an archive can be opened from: a path, the raw bytes or a binary file object.
 Source = str | os.PathLike[str] | bytes | BinaryIO
@@ -70,6 +75,33 @@ def _find_member(archive: zipfile.ZipFile, name: str) -> str | None:
         if member.lower() == lowered:
             return member
     return None
+
+
+@dataclass(frozen=True)
+class VideoTrack:
+    """Header of ``VideoTrack*.dat``: how the video relates to the pressure recording.
+
+    Attributes:
+        start_frame: Video frame at the first pressure frame (verified on a dynamic exam
+            with video: the recording time ``t`` is at video frame ``start_frame + t × fps``).
+        end_frame: Last video frame of the analysed range ❓.
+        frame_count: Number of frames of the video.
+    """
+
+    start_frame: int
+    end_frame: int
+    frame_count: int
+
+    @classmethod
+    def parse(cls, data: bytes) -> VideoTrack | None:
+        """Parse the header (int16 version, then three int32), ``None`` when the data are too short."""
+        if len(data) < _VIDEO_TRACK_STRUCT.size:
+            return None
+        _, start, end, count = _VIDEO_TRACK_STRUCT.unpack_from(data)
+        return cls(start, end, count)
+
+
+_VIDEO_TRACK_STRUCT = struct.Struct("<h3i")
 
 
 class _ZipBacked:
@@ -203,11 +235,75 @@ class FreFile(_ZipBacked):
     def postura(self) -> Postura:
         """Decoded pressure recording (decrypting it takes ~2 s for a 2.5 MB ``.fre``).
 
+        A static exam stores a single frame in ``Statica.dat`` instead; it is
+        returned as one acquisition of one frame (see :meth:`Postura.parse_static`).
+        A dynamic or treadmill exam stores passes over several plates in
+        ``Dinamica.dat`` or ``TreadMILL.dat``; they are returned as one acquisition
+        per pass (see :func:`~freestep.walkway.parse_walkway`).
+
         Raises:
-            FileNotFoundError: The archive contains no ``Postura.dat``.
-            ValueError: ``Postura.dat`` is malformed.
+            FileNotFoundError: The archive contains no pressure recording.
+            ValueError: The data are malformed.
         """
+        if _find_member(self._zip, "Postura.dat") is None:
+            static = self._read("Statica.dat")
+            if static is not None:
+                return Postura.parse_static(static)
+            for name in GAIT_RECORDINGS:
+                data = self._read(name)
+                if data is not None:
+                    return parse_walkway(data, name)
         return Postura.parse(self.postura_bytes)
+
+    @property
+    def has_pressure(self) -> bool:
+        """The archive contains pressure data :attr:`postura` can decode.
+
+        Other exam types store data of unknown format or only images (see :attr:`image_names`).
+        """
+        return any(
+            _find_member(self._zip, name) is not None for name in ("Postura.dat", "Statica.dat", *GAIT_RECORDINGS)
+        )
+
+    @property
+    def image_names(self) -> list[str]:
+        """Names of the stored images other than the previews, e.g. ``Scanner.bmp`` of a podoscanner exam.
+
+        The scanner image comes first, the others in archive order.
+        """
+        names = [
+            m
+            for m in self.members
+            if m.lower().endswith((".bmp", ".jpg", ".jpeg", ".png")) and not m.lower().startswith("preview")
+        ]
+        return sorted(names, key=lambda m: m.lower() != "scanner.bmp")
+
+    def image(self, name: str) -> bytes | None:
+        """Return a stored image (see :attr:`image_names`), ``None`` when missing."""
+        return self._read(name)
+
+    @property
+    def video(self) -> bytes | None:
+        """The video recorded with the exam (``Capture.avi``, e.g. XviD), ``None`` when there is none."""
+        return self._read("Capture.avi")
+
+    @property
+    def video_track(self) -> VideoTrack | None:
+        """Header of ``VideoTrack.dat`` / ``VideoTrack_0.dat`` stored with the video, ``None`` when there is none."""
+        name = next(
+            (m for m in self.members if m.lower().startswith("videotrack") and m.lower().endswith(".dat")), None
+        )
+        data = self._read(name) if name is not None else None
+        return VideoTrack.parse(data) if data is not None else None
+
+    @property
+    def video_rotation(self) -> int:
+        """Clockwise rotation of the video in degrees for display (``ROTAZIONE`` in ``Capture.ini``)."""
+        value = self._read_ini("Capture.ini").get("CAPINFO", {}).get("ROTAZIONE", "0")
+        try:
+            return int(value) % 360
+        except ValueError:
+            return 0
 
     @property
     def preview_names(self) -> list[str]:

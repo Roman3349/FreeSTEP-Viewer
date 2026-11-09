@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import traceback
 import zipfile
 from collections.abc import Callable
@@ -9,11 +10,12 @@ from pathlib import Path
 from typing import Any
 
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtGui import QDragEnterEvent, QDropEvent, QPixmap
+from PySide6.QtGui import QDragEnterEvent, QDropEvent, QImage
 from PySide6.QtWidgets import QApplication, QFileDialog, QInputDialog, QLineEdit, QMessageBox, QTreeWidgetItem
 
 from ..archive import FreeStepExport, FreFile
-from .exam import LoadedExam, is_bad_password, load_exam
+from ..stabilometry import MIN_FRAMES
+from .exam import LoadedExam, decode_images, is_bad_password, load_exam
 from .i18n import ntr, tr
 from .info import info_html
 from .meta import APP_NAME
@@ -123,6 +125,7 @@ class OpenMixin(WindowBase):
             self._export_name = path.name
             self.batch_action.setEnabled(True)
             self._populate_tree(export)
+            self._update_tabs()
             self.setWindowTitle(f"{path.name} — {APP_NAME}")
             self._show_export_status()
 
@@ -183,6 +186,25 @@ class OpenMixin(WindowBase):
         item.setData(0, EXAM_ROLE, self._current_key)
         self.tree.addTopLevelItem(item)
 
+    def _update_tabs(self) -> None:
+        """Show only the tabs relevant for the shown exam; Info is always shown and comes first.
+
+        The analysis tabs need a recording with enough frames (posturography; a static
+        exam has one frame), the History tab also an open export, the Images tab images.
+        Without an exam, the History tab is shown for the subjects of an open export.
+        """
+        loaded = self._current
+        post = loaded.postura if loaded is not None else None
+        analysable = post is not None and not post.gait and any(a.frame_count >= MIN_FRAMES for a in post.acquisitions)
+        visible = {self.info: True, self.history_tab: self._export is not None and (analysable or loaded is None)}
+        visible |= dict.fromkeys(self.analysis_tabs, analysable)
+        visible[self.images] = loaded is not None and bool(loaded.images)
+        visible[self.exam_video] = loaded is not None and loaded.video is not None
+        for widget, shown in visible.items():
+            self.tabs.setTabVisible(self.tabs.indexOf(widget), shown)
+        if not visible.get(self.tabs.currentWidget(), False):
+            self.tabs.setCurrentWidget(self.info)
+
     def _close_export(self) -> None:
         """Close the open export, if any."""
         if self._export is not None:
@@ -227,6 +249,7 @@ class OpenMixin(WindowBase):
         kind, value = key
         if kind == "patient":
             self._history_patient = int(value)
+            self.tabs.setTabVisible(self.tabs.indexOf(self.history_tab), True)
             self.tabs.setCurrentWidget(self.history_tab)
             self._update_history()
         elif kind == "exam" and self._export is not None:
@@ -242,7 +265,7 @@ class OpenMixin(WindowBase):
         """
         self._stop()
         self._loading_exam_id = key
-        self.statusBar().showMessage(tr("Decrypting and decoding Postura.dat…"))
+        self.statusBar().showMessage(tr("Decrypting and decoding the exam…"))
         QApplication.setOverrideCursor(Qt.CursorShape.BusyCursor)
 
         def done(loaded: LoadedExam) -> None:
@@ -256,6 +279,7 @@ class OpenMixin(WindowBase):
             self._current = loaded
             self._current_key = key
             self._show_exam(loaded)
+            self._update_tabs()
 
         def fail(exc: BaseException) -> None:
             self._loading_exam_id = None
@@ -273,35 +297,72 @@ class OpenMixin(WindowBase):
 
     def _show_exam(self, loaded: LoadedExam) -> None:
         """Show a loaded exam in all views, starting with the first frame of the first acquisition."""
+        images = decode_images(loaded)
+        self.images.set_images(images, tr("No images in this exam"))
+        self.info.setHtml(info_html(loaded))
+        if self._export is not None and loaded.exam.patient_id is not None:
+            self._history_patient = loaded.exam.patient_id
+        self._show_video(loaded)
         post = loaded.postura
+        if post is None:
+            self._show_image_exam(loaded, images)
+            return
+        self.main_view.setCurrentIndex(0)
         self.acquisition.blockSignals(True)
         self.acquisition.clear()
-        self.acquisition.addItems([acquisition_label(a) for a in post.acquisitions])
+        self.acquisition.addItems([acquisition_label(a, gait=post.gait) for a in post.acquisitions])
         self.acquisition.setCurrentIndex(0)
         self.acquisition.blockSignals(False)
         self._set_exam_controls_enabled(True)
         self.acquisition.setEnabled(len(post.acquisitions) > 1)
-        self.info.setHtml(info_html(loaded))
         self._update_stabilometry()
-        if self._export is not None and loaded.exam.patient_id is not None:
-            self._history_patient = loaded.exam.patient_id
         self._update_history()
-        if loaded.preview:
-            pixmap = QPixmap()
-            pixmap.loadFromData(loaded.preview)
-            self.preview.setPixmap(pixmap)
-        else:
-            self.preview.setPixmap(QPixmap())
-            self.preview.setText(tr("No preview in this exam"))
         self._on_acquisition_changed()
-        self.statusBar().showMessage(
-            ntr(
+        values = {"id": loaded.exam.id, "name": loaded.patient.name, "platform": post.header.platform}
+        count = len(post.acquisitions)
+        if post.gait:
+            message = ntr(
+                "Exam {id} — {name}: {n} pass, {platform}",
+                "Exam {id} — {name}: {n} passes, {platform}",
+                count,
+                **values,
+            )
+        else:
+            message = ntr(
                 "Exam {id} — {name}: {n} acquisition, {platform}",
                 "Exam {id} — {name}: {n} acquisitions, {platform}",
-                len(post.acquisitions),
+                count,
+                **values,
+            )
+        self.statusBar().showMessage(message)
+
+    def _show_image_exam(self, loaded: LoadedExam, images: list[tuple[str, QImage, float | None]]) -> None:
+        """Show an exam without readable pressure data: its images instead of the pressure views."""
+        self._stop()
+        self.acquisition.clear()
+        self._set_exam_controls_enabled(False)
+        exam_type = exam_type_label(loaded.exam)
+        self.exam_images.set_images(
+            images,
+            tr("{type}: the viewer cannot read the data of this exam type and the exam has no images.", type=exam_type),
+        )
+        self.main_view.setCurrentWidget(self.exam_images)
+        self.heatmap.clear()
+        self.cop_plot.clear()
+        self.cop_plot.set_ellipse(None)
+        self.stabilogram.clear()
+        self.speed_curve.clear()
+        self._stabilometry, self._romberg = [], None
+        self.stabilometry_view.setHtml(
+            f"<p>{html.escape(tr('{type}: the exam has no pressure data to analyse.', type=exam_type))}</p>"
+        )
+        self._update_history()
+        self.statusBar().showMessage(
+            tr(
+                "Exam {id} — {name}: {type}, no pressure data",
                 id=loaded.exam.id,
                 name=loaded.patient.name,
-                platform=post.header.platform,
+                type=exam_type,
             )
         )
 

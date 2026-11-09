@@ -25,8 +25,8 @@ msgid "Type"
 msgstr "Typ"
 
 #: freestep/gui/app.py
-msgid "No preview"
-msgstr "Bez náhledu"
+msgid "Info"
+msgstr "Info"
 
 #: freestep/gui/app.py
 msgid "COP"
@@ -51,12 +51,13 @@ msgid "History"
 msgstr "Vývoj"
 
 #: freestep/gui/app.py
-msgid "Info"
-msgstr "Info"
+#: freestep/gui/info.py
+msgid "Images"
+msgstr "Obrázky"
 
 #: freestep/gui/app.py
-msgid "Preview"
-msgstr "Náhled"
+msgid "Video"
+msgstr "Video"
 
 #: freestep/gui/app.py
 msgid "Open a FreeSTEP export (.zip) or exam (.fre) — File › Open or drag & drop"
@@ -140,6 +141,7 @@ msgid "System ({language})"
 msgstr "Systém ({language})"
 
 #: freestep/gui/app.py
+#: freestep/gui/widgets/video.py
 msgid "Play / pause"
 msgstr "Přehrát / pozastavit"
 
@@ -233,6 +235,52 @@ msgid "{min} … {max} (mean {mean})"
 msgstr "{min} … {max} (průměr {mean})"
 
 #: freestep/gui/info.py
+msgid "Recording"
+msgstr "Data měření"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Platform"
+msgstr "Plošina"
+
+#: freestep/gui/info.py
+msgid "Format version"
+msgstr "Verze formátu"
+
+#: freestep/gui/info.py
+msgid "Sensors"
+msgstr "Senzory"
+
+#: freestep/gui/info.py
+msgid "Cell"
+msgstr "Buňka"
+
+#: freestep/gui/info.py
+msgid "Plate"
+msgstr "Plocha"
+
+#: freestep/gui/info.py
+msgid "Plates in a row"
+msgstr "Plošin za sebou"
+
+#: freestep/gui/info.py
+msgid "Max value"
+msgstr "Max. hodnota"
+
+#: freestep/gui/info.py
+msgid "Passes"
+msgstr "Průchody"
+
+#: freestep/gui/info.py
+#: freestep/gui/report.py
+msgid "Acquisitions"
+msgstr "Záznamy"
+
+#: freestep/gui/info.py
+msgid "Unknown settings"
+msgstr "Neznámá nastavení"
+
+#: freestep/gui/info.py
 #: freestep/gui/report.py
 msgid "Subject"
 msgstr "Proband"
@@ -313,44 +361,6 @@ msgstr "Poznámka"
 #: freestep/gui/info.py
 msgid "File"
 msgstr "Soubor"
-
-#: freestep/gui/info.py
-msgid "Recording"
-msgstr "Data měření"
-
-#: freestep/gui/info.py
-#: freestep/gui/report.py
-msgid "Platform"
-msgstr "Plošina"
-
-#: freestep/gui/info.py
-msgid "Format version"
-msgstr "Verze formátu"
-
-#: freestep/gui/info.py
-msgid "Sensors"
-msgstr "Senzory"
-
-#: freestep/gui/info.py
-msgid "Cell"
-msgstr "Buňka"
-
-#: freestep/gui/info.py
-msgid "Plate"
-msgstr "Plocha"
-
-#: freestep/gui/info.py
-msgid "Max value"
-msgstr "Max. hodnota"
-
-#: freestep/gui/info.py
-#: freestep/gui/report.py
-msgid "Acquisitions"
-msgstr "Záznamy"
-
-#: freestep/gui/info.py
-msgid "Unknown settings"
-msgstr "Neznámá nastavení"
 
 #: freestep/gui/report.py
 #, python-brace-format
@@ -547,6 +557,11 @@ msgstr "Oči zavřené"
 #, python-brace-format
 msgid "Acquisition {number}"
 msgstr "Záznam {number}"
+
+#: freestep/gui/texts.py
+#, python-brace-format
+msgid "Pass {number} ({duration} s)"
+msgstr "Průchod {number} ({duration} s)"
 
 #: freestep/gui/texts.py
 #, python-brace-format
@@ -762,6 +777,10 @@ msgstr "Není načteno žádné měření"
 msgid "No data"
 msgstr "Žádná data"
 
+#: freestep/gui/widgets/images.py
+msgid "No image"
+msgstr "Žádný obrázek"
+
 #: freestep/gui/widgets/plots.py
 msgid "No COP data"
 msgstr "Žádná data COP"
@@ -779,6 +798,35 @@ msgstr "čas [s]"
 #, python-brace-format
 msgid "time {value} s"
 msgstr "čas {value} s"
+
+#: freestep/gui/widgets/video.py
+msgid "Follow the pressure recording"
+msgstr "Synchronizovat s tlakovým záznamem"
+
+#: freestep/gui/widgets/video.py
+msgid "Show the video at the time of the shown pressure frame and play it along"
+msgstr "Zobrazit video v čase zobrazeného tlakového snímku a přehrávat je současně"
+
+#: freestep/gui/widgets/video.py
+msgid "start frame "
+msgstr "počáteční snímek "
+
+#: freestep/gui/widgets/video.py
+msgid "Video frame at the start of the pressure recording"
+msgstr "Snímek videa na začátku tlakového záznamu"
+
+#: freestep/gui/widgets/video.py
+#: freestep/gui/window_playback.py
+msgid " fps"
+msgstr " sn./s"
+
+#: freestep/gui/widgets/video.py
+msgid "Real frame rate of the video; correct it when the video runs too fast or slow"
+msgstr "Skutečná snímková frekvence videa; opravte ji, když video běží příliš rychle nebo pomalu"
+
+#: freestep/gui/widgets/video.py
+msgid "No video"
+msgstr "Žádné video"
 
 #: freestep/gui/window_analysis.py
 msgid "Plate corner"
@@ -1060,16 +1108,24 @@ msgid "Exam {id} (missing)"
 msgstr "Měření {id} (chybí)"
 
 #: freestep/gui/window_open.py
-msgid "Decrypting and decoding Postura.dat…"
-msgstr "Dešifruji a dekóduji Postura.dat…"
+msgid "Decrypting and decoding the exam…"
+msgstr "Dešifruji a dekóduji měření…"
 
 #: freestep/gui/window_open.py
 msgid "Cannot decode exam"
 msgstr "Měření nelze dekódovat"
 
 #: freestep/gui/window_open.py
-msgid "No preview in this exam"
-msgstr "Měření nemá náhled"
+msgid "No images in this exam"
+msgstr "Měření neobsahuje obrázky"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {n} pass, {platform}"
+msgid_plural "Exam {id} — {name}: {n} passes, {platform}"
+msgstr[0] "Měření {id} — {name}: {n} průchod, {platform}"
+msgstr[1] "Měření {id} — {name}: {n} průchody, {platform}"
+msgstr[2] "Měření {id} — {name}: {n} průchodů, {platform}"
 
 #: freestep/gui/window_open.py
 #, python-brace-format
@@ -1078,6 +1134,21 @@ msgid_plural "Exam {id} — {name}: {n} acquisitions, {platform}"
 msgstr[0] "Měření {id} — {name}: {n} záznam, {platform}"
 msgstr[1] "Měření {id} — {name}: {n} záznamy, {platform}"
 msgstr[2] "Měření {id} — {name}: {n} záznamů, {platform}"
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{type}: the viewer cannot read the data of this exam type and the exam has no images."
+msgstr "{type}: data tohoto typu měření prohlížeč neumí načíst a měření neobsahuje obrázky."
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "{type}: the exam has no pressure data to analyse."
+msgstr "{type}: měření neobsahuje tlaková data k vyhodnocení."
+
+#: freestep/gui/window_open.py
+#, python-brace-format
+msgid "Exam {id} — {name}: {type}, no pressure data"
+msgstr "Měření {id} — {name}: {type}, bez tlakových dat"
 
 #: freestep/gui/window_playback.py
 msgid "Acquisition (e.g. eyes open / eyes closed)"
@@ -1098,10 +1169,6 @@ msgstr "Průměr"
 #: freestep/gui/window_playback.py
 msgid "Play / pause (Space)"
 msgstr "Přehrát / pozastavit (mezerník)"
-
-#: freestep/gui/window_playback.py
-msgid " fps"
-msgstr " sn./s"
 
 #: freestep/gui/window_playback.py
 msgid "Playback speed in frames per second (set to the sampling rate of the acquisition)"

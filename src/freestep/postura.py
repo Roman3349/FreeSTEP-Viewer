@@ -35,6 +35,14 @@ test). Layout (reverse engineered, see ``docs/FORMAT.md``)::
 COP is computed as ``sum(p * index) / sum(p) * cell_size`` (no half-cell offset).
 A rotated plate may swap left and right.
 The file may be followed by unused, preallocated space.
+
+``Statica.dat`` of a static exam holds a single frame without trailer: the common
+header, 7 int16 settings, the descriptor of the VB dynamic array holding the frame
+(int16 dimensions = 2, then per dimension int32 count and int32 lower bound; 94
+bytes in all), then ``uint16[R][C]`` pressure; the rest of the file (26 zero bytes
+in the known sample) is the rest of the record (see :meth:`Postura.parse_static`).
+The frame matches the footprint ``Impronta.bpe`` (4 bytes header, ``uint8[R][C]``)
+of the same exam.
 """
 
 from __future__ import annotations
@@ -48,6 +56,8 @@ from numpy.typing import NDArray
 
 #: Size of the common part of the file header (up to the maximum value) in bytes.
 COMMON_HEADER_SIZE = 62
+#: Number of int16 settings after the common header of ``Statica.dat``.
+STATIC_SETTINGS_COUNT = 7
 #: Size of the per-frame trailer (timestamp, unknown int16, 3 COP points) in bytes.
 FRAME_TRAILER_SIZE = 30
 #: Size of the acquisition header (flag + last frame index) in bytes.
@@ -60,6 +70,8 @@ LABEL_SIZE: dict[int, int] = {1: 0, 3: 100}
 
 # Common header fields (see the module docstring).
 _COMMON_STRUCT = struct.Struct("<h50s5h")
+# Descriptor of a two-dimensional VB dynamic array: dimensions, then count and lower bound per dimension
+_STATIC_ARRAY_STRUCT = struct.Struct("<h4i")
 _ACQUISITION_STRUCT = struct.Struct("<hi")
 # Settings counts tried for unknown versions.
 _MAX_SETTINGS = 16
@@ -80,6 +92,7 @@ class PosturaHeader:
         settings: Version specific int16 values of not yet known meaning
             (v3: ``(-1, 512, 0, 0, 1, 1)``, the 512 differs between exams).
         size: Size of the header in bytes (v1: 66, v3: 74).
+        plates: Number of plates in a row joined into the columns (gait recordings, see :mod:`freestep.walkway`).
     """
 
     version: int
@@ -91,6 +104,7 @@ class PosturaHeader:
     max_value: int
     settings: tuple[int, ...]
     size: int
+    plates: int = 1
 
     @property
     def frame_size(self) -> int:
@@ -298,12 +312,16 @@ class Postura:
         raw: Complete file content (the arrays are views into it).
         data_end: Offset where the last acquisition ends; the rest of the file
             is preallocated, unused space.
+        gait: A gait recording (dynamic or treadmill exam, one acquisition per
+            pass, see :mod:`freestep.walkway`); stabilometry and the load
+            distribution of standing feet do not apply.
     """
 
     header: PosturaHeader
     acquisitions: list[Acquisition]
     raw: bytes = field(repr=False)
     data_end: int = 0
+    gait: bool = False
 
     @classmethod
     def parse(cls, data: bytes) -> Postura:
@@ -354,6 +372,61 @@ class Postura:
         if not acquisitions:
             raise ValueError("Postura.dat contains no acquisition")
         return cls(header=header, acquisitions=acquisitions, raw=data, data_end=offset)
+
+    @classmethod
+    def parse_static(cls, data: bytes) -> Postura:
+        """Parse ``Statica.dat`` of a static exam as a recording with one acquisition of one frame.
+
+        The frame has no timestamp; the COPs are computed like FreeSTEP's (halves at ``columns / 2``).
+
+        Args:
+            data: Complete (decrypted) file content.
+
+        Returns:
+            The recording.
+
+        Raises:
+            ValueError: The data are too short or the plate size is invalid.
+        """
+        descriptor = COMMON_HEADER_SIZE + 2 * STATIC_SETTINGS_COUNT
+        size = descriptor + _STATIC_ARRAY_STRUCT.size
+        if len(data) < size:
+            raise ValueError("Statica.dat is too short for a header")
+        version, name, columns, rows, cell_w, cell_h, max_value = _COMMON_STRUCT.unpack_from(data)
+        dims, count_1, _, count_2, _ = _STATIC_ARRAY_STRUCT.unpack_from(data, descriptor)
+        if dims != 2 or count_1 * count_2 != rows * columns:
+            raise ValueError(f"Statica.dat has no {columns}x{rows} array descriptor")
+        if columns <= 0 or rows <= 0 or len(data) < size + rows * columns * 2:
+            raise ValueError(f"Statica.dat does not hold one {columns}x{rows} frame")
+        header = PosturaHeader(
+            version=version,
+            platform=name.decode("cp1252").rstrip(" \x00"),
+            columns=columns,
+            rows=rows,
+            cell_width_mm=cell_w,
+            cell_height_mm=cell_h,
+            max_value=max_value,
+            settings=struct.unpack_from(f"<{STATIC_SETTINGS_COUNT}h", data, COMMON_HEADER_SIZE),
+            size=size,
+        )
+        pressure = np.frombuffer(data, dtype="<u2", count=rows * columns, offset=header.size).reshape(rows, columns)
+        records = np.zeros(1, dtype=frame_dtype(rows, columns))
+        records["pressure"][0] = pressure
+        half = columns // 2
+        for name_, part, first in (
+            ("cop_total", pressure, 0),
+            ("cop_left", pressure[:, :half], 0),
+            ("cop_right", pressure[:, half:], half),
+        ):
+            load = part.astype(np.float64)
+            if load.sum() > 0:
+                ys, xs = np.indices(load.shape)
+                records[name_][0] = (
+                    ((load * (xs + first)).sum() / load.sum()) * cell_w / 10,
+                    (load * ys).sum() / load.sum() * cell_h / 10,
+                )
+        acquisition = Acquisition(index=0, records=records, mean_image=pressure, label="", header=header)
+        return cls(header=header, acquisitions=[acquisition], raw=data, data_end=len(data))
 
     @property
     def unused_size(self) -> int:

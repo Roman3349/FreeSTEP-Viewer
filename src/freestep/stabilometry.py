@@ -204,8 +204,13 @@ def unit(name: str) -> str:
 def analyze_all(
     post: Postura, lowpass_hz: float | None = DEFAULT_LOWPASS_HZ, *, detrend: bool = False
 ) -> list[Stabilometry | None]:
-    """Analyse every acquisition of a recording (see :func:`analyze`), ``None`` where it is not possible."""
+    """Analyse every acquisition of a recording (see :func:`analyze`), ``None`` where it is not possible.
+
+    A gait recording (:attr:`Postura.gait`) is not analysed.
+    """
     results: list[Stabilometry | None] = []
+    if post.gait:
+        return [None] * len(post.acquisitions)
     for acq in post.acquisitions:
         try:
             results.append(analyze(acq, lowpass_hz, detrend=detrend))
